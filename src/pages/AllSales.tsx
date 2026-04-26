@@ -115,7 +115,12 @@ export default function AllSales() {
                   <DropdownMenuContent align="end" className="w-52 p-1">
                     <DropdownMenuItem onClick={() => printInvoice(row, 'invoice')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <FileText size={14} />
-                      طباعة الفاتورة
+                      طباعة الفاتورة (A4)
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => printInvoice(row, 'roll')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
+                      <Printer size={14} />
+                      طباعة الفاتورة (رول)
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
