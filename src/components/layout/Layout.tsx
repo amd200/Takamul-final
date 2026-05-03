@@ -378,10 +378,8 @@ export default function Layout() {
                   <SubmenuItem label={t("sales_settings") || "إعدادات المبيعات"} icon={ShoppingCart} path="/settings/sales" />
                   <SubmenuItem label={t("barcode_scale") || "ميزان الباركود"} icon={Barcode} path="/settings/barcode" />
                   <SubmenuItem label={t("email_settings") || "البريد الإلكتروني"} icon={Mail} path="/settings/email" />
-                  {/* <SubmenuItem label={t("delivery_companies")} icon={Truck} path="/settings/delivery-companies" />
-                <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
-                <SubmenuItem label={t("customer_groups")} icon={Users} path="/settings/customer-groups" />
-                <SubmenuItem label={t("price_groups")} icon={DollarSign} path="/settings/price-groups" /> */}
+                  {/* <SubmenuItem label={t("customer_groups")} icon={Users} path="/settings/customer-groups" />
+                  <SubmenuItem label={t("price_groups")} icon={DollarSign} path="/settings/price-groups" /> */}
                   {/* <SubmenuItem
                   label={t("change_logo")}
                   icon={Upload}

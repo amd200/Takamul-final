@@ -140,18 +140,7 @@ export default function SalesSettings() {
               </Select>
             </Field>
 
-            <Field>
-              <FieldLabel className="gap-x-0">{t("enable_glasses")} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={systemSettings.sales.enableGlasses ? enableStr : disableStr} onValueChange={(val) => handleUpdate("enableGlasses", val === enableStr)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
-                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
+
 
             {/* Order Types Checkboxes */}
             <div className="col-span-full mt-6 flex flex-wrap items-center gap-10">
