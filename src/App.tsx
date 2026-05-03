@@ -120,6 +120,7 @@ import RolesPage from "./pages/RolesPage";
 import SalesReturn from "./pages/SalesReturn";
 import { useGetAllSettings } from "./features/settings/hooks/useGetAllSettings";
 import POSDevicesList from "./pages/POSDevicesList";
+import ShiftsList from "./pages/ShiftsList";
 
 function AppRoutes() {
 
@@ -228,6 +229,7 @@ function AppRoutes() {
             <Route path="/reports/purchases" element={<PurchasesReport />} />
             <Route path="/reports/best-sellers" element={<BestSellersChart />} />
             <Route path="/reports/shifts" element={<ShiftsReport />} />
+            <Route path="/shifts" element={<ShiftsList />} />
             {/* <Route path="/reports/customers" element={<CustomersReport />} /> */}
             {/* <Route path="/reports/customer-aging" element={<CustomerAgingReport />} /> */}
 

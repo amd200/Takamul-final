@@ -69,7 +69,7 @@ const NAV_ITEMS = [
       { label: "POS Devices", icon: Monitor, path: "/users/pos-devices" },
       { label: "Roles", icon: Shield, path: "/roles" },
       { label: "Employees", icon: Users, path: "/employyes" },
-      { label: "Shifts", icon: RefreshCw, path: "/shifts" },
+      { label: "Shifts List", icon: RefreshCw, path: "/shifts" },
     ],
   },
   {
