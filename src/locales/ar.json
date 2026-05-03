@@ -391,7 +391,6 @@
   "enable_bill_suspension": "إمكانية تعليق الفاتورة",
   "enable_daily_sales_report": "تفعيل تقرير مبيعات اليوم",
   "enable_display_screen": "تفعيل شاشة العرض",
-
   "enable_markers": "تفعيل المسوقين",
   "enable_marketers": "تفعيل المسوقين",
   "enable_order_number": "تفعيل رقم الطلب",
@@ -697,7 +696,7 @@
   "purchase_invoice_type": "نوع فاتورة المشتريات",
   "purchase_status": "حالة عملية الشراء",
   "remove": "حذف",
-  "remove_minus":"طرح",
+  "remove_minus": "طرح",
   "purchases": "المشتريات",
   "purchases_all_branches": "المشتريات (جميع الفروع)",
   "purchases_list": "قائمة المشتريات",

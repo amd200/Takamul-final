@@ -811,8 +811,9 @@ body {
 }
 
 .custom-compact-table .p-datatable-thead > tr > th,
-.custom-compact-table .p-datatable-tbody > tr > td {
-  white-space: nowrap;
+.custom-compact-table .p-datatable-tbody > tr > td,
+.no-wrap-header .p-datatable-thead > tr > th {
+  white-space: nowrap !important;
 }
 
 .p-datatable-header {
