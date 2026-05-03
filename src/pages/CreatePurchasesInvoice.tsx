@@ -133,8 +133,11 @@ const CreatePurchaseInvoice: React.FC = () => {
   }, [suppliers, purchaseOrder]);
   useEffect(() => {
     if (treasurys && treasurys.length > 0 && !isEditMode) {
-      const defaultId = Number(defaultPurchasesVault) || Number(treasurys[0]?.id);
-      form.setValue(`payments.0.treasuryId`, defaultId, { shouldValidate: true, shouldDirty: true });
+      const currentVault = form.getValues("payments.0.treasuryId");
+      if (!currentVault || currentVault === 0) {
+        const defaultId = Number(defaultPurchasesVault) || Number(treasurys[0]?.id);
+        form.setValue(`payments.0.treasuryId`, defaultId, { shouldValidate: true, shouldDirty: true });
+      }
     }
   }, [treasurys, defaultPurchasesVault, isEditMode, form]);
   const {
@@ -272,14 +275,11 @@ const CreatePurchaseInvoice: React.FC = () => {
       form.setValue(`payments.0.amount`, Number(summary.finalTotal.toFixed(2)));
     }
   }, [summary.finalTotal, isEditMode]);
-  useEffect(() => {
-    if (treasurys && treasurys.length > 0 && !isEditMode) {
-      form.setValue(`payments.0.treasuryId`, Number(treasurys[0]?.id));
-    }
-  }, [treasurys, isEditMode]);
+
 
   const handleAddPayment = () => {
-    appendPayment({ amount: 0, treasuryId: 0 });
+    const defaultId = Number(defaultPurchasesVault) || Number(treasurys?.[0]?.id || 0);
+    appendPayment({ amount: 0, treasuryId: defaultId });
   };
 
   const supplierId = useWatch({ name: "supplierId", control: form.control });

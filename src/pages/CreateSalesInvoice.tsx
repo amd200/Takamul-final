@@ -236,8 +236,11 @@ const CreateSalesInvoice: React.FC = () => {
   }, [finalTotal, paymentFields.length]);
   useEffect(() => {
     if (treasurys && treasurys.length > 0) {
-      const defaultId = Number(defaultSalesVault) || Number(treasurys[0]?.id);
-      form.setValue(`payments.0.treasuryId`, defaultId);
+      const currentVault = form.getValues("payments.0.treasuryId");
+      if (!currentVault || currentVault === 0) {
+        const defaultId = Number(defaultSalesVault) || Number(treasurys[0]?.id);
+        form.setValue(`payments.0.treasuryId`, defaultId);
+      }
     }
   }, [treasurys, defaultSalesVault]);
 
@@ -253,9 +256,10 @@ const CreateSalesInvoice: React.FC = () => {
   };
 
   const handleAddPayment = () => {
+    const defaultId = Number(defaultSalesVault) || Number(treasurys?.[0]?.id || 0);
     appendPayment({
       amount: 0,
-      treasuryId: undefined,
+      treasuryId: defaultId,
     });
   };
 
