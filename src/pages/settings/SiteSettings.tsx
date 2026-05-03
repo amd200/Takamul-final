@@ -129,7 +129,7 @@ export default function SiteSettings() {
               control={control}
               render={({ field }) => (
                 <Field>
-                  <FieldLabel>{t("show_item_code_in_sales_print")} *</FieldLabel>
+                  <FieldLabel>{t("show_item_code_in_sales")} *</FieldLabel>
                   <Select value={booleanToString(field.value)} onValueChange={(val) => field.onChange(stringToBoolean(val))}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
