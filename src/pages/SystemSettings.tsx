@@ -1,7 +1,7 @@
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings, type SystemSettings } from "@/context/SettingsContext";
-import { Settings, Star, Percent, FileText, Printer, Save, Truck, Coins, Users, DollarSign, Grid3x3, ArrowLeft, Tag } from "lucide-react";
+import { Settings, Star, Percent, FileText, Printer, Save, Truck, Coins, Users, DollarSign, Grid3x3, ArrowLeft, Tag, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import CategoryDiscount from "./CategoryDiscount";
 import TablesList from "./Tables";
 import TaxesList from "./TaxesList";
 import { useUpdateTobaccoFees } from "@/features/settings/hooks/useUpdateTobaccoFees";
-import { useUpdateGeneralSettings } from "@/features/settings/hooks/useUpdateSettings";
+import { useUpdateGeneralSettings, useUpdateItemsSettings } from "@/features/settings/hooks/useUpdateSettings";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field, FieldLabel } from "@/components/ui/field";
 
@@ -59,6 +59,7 @@ export default function SystemSettings() {
   const { systemSettings, updateSystemSettings, saveSettings } = useSettings();
   const { mutate: updateTobaccoFees } = useUpdateTobaccoFees();
   const { mutate: updateGeneral } = useUpdateGeneralSettings();
+  const { mutate: updateItems } = useUpdateItemsSettings();
   const [activeSection, setActiveSection] = React.useState("points");
   const [headerImageFiles, setHeaderImageFiles] = React.useState<File[]>([]);
 
@@ -80,6 +81,7 @@ export default function SystemSettings() {
     { id: "currencies", title: t("currencies", "العملات"), icon: Coins },
     { id: "category_discounts", title: t("category_discounts", "خصومات التصنيفات"), icon: Tag },
     { id: "taxes", title: t("tax_list", "قائمة الضرايب"), icon: Percent },
+    { id: "tax_system", title: t("tax_system", "نظام الضرائب"), icon: Percent },
     { id: "tables", title: t("tables", "الطاولات"), icon: Grid3x3 },
   ];
 
@@ -294,6 +296,43 @@ export default function SystemSettings() {
             )}
 
             {activeSection === "taxes" && <TaxesList />}
+
+            {activeSection === "tax_system" && (
+              <SettingSection
+                id="tax_system"
+                title={t("tax_system", "نظام الضرائب")}
+                onSave={() => {
+                  updateItems({ 
+                    itemTax: systemSettings.items.itemTax,
+                    itemExpiry: systemSettings.items.itemExpiry,
+                    showWarehouseItems: systemSettings.items.showWarehouseItems === "إظهار جميع الأصناف حتى لو رصيدها صفر",
+                    enableSecondLanguageItemName: systemSettings.items.enableSecondLangName,
+                    showProductBalanceAtSale: systemSettings.items.showProductBalanceAtSale,
+                    allowPriceChangeOnSale: true 
+                  });
+                }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <Field>
+                    <FieldLabel className="gap-x-0">
+                      {t("settings_item_tax")} <span className="text-red-500">*</span>
+                    </FieldLabel>
+                    <Select
+                      value={systemSettings.items.itemTax ? (t("enable_option") || "تمكين") : (t("disable_option") || "تعطيل")}
+                      onValueChange={(val) => handleUpdate("items", "itemTax", val === (t("enable_option") || "تمكين"))}
+                    >
+                      <SelectTrigger className="w-full h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={t("enable_option") || "تمكين"}>{t("enable_option") || "تمكين"}</SelectItem>
+                        <SelectItem value={t("disable_option") || "تعطيل"}>{t("disable_option") || "تعطيل"}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
+              </SettingSection>
+            )}
 
             {activeSection === "tables" && <TablesList />}
           </div>
