@@ -31,6 +31,7 @@ export default function ItemsSettings() {
       enableSecondLanguageItemName: systemSettings.items.enableSecondLangName,
       showProductBalanceAtSale: systemSettings.items.showProductBalanceAtSale,
       allowPriceChangeOnSale: true,
+      taxPhase: systemSettings.items.taxPhase,
     });
   };
 

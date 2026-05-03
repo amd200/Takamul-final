@@ -45,6 +45,7 @@ export interface SystemSettings {
     enableSecondLangName: boolean;
     enableThirdLangName: boolean;
     showProductBalanceAtSale: boolean;
+    taxPhase: string;
   };
   sales: {
     sellIfZero: boolean;
@@ -245,6 +246,7 @@ const defaultSystemSettings: SystemSettings = {
     enableSecondLangName: false,
     enableThirdLangName: false,
     showProductBalanceAtSale: true,
+    taxPhase: "مرحلة اولى",
   },
   sales: {
     sellIfZero: false,

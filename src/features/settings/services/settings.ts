@@ -45,6 +45,7 @@ export const updateItemsSettings = (data: {
   enableSecondLanguageItemName: boolean;
   showProductBalanceAtSale: boolean;
   allowPriceChangeOnSale: boolean;
+  taxPhase: string;
 }) =>
   httpClient("/Settings/items", {
     method: "PUT",

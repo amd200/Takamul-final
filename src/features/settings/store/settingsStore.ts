@@ -30,6 +30,7 @@ interface ItemsSettings {
   enableSecondLanguageItemName: boolean;
   showProductBalanceAtSale: boolean;
   allowPriceChangeOnSale: boolean;
+  taxPhase: string;
 }
 
 interface SalesSettings {
@@ -104,6 +105,7 @@ const defaultSettings: Settings = {
     enableSecondLanguageItemName: false,
     showProductBalanceAtSale: true,
     allowPriceChangeOnSale: false,
+    taxPhase: "مرحلة اولى",
   },
   sales: {
     allowSaleWithZeroStock: false,

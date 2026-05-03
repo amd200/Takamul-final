@@ -81,8 +81,9 @@ export default function SystemSettings() {
     { id: "currencies", title: t("currencies", "العملات"), icon: Coins },
     { id: "category_discounts", title: t("category_discounts", "خصومات التصنيفات"), icon: Tag },
     { id: "taxes", title: t("tax_list", "قائمة الضرايب"), icon: Percent },
-    { id: "tax_system", title: t("tax_system", "نظام الضرائب"), icon: Percent },
+
     { id: "tables", title: t("tables", "الطاولات"), icon: Grid3x3 },
+    { id: "tax_system", title: t("tax_system", "نظام الضرائب"), icon: Percent },
   ];
 
   const handleSave = () => {
@@ -175,11 +176,11 @@ export default function SystemSettings() {
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">{t("tobacco_tax_value", "قيمة ضريبة التبغ")}</label>
-                        <Input 
-                          type="number" 
-                          value={systemSettings.tobacco?.tobaccoFees || 0} 
-                          onChange={(e) => handleUpdate("tobacco" as any, "tobaccoFees", parseFloat(e.target.value))} 
-                          className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" 
+                        <Input
+                          type="number"
+                          value={systemSettings.tobacco?.tobaccoFees || 0}
+                          onChange={(e) => handleUpdate("tobacco" as any, "tobaccoFees", parseFloat(e.target.value))}
+                          className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]"
                         />
                       </div>
                     </div>
@@ -297,18 +298,22 @@ export default function SystemSettings() {
 
             {activeSection === "taxes" && <TaxesList />}
 
+
+
+            {activeSection === "tables" && <TablesList />}
             {activeSection === "tax_system" && (
               <SettingSection
                 id="tax_system"
                 title={t("tax_system", "نظام الضرائب")}
                 onSave={() => {
-                  updateItems({ 
+                  updateItems({
                     itemTax: systemSettings.items.itemTax,
                     itemExpiry: systemSettings.items.itemExpiry,
                     showWarehouseItems: systemSettings.items.showWarehouseItems === "إظهار جميع الأصناف حتى لو رصيدها صفر",
                     enableSecondLanguageItemName: systemSettings.items.enableSecondLangName,
                     showProductBalanceAtSale: systemSettings.items.showProductBalanceAtSale,
-                    allowPriceChangeOnSale: true 
+                    allowPriceChangeOnSale: true,
+                    taxPhase: systemSettings.items.taxPhase
                   });
                 }}
               >
@@ -330,11 +335,46 @@ export default function SystemSettings() {
                       </SelectContent>
                     </Select>
                   </Field>
+
+                  <Field>
+                    <FieldLabel className="gap-x-0">
+                      {t("tax_phase", "نوع المرحلة")}
+                    </FieldLabel>
+                    <Select
+                      value={systemSettings.items.taxPhase}
+                      onValueChange={(val) => handleUpdate("items", "taxPhase", val)}
+                    >
+                      <SelectTrigger className="w-full h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="مرحلة اولى">مرحلة اولى</SelectItem>
+                        <SelectItem value="مرحلة تانيه">مرحلة تانيه</SelectItem>
+                        <SelectItem value="معفي">معفي</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel className="gap-x-0">
+                      {t("show_product_balance_at_sale")}
+                    </FieldLabel>
+                    <Select
+                      value={systemSettings.items.showProductBalanceAtSale ? (t("enable_option") || "تمكين") : (t("disable_option") || "تعطيل")}
+                      onValueChange={(val) => handleUpdate("items", "showProductBalanceAtSale", val === (t("enable_option") || "تمكين"))}
+                    >
+                      <SelectTrigger className="w-full h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={t("enable_option") || "تمكين"}>{t("enable_option") || "تمكين"}</SelectItem>
+                        <SelectItem value={t("disable_option") || "تعطيل"}>{t("disable_option") || "تعطيل"}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
                 </div>
               </SettingSection>
             )}
-
-            {activeSection === "tables" && <TablesList />}
           </div>
         </div>
       </CardContent>

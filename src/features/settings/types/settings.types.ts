@@ -26,6 +26,7 @@ export type SettingsResponse = {
     enableSecondLanguageItemName: boolean;
     showProductBalanceAtSale: boolean;
     allowPriceChangeOnSale: boolean;
+    taxPhase: string;
   };
 
   sales: {
