@@ -64,6 +64,7 @@ const CreateSalesInvoice: React.FC = () => {
   const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
   const defaultSalesVault = useSettingsStore((s) => s.settings.sales.defaultSalesVault);
   const showItemCode = useSettingsStore((s) => s.settings.location.showItemCodeInSalesPrint);
+  const showProductBalanceAtSale = useSettingsStore((s) => s.settings.items.showProductBalanceAtSale);
   const { id } = useParams();
   // const isEditMode = Boolean(id);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
@@ -438,11 +439,13 @@ const CreateSalesInvoice: React.FC = () => {
                   <div className="w-full overflow-x-auto pb-4">
                     <div>
                       <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", 
-                        showItemCode ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]")}>
+                        showItemCode 
+                          ? (showProductBalanceAtSale ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]")
+                          : (showProductBalanceAtSale ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]"))}>
                         {showItemCode && <div>{t("product_code")}</div>}
                         <div>{t("product_name")}</div>
                         <div>{t("unit")}</div>
-                        <div>{t("balance")}</div>
+                        {showProductBalanceAtSale && <div>{t("balance")}</div>}
                         <div>{t("unit_price")}</div>
                         <div>{t("quantity")}</div>
                         <div>نوع الضريبة</div>
@@ -477,7 +480,9 @@ const CreateSalesInvoice: React.FC = () => {
                           return (
                             <div key={item.id}>
                               <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group", 
-                                showItemCode ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]")}>
+                                showItemCode 
+                                  ? (showProductBalanceAtSale ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]")
+                                  : (showProductBalanceAtSale ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]"))}>
                                 {showItemCode && (
                                   <Field>
                                     <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
@@ -520,9 +525,11 @@ const CreateSalesInvoice: React.FC = () => {
                                     </Field>
                                   )}
                                 />
-                                <div className="text-center bg-muted py-2.5 px-3 rounded-md">
-                                  <span className={`font-medium  ${(product?.balance ?? 0) <= 0 ? "text-red-500" : "text-emerald-500"}`}>{product?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? "—"}</span>
-                                </div>
+                                {showProductBalanceAtSale && (
+                                  <div className="text-center bg-muted py-2.5 px-3 rounded-md">
+                                    <span className={`font-medium  ${(product?.balance ?? 0) <= 0 ? "text-red-500" : "text-emerald-500"}`}>{product?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? "—"}</span>
+                                  </div>
+                                )}
                                 <Controller
                                   control={form.control}
                                   name={`items.${index}.price`}
