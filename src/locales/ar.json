@@ -1658,7 +1658,7 @@
   "default_currency": "العملة الافتراضية",
   "show_actual_balance_entities": "إظهار الرصيد الفعلي للجهات",
   "show_cost_greater_msg": "إظهار رسالة التكلفة أكبر من سعر البيع",
-  "show_item_code_in_sales_print": "إظهار كود الصنف في المبيعات في الطباعة",
+  "show_item_code_in_sales": "إظهار كود الصنف في المبيعات",
   "show_item_code_in_quotes": "إظهار كود الصنف في عروض الأسعار",
   "show_item_code_in_purchases": "إظهار كود الصنف في المشتريات",
   "settings_item_tax": "ضريبة الصنف",

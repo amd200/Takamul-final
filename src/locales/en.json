@@ -1651,7 +1651,7 @@
   "default_currency": "Default Currency",
   "show_actual_balance_entities": "Show Actual Balance for Entities",
   "show_cost_greater_msg": "Show Cost Greater Than Sale Price Message",
-  "show_item_code_in_sales_print": "Show Item Code in Sales Printing",
+  "show_item_code_in_sales": "Show Item Code in Sales ",
   "show_item_code_in_quotes": "Show Item Code in Quotes",
   "show_item_code_in_purchases": "Show Item Code in Purchases",
   "settings_item_tax": "Item Tax",

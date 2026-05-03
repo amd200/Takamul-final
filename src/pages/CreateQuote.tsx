@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Trash2, Plus, ArrowLeft, Tag, ReceiptText, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import z from "zod";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -24,6 +25,7 @@ import { Product } from "@/features/products/types/products.types";
 import { useUpdateQuotation } from "@/features/quotation/hooks/useUpdateQuotation";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 const QuoteSchema = (t: (key: string) => string) =>
   z.object({
@@ -286,6 +288,7 @@ const CreateQuote: React.FC = () => {
   const { t, direction } = useLanguage();
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
   const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
+  const showItemCode = useSettingsStore((s) => s.settings.location.showItemCodeInQuotations);
 
   const form = useForm<SalesInvoiceType>({
     resolver: zodResolver(QuoteSchema(t)),
@@ -310,10 +313,12 @@ const CreateQuote: React.FC = () => {
   }
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const filteredProducts = useMemo(() => {
-    return products?.items.filter((item) => {
-      return item.productType !== "Branched";
-    });
-  }, [products?.items]);
+    const base = products?.items.filter((item) => item.productType !== "Branched") || [];
+    return base.map((p) => ({
+      ...p,
+      displayName: showItemCode ? `[${p.productCode || p.id}] ${p.productNameAr}` : p.productNameAr,
+    }));
+  }, [products?.items, showItemCode]);
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { mutateAsync: createQuotations, isPending } = useCreateQuotation();
@@ -522,7 +527,9 @@ const CreateQuote: React.FC = () => {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
                   <div className="w-full overflow-x-auto pb-4">
-                    <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+                    <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", 
+                      showItemCode ? "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
+                      {showItemCode && <div>{t("product_code")}</div>}
                       <div>{t("product_name")}</div>
                       <div>{t("unit")}</div>
                       <div>{t("unit_price")}</div>
@@ -553,10 +560,18 @@ const CreateQuote: React.FC = () => {
                         const grandTotal = afterDiscount;
                         const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                         const isDiscOpen = !!discountOpen[index];
+                        const productCode = product?.barcode || "";
 
                         return (
                           <div key={item.id}>
-                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2  md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
+                            <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2  md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group", 
+                              showItemCode ? "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
+                              {showItemCode && (
+                                <Field>
+                                  <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
+                                  <Input value={productCode} readOnly className="bg-gray-50 text-center" />
+                                </Field>
+                              )}
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.productId`}
@@ -567,7 +582,7 @@ const CreateQuote: React.FC = () => {
                                       field={field}
                                       items={filteredProducts}
                                       valueKey="id"
-                                      labelKey="productNameAr"
+                                      labelKey="displayName"
                                       placeholder={t("choose_product")}
                                       onValueChange={(val) => {
                                         const p = products?.items?.find((p) => p.id === Number(val));

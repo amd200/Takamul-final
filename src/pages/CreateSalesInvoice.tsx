@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Plus, PlusCircle, Tag, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,6 +62,8 @@ const CreateSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
+  const defaultSalesVault = useSettingsStore((s) => s.settings.sales.defaultSalesVault);
+  const showItemCode = useSettingsStore((s) => s.settings.location.showItemCodeInSalesPrint);
   const { id } = useParams();
   // const isEditMode = Boolean(id);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
@@ -111,7 +114,13 @@ const CreateSalesInvoice: React.FC = () => {
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { data: treasurys } = useGetAllTreasurys();
-  const filterProducts = useMemo(() => products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared"), [products]);
+  const filterProducts = useMemo(() => {
+    const base = products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared") || [];
+    return base.map((p) => ({
+      ...p,
+      displayName: showItemCode ? `[${p.productCode || p.id}] ${p.productNameAr}` : p.productNameAr,
+    }));
+  }, [products?.items, showItemCode]);
   const { mutateAsync: createSalesOrders } = useCreateSalesOrders();
   const { data: employees } = useGetAllEmployees({ page: 1, limit: 10000 });
 
@@ -227,9 +236,10 @@ const CreateSalesInvoice: React.FC = () => {
   }, [finalTotal, paymentFields.length]);
   useEffect(() => {
     if (treasurys && treasurys.length > 0) {
-      form.setValue(`payments.0.treasuryId`, Number(treasurys[0]?.id));
+      const defaultId = Number(defaultSalesVault) || Number(treasurys[0]?.id);
+      form.setValue(`payments.0.treasuryId`, defaultId);
     }
-  }, [treasurys]);
+  }, [treasurys, defaultSalesVault]);
 
   const handleAddItem = () => {
     appendItem({
@@ -423,7 +433,9 @@ const CreateSalesInvoice: React.FC = () => {
 
                   <div className="w-full overflow-x-auto pb-4">
                     <div>
-                      <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-widest items-center">
+                      <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", 
+                        showItemCode ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]")}>
+                        {showItemCode && <div>{t("product_code")}</div>}
                         <div>{t("product_name")}</div>
                         <div>{t("unit")}</div>
                         <div>{t("balance")}</div>
@@ -444,6 +456,7 @@ const CreateSalesInvoice: React.FC = () => {
                           const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                           const productId = form.watch(`items.${index}.productId`);
                           const product = products?.items?.find((p) => p.id === Number(productId));
+                          const productCode = product?.barcode || "";
                           const originalPrice = product?.sellingPrice || 1;
                           const originalTax = product?.taxAmount || 0;
                           const taxPercentage = originalTax / originalPrice;
@@ -459,7 +472,15 @@ const CreateSalesInvoice: React.FC = () => {
 
                           return (
                             <div key={item.id}>
-                              <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_1fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
+                              <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group", 
+                                showItemCode ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]")}>
+                                {showItemCode && (
+                                  <Field>
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
+                                    <Input value={productCode} readOnly className="bg-gray-50 text-center" />
+                                  </Field>
+                                )}
+
                                 <Controller
                                   control={form.control}
                                   name={`items.${index}.productId`}
@@ -469,7 +490,7 @@ const CreateSalesInvoice: React.FC = () => {
                                         field={field}
                                         items={filterProducts}
                                         valueKey="id"
-                                        labelKey="productNameAr"
+                                        labelKey="displayName"
                                         placeholder={t("choose_product")}
                                         onValueChange={(val) => {
                                           const selectedProduct = filterProducts.find((p) => p.id === Number(val));

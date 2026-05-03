@@ -1,7 +1,7 @@
 import { Customer } from "@/features/customers/types/customers.types";
 import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 import { Supplier } from "@/features/suppliers/types/suppliers.types";
-import QRCode from "qrcode";
+import QRCode from "qrcode/lib/browser.js";
 import { printInvoicePrinter } from "@/lib/qzService";
 
 export interface InvoiceItem {

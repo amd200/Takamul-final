@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Trash2, Plus, ArrowLeft, Tag } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,6 +62,8 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
+  const defaultPurchasesVault = useSettingsStore((s) => s.settings.sales.defaultPurchasesVault);
+  const showItemCode = useSettingsStore((s) => s.settings.location.showItemCodeInPurchases);
 
   const purchasesInvoiceSchema = useMemo(() => createPurchasesInvoiceSchema(t), [t]);
 
@@ -106,7 +109,13 @@ const CreatePurchaseInvoice: React.FC = () => {
 
   const { data: suppliers } = useGetAllSuppliers();
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
-  const filterProducts = products?.items?.filter((pro) => pro.productType == "Direct" || pro?.productType == "RawMatrial");
+  const filterProducts = useMemo(() => {
+    const base = products?.items?.filter((pro) => pro.productType == "Direct" || pro?.productType == "RawMatrial") || [];
+    return base.map((p) => ({
+      ...p,
+      displayName: showItemCode ? `[${p.productCode || p.id}] ${p.productNameAr}` : p.productNameAr,
+    }));
+  }, [products?.items, showItemCode]);
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { data: taxes } = useGetAllTaxes();
@@ -122,6 +131,12 @@ const CreatePurchaseInvoice: React.FC = () => {
       form.setValue("supplierId", supplierId);
     }
   }, [suppliers, purchaseOrder]);
+  useEffect(() => {
+    if (treasurys && treasurys.length > 0 && !isEditMode) {
+      const defaultId = Number(defaultPurchasesVault) || Number(treasurys[0]?.id);
+      form.setValue(`payments.0.treasuryId`, defaultId, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [treasurys, defaultPurchasesVault, isEditMode, form]);
   const {
     fields: itemFields,
     append: appendItem,
@@ -376,17 +391,19 @@ const CreatePurchaseInvoice: React.FC = () => {
                 <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
 
                 <div className="w-full overflow-x-auto pb-4">
-                  <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
-                    <div>{t("product_name_code")}</div>
-                    <div>{t("unit")}</div>
-                    <div>{t("unit_cost")}</div>
-                    <div>{t("quantity")}</div>
-                    <div>{t("total_before_tax")}</div>
-                    <div>{t("tax_rate")}</div>
-                    <div>{t("vat")}</div>
-                    <div>{t("final_total")}</div>
-                    <div></div>
-                  </div>
+                    <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", 
+                      showItemCode ? "md:grid-cols-[1fr_1.4fr_0.7fr_0.8fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px]")}>
+                      {showItemCode && <div>{t("product_code")}</div>}
+                      <div>{t("product_name")}</div>
+                      <div>{t("unit")}</div>
+                      <div>{t("unit_cost")}</div>
+                      <div>{t("quantity")}</div>
+                      <div>{t("total_before_tax")}</div>
+                      <div>{t("tax_rate")}</div>
+                      <div>{t("vat")}</div>
+                      <div>{t("final_total")}</div>
+                      <div></div>
+                    </div>
 
                   <div className="space-y-3 mt-3">
                     {itemFields.map((item, index) => {
@@ -403,10 +420,21 @@ const CreatePurchaseInvoice: React.FC = () => {
                       const vatAmount = beforeTax * (taxRate / 100);
                       const grandTotal = beforeTax + vatAmount;
                       const isDiscOpen = !!discountOpen[index];
+                      const productId = form.watch(`items.${index}.productId`);
+                      const product = products?.items?.find((p) => p.id === Number(productId));
+                      const productCode = product?.barcode || "";
 
                       return (
                         <div key={item.id}>
-                          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group">
+                          <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group", 
+                            showItemCode ? "md:grid-cols-[1fr_1.4fr_0.7fr_0.8fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px]")}>
+                            {showItemCode && (
+                              <Field>
+                                <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
+                                <Input value={productCode} readOnly className="bg-gray-50 text-center" />
+                              </Field>
+                            )}
+
                             <Controller
                               control={form.control}
                               name={`items.${index}.productId`}
@@ -416,7 +444,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                                     field={field}
                                     items={filterProducts}
                                     valueKey="id"
-                                    labelKey="productNameAr"
+                                    labelKey="displayName"
                                     placeholder={t("choose_product")}
                                     onValueChange={(val) => {
                                       const product = filterProducts?.find((p) => p.id === Number(val));
