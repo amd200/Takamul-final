@@ -4,6 +4,7 @@ import { itemBasePrice, calcItemTax, calcTotals, type CartItem } from "@/constan
 import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 import { GenereateQRRequest, GenereateQRResponse } from "@/features/zatcaInvoice/types/zarchaInvoices.types";
 import QRCode from "qrcode/lib/browser.js";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: GenereateQRRequest) => Promise<GenereateQRResponse>, passedApiBase?: string): Promise<string> => {
   const branch: Partial<BranchInfo> = order.branchInfo || {};
@@ -11,7 +12,8 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
   const items: any[] = order.items || order.orderItems || [];
   const res = await generateQR({ invoiceId: order.id });
   const qrImageSrc = res?.qrCode ? await QRCode.toDataURL(res.qrCode) : null;
-
+  const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
+  const isExempt = taxSetting === "Exempt";
   const apiBase = passedApiBase || "";
 
   // ── Date formatting ──────────────────────────────────────────────────────────
@@ -548,16 +550,21 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
   <!-- ══ ITEMS TABLE ══ -->
   <table class="items-table">
     <thead>
-      <tr>
-        <th style="width: 35%;">${t("item_description", "بيان الصنف")}<span class="en-sub">Item Des</span></th>
-        <th style="width: 10%;">${t("unit", "الوحدة")}<span class="en-sub">Unit</span></th>
-        <th style="width: 10%;">${t("quantity", "الكمية")}<span class="en-sub">QTY</span></th>
-        <th style="width: 10%;">${t("price", "السعر")}<span class="en-sub">price</span></th>
-        <th style="width: 12%;">${t("sub_total", "اجمالي فرعي")}<span class="en-sub">Sub Total</span></th>
-        <th style="width: 10%;">${t("tax", "الضريبة")}<span class="en-sub">Tax %15</span></th>
-        <th style="width: 13%;">${t("net_total", "الاجمالي النهائي")}<span class="en-sub">Net Total</span></th>
-        
-      </tr>
+<tr>
+  <th style="width: 35%;">${t("item_description", "بيان الصنف")}<span class="en-sub">Item Des</span></th>
+  <th style="width: 10%;">${t("unit", "الوحدة")}<span class="en-sub">Unit</span></th>
+  <th style="width: 10%;">${t("quantity", "الكمية")}<span class="en-sub">QTY</span></th>
+  <th style="width: 10%;">${t("price", "السعر")}<span class="en-sub">price</span></th>
+  ${
+    !isExempt
+      ? `
+  <th style="width: 12%;">${t("sub_total", "اجمالي فرعي")}<span class="en-sub">Sub Total</span></th>
+  <th style="width: 10%;">${t("tax", "الضريبة")}<span class="en-sub">Tax %15</span></th>
+  `
+      : ""
+  }
+  <th style="width: ${isExempt ? "55%" : "13%"};">${t("net_total", "الاجمالي النهائي")}<span class="en-sub">Net Total</span></th>
+</tr>
     </thead>
     <tbody>${itemRows}</tbody>
   </table>
@@ -570,44 +577,45 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
       <div class="inv-no-small">${invoiceNo}</div>
     </div>
 
-    <table class="totals-table">
-      <tr>
-        <td class="lbl-ar">${t("items_count", "عدد المنتجات")}</td>
-        <td class="val-cell">${cart.reduce((s, i) => s + i.qty, 0)}</td>
-        <td class="lbl-en">Items</td>
-      </tr>
-        <tr>
-        <td class="lbl-ar">${t("total_discount", "اجمالي الخصم")}</td>
-        <td class="val-cell">${discount.toFixed(2)}</td>
-        <td class="lbl-en">Discount</td>
-      </tr>
-      <tr>
-        <td class="lbl-ar">${t("tot_before_vat", "اجمالي السعر قبل الضريبة")}</td>
-        <td class="val-cell">${totBeforeVAT.toFixed(2)}</td>
-        <td class="lbl-en">Tot Before VAT</td>
-      </tr>
-    
-      <tr>
-        <td class="lbl-ar">${t("total_vat", "ضريبة القيمة المضافة")}</td>
-        <td class="val-cell">${totalVAT.toFixed(2)}</td>
-        <td class="lbl-en">Total VAT %15</td>
-      </tr>
-      <tr class="net-total-row">
-        <td class="lbl-ar">${t("final_total", "الاجمالي النهائي")}</td>
-        <td class="val-cell">${finalTotal.toFixed(2)}</td>
-        <td class="lbl-en">NET TOTAL</td>
-      </tr>
-      <tr class="net-total-row">
-        <td class="lbl-ar">${t("credit", "المدفوع")}</td>
-        <td class="val-cell">${total.toFixed(2)}</td>
-        <td class="lbl-en">PAID AMOUNT</td>
-      </tr>
-      <tr class="net-total-row">
-        <td class="lbl-ar">${t("remaining", "المتبقي")}</td>
-        <td class="val-cell">${remaining.toFixed(2)}</td>
-        <td class="lbl-en">REMAINING</td>
-      </tr>
-    </table>
+   <table class="totals-table">
+  <tr>
+    <td class="lbl-ar">${t("items_count", "عدد المنتجات")}</td>
+    <td class="val-cell">${cart.reduce((s, i) => s + i.qty, 0)}</td>
+    <td class="lbl-en">Items</td>
+  </tr>
+  <tr>
+    <td class="lbl-ar">${t("total_discount", "اجمالي الخصم")}</td>
+    <td class="val-cell">${discount.toFixed(2)}</td>
+    <td class="lbl-en">Discount</td>
+  </tr>
+  ${!isExempt ? [
+    `<tr>
+      <td class="lbl-ar">${t("tot_before_vat", "اجمالي السعر قبل الضريبة")}</td>
+      <td class="val-cell">${totBeforeVAT.toFixed(2)}</td>
+      <td class="lbl-en">Tot Before VAT</td>
+    </tr>`,
+    `<tr>
+      <td class="lbl-ar">${t("total_vat", "ضريبة القيمة المضافة")}</td>
+      <td class="val-cell">${totalVAT.toFixed(2)}</td>
+      <td class="lbl-en">Total VAT %15</td>
+    </tr>`
+  ].join("") : ""}
+  <tr class="net-total-row">
+    <td class="lbl-ar">${t("final_total", "الاجمالي النهائي")}</td>
+    <td class="val-cell">${finalTotal.toFixed(2)}</td>
+    <td class="lbl-en">NET TOTAL</td>
+  </tr>
+  <tr class="net-total-row">
+    <td class="lbl-ar">${t("credit", "المدفوع")}</td>
+    <td class="val-cell">${total.toFixed(2)}</td>
+    <td class="lbl-en">PAID AMOUNT</td>
+  </tr>
+  <tr class="net-total-row">
+    <td class="lbl-ar">${t("remaining", "المتبقي")}</td>
+    <td class="val-cell">${remaining.toFixed(2)}</td>
+    <td class="lbl-en">REMAINING</td>
+  </tr>
+</table>
   </div>
 
   <!-- ══ NOTES ══ -->
