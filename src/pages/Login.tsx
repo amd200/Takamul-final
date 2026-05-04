@@ -101,7 +101,7 @@ export default function Login() {
     setError("");
     try {
       await login({ identifier: username, password });
-      navigate("/dashboard");
+      navigate("/");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.message || err.response?.data?.title || "فشل تسجيل الدخول";

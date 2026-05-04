@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Permission } from "@/lib/permissions";
+import { authChannel } from "@/utils/authChannel";
 
 type AuthState = {
   accessToken: string | null;
@@ -47,7 +48,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  clearAuth: () =>
+  clearAuth: () => {
+    const state = get();
+    if (!state.accessToken) return;
+    authChannel.broadcast("logout");
     set({
       accessToken: null,
       expiresAt: null,
@@ -56,7 +60,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email: null,
       userName: null,
       isInitialized: true,
-    }),
+    });
+  },
 
   setInitialized: (v: boolean) => set({ isInitialized: v }),
 

@@ -99,7 +99,6 @@ export default function Layout() {
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
   const permissions = useAuthStore((s) => s.permissions);
-  const authChannel = new BroadcastChannel("auth");
 
   const allReportPermissions = React.useMemo(() => [...Object.values(Permissions?.reports?.products || {}), ...Object.values(Permissions?.reports?.customers || {}), ...Object.values(Permissions?.reports?.suppliers || {}), ...Object.values(Permissions?.reports?.expenses || {}), ...Object.values(Permissions?.reports?.sales || {}), ...Object.values(Permissions?.reports?.purchases || {}), ...Object.values(Permissions?.reports?.profits || {})], []);
 
@@ -441,13 +440,13 @@ export default function Layout() {
                 </button>
               )}
               {hasPermission(Permissions?.salesOrders?.addpos) && (
-                <button
+                <button 
                   onClick={() => {
                     const posSetting = systemSettings.location.postype;
                     // Handle all variations: "POS2", "Pos2", or number 2
                     const isPos2 = posSetting === "POS2" || posSetting === "Pos2" || String(posSetting) === "2";
                     navigate(isPos2 ? "/pos2" : "/pos");
-                  }}
+                  }} 
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
                 >
                   <ShoppingCart size={16} />
@@ -657,7 +656,6 @@ export default function Layout() {
                       type="button"
                       onClick={async () => {
                         await logout();
-                        authChannel.postMessage({ type: "LOGOUT" });
                         navigate("/");
                         closeAllMenus();
                       }}

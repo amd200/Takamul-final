@@ -122,14 +122,16 @@ import { useGetAllSettings } from "./features/settings/hooks/useGetAllSettings";
 import POSDevicesList from "./pages/POSDevicesList";
 import ShiftsList from "./pages/ShiftsList";
 import CertificatesPosDevices from "./pages/CertificatesPosDevices";
+import { useEffect } from "react";
+import { authChannel } from "./utils/authChannel";
+import { useAuthStore } from "./store/authStore";
 
 function AppRoutes() {
-
   return (
     <>
       <div>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -138,7 +140,7 @@ function AppRoutes() {
           <Route path="/pos2" element={<AppLayout2 />} />
 
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Dashboard />} />
 
             {/* المنتجات */}
             <Route path="/products" element={<ProductsList />} />
@@ -276,6 +278,15 @@ function AppRoutes() {
 }
 
 export default function App() {
+  useEffect(() => {
+    authChannel.listen((event) => {
+      if (event === "logout") {
+        useAuthStore.getState().clearAuth();
+      }
+    });
+
+    return () => authChannel.close();
+  }, []);
   useGetAllSettings();
   return (
     <PrintProvider>
