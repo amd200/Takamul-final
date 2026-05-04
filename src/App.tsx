@@ -121,6 +121,7 @@ import SalesReturn from "./pages/SalesReturn";
 import { useGetAllSettings } from "./features/settings/hooks/useGetAllSettings";
 import POSDevicesList from "./pages/POSDevicesList";
 import ShiftsList from "./pages/ShiftsList";
+import CertificatesPosDevices from "./pages/CertificatesPOSDevices";
 
 function AppRoutes() {
 
@@ -174,6 +175,7 @@ function AppRoutes() {
             <Route path="/sales/return/:id" element={<CreateReturnSalesInvoice />} />
             <Route path="/sales/pos" element={<POS />} />
             <Route path="/pos-devices" element={<POSDevicesList />} />
+            <Route path="/certificatesPosDevices" element={<CertificatesPosDevices />} />
             {/* العروض */}
             <Route path="/quotes" element={<QuotesList />} />
             <Route path="/quotes/create" element={<CreateQuote />} />
