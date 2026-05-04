@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,7 +82,6 @@ const STEP_FIELDS: Record<number, (keyof FormValues)[]> = {
   1: ["deviceName", "serialNumber", "deviceTypeId", "branchId"],
 };
 
-
 const STEPS = [
   { id: 1, label: "معلومات الجهاز", icon: Monitor },
   { id: 2, label: "توليد CSR", icon: KeySquare },
@@ -91,7 +90,7 @@ const STEPS = [
   { id: 5, label: "اكتمل", icon: CheckCircle2 },
 ];
 
-function isStepComplete(clickedGeneratedCSR: boolean, step: number, createdDeviceId: number | undefined, ccsid: CCSIDResult | undefined, pcsid: PCSIDResult | undefined): boolean {
+function isStepComplete(step: number, clickedGeneratedCSR: boolean, ccsid: CCSIDResult | undefined, pcsid: PCSIDResult | undefined): boolean {
   switch (step) {
     case 1:
       return true;
@@ -323,7 +322,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
       if (!valid) return;
     }
 
-    if (!isStepComplete(clickedGeneratedCSR, step, createdDeviceId, ccsid, pcsid)) {
+    if (!isStepComplete(step, clickedGeneratedCSR, ccsid, pcsid)) {
       return;
     }
 
@@ -356,7 +355,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
     } catch {}
   };
 
-  const handleRegisterCCSID = async () => {
+  const handleRegisterCCSID = useCallback(async () => {
     if (!otp.trim()) {
       setOtpError("يرجى إدخال رمز OTP");
       return;
@@ -367,7 +366,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
       const res = await registerCCSID({ deviceId: createdDeviceId, otp });
       const expiresAt = res?.data?.expiresAt;
       const isExpired = !expiresAt || new Date(expiresAt) <= new Date();
-      setCsr({
+      setCcsid({
         token: res?.data?.token,
         secret: res?.data?.secretKey,
         status: res?.data?.newStatus,
@@ -377,7 +376,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
     } catch {
       setOtpError("رمز OTP غير صحيح أو منتهي الصلاحية، حاول مجدداً");
     }
-  };
+  }, [otp, createdDeviceId]);
 
   const handleRegisterPCSID = async () => {
     if (!createdDeviceId) return;
@@ -396,7 +395,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
   };
 
   const anyLoading = isCreating || isUpdating || isGeneratingCSR || isRegisteringCCSID || isRegisteringPCSID;
-  const nextDisabled = anyLoading || !isStepComplete(clickedGeneratedCSR, step, createdDeviceId, ccsid, pcsid);
+  const nextDisabled = anyLoading || !isStepComplete(step, clickedGeneratedCSR, ccsid, pcsid);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -550,7 +549,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                     <SecretBlock label="المفتاح الخاص (Private Key)" value={ccsid?.secret} />
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
-                      شبله في مكان كويس عشان مش هتشوفه تاني
+                      شيله في مكان كويس عشان مش هتشوفه تاني
                       {/* احتفظ بالمفتاح الخاص في مكان آمن. */}
                     </div>
                   </div>
