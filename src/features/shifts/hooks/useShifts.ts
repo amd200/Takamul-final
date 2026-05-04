@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllShifts, openShift, closeShift } from "../services/shifts.service";
+import { getAllShifts, openShift, closeShift, getEmployeesByBranch } from "../services/shifts.service";
 import { shiftsKeys } from "../keys/shifts.keys";
 import { toast } from "react-toastify";
 
@@ -19,7 +19,7 @@ export const useOpenShift = () => {
       toast.success("تم فتح الوردية بنجاح");
     },
     onError: (error: any) => {
-      const msg = error?.error || error?.message || "حدث خطأ أثناء فتح الوردية";
+      const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "حدث خطأ أثناء فتح الوردية";
       toast.error(msg);
     },
   });
@@ -34,7 +34,16 @@ export const useCloseShift = () => {
       toast.success("تم إغلاق الوردية بنجاح");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "حدث خطأ أثناء إغلاق الوردية");
+      const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "حدث خطأ أثناء إغلاق الوردية";
+      toast.error(msg);
     },
+  });
+};
+
+export const useGetEmployeesByBranch = (branchId: number) => {
+  return useQuery({
+    queryKey: [...shiftsKeys.all, "employees", branchId],
+    queryFn: () => getEmployeesByBranch(branchId),
+    enabled: !!branchId,
   });
 };

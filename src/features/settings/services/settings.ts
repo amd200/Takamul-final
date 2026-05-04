@@ -22,10 +22,15 @@ export const getAllSettings = async () => {
     else if (phaseStr && phaseStr !== "undefined") finalPhase = phaseStr;
 
     response.items.taxPhase = finalPhase;
+    
+    // Sync itemTax from taxSetting if it exists
+    if (response.taxSetting && response.taxSetting.itemTax !== undefined) {
+      response.items.itemTax = response.taxSetting.itemTax;
+    }
 
     // Also ensure response.taxSetting is populated for the store
     if (!response.taxSetting) {
-      response.taxSetting = { taxSetting: finalPhase };
+      response.taxSetting = { taxSetting: finalPhase, itemTax: response.items.itemTax || false };
     } else {
       response.taxSetting.taxSetting = finalPhase;
     }
@@ -105,7 +110,7 @@ export const updateBarcodeSettings = (data: {
     method: "PUT",
     data,
   });
-export const updateTaxSettings = (data: { taxSetting: string }) =>
+export const updateTaxSettings = (data: { taxSetting: string; itemTax: boolean }) =>
   httpClient("/Settings/tax", {
     method: "PUT",
     data,
