@@ -568,7 +568,6 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     <div class="qr-barcode-container">
     ${qrImageSrc ? `<img src="${qrImageSrc || ""}" onerror="this.style.display='none'" class="qr-code-final" alt="QR"/>` : `<div style="font-size: 8px; color: #555; text-align: center;">QR Code Unavailable</div>`}
       <div class="inv-no-small">${invoiceNo}</div>
-      // <img src="https://www.barcodesinc.com/generator/image.php?code=${encodeURIComponent(invoiceNo)}&style=196&type=C128B&width=110&height=35&xres=1&font=3" onerror="this.style.display='none'" class="barcode-final" alt="Barcode"/>
     </div>
 
     <table class="totals-table">
