@@ -304,6 +304,8 @@ const CreateQuote: React.FC = () => {
   const { control, setValue } = form;
 
   const { data: customersResponse } = useGetAllCustomers();
+  const taxSetting = useSettingsStore((state) => state.settings.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
   let customers: Customer[] = [];
 
   if (Array.isArray(customersResponse?.items)) {
@@ -527,15 +529,14 @@ const CreateQuote: React.FC = () => {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
                   <div className="w-full overflow-x-auto pb-4">
-                    <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", 
-                      showItemCode ? "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
+                    <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", showItemCode ? (isExempt ? "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_0.9fr_50px]" : "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_50px]") : isExempt ? "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
                       {showItemCode && <div>{t("product_code")}</div>}
                       <div>{t("product_name")}</div>
                       <div>{t("unit")}</div>
                       <div>{t("unit_price")}</div>
                       <div>{t("quantity")}</div>
-                      <div>{t("subtotal_before_tax")}</div>
-                      <div>{t("vat")}</div>
+                      {!isExempt && <div>{t("subtotal_before_tax")}</div>}
+                      {!isExempt && <div>{t("vat")}</div>}
                       <div>{t("grand_total")}</div>
                       <div></div>
                     </div>
@@ -555,7 +556,7 @@ const CreateQuote: React.FC = () => {
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                         const afterDiscount = Math.max(0, gross - discount);
-                        const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                        const vatAmount = taxCalc === 1 || isExempt ? 0 : afterDiscount * taxPercentage;
                         const beforeTax = afterDiscount - vatAmount;
                         const grandTotal = afterDiscount;
                         const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
@@ -564,8 +565,7 @@ const CreateQuote: React.FC = () => {
 
                         return (
                           <div key={item.id}>
-                            <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2  md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group", 
-                              showItemCode ? "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
+                            <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2  md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group", showItemCode ? "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
                               {showItemCode && (
                                 <Field>
                                   <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
@@ -635,19 +635,23 @@ const CreateQuote: React.FC = () => {
                                   </Field>
                                 )}
                               />
-                              <div className="text-center font-medium">
-                                {beforeTax.toLocaleString("en-EG", {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </div>
-                              <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
-                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("vat")}:</FieldLabel>
-                                {vatAmount.toLocaleString("en-EG", {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </div>
+                     {!isExempt && (
+  <div className="text-center font-medium">
+    {beforeTax.toLocaleString("en-EG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </div>
+)}
+{!isExempt && (
+  <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
+    <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("vat")}:</FieldLabel>
+    {vatAmount.toLocaleString("en-EG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </div>
+)}
                               <div className="flex items-center md:justify-center font-medium text-green-700 mt-2 md:mt-0 px-2 h-9">
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("total_including_tax")}:</FieldLabel>
                                 {grandTotal.toLocaleString("en-EG", {

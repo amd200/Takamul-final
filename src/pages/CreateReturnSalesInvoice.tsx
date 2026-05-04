@@ -26,6 +26,7 @@ import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasury
 import { calcVat } from "@/utils/calcVat";
 import { useGetSalesReturnsById } from "@/features/salesReturns/hooks/useGetSalesReturnsById";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { cn } from "@/lib/utils";
 
 const ReturnInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -334,14 +335,14 @@ const CreateReturnSalesInvoice: React.FC = () => {
               <h3 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h3>
 
               <div className="w-full overflow-x-auto pb-4">
-                <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-widest items-center">
+                <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-widest items-center", isExempt ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
                   <div>{t("product_name")}</div>
                   <div>{t("unit")}</div>
                   <div>{t("balance")}</div>
                   <div>{t("unit_price")}</div>
                   <div>{t("quantity")}</div>
-                  <div>{t("subtotal_before_tax")}</div>
-                  <div>{t("vat")}</div>
+                  {!isExempt && <div>{t("subtotal_before_tax")}</div>}
+                  {!isExempt && <div>{t("vat")}</div>}
                   <div>{t("grand_total")}</div>
                   <div></div>
                 </div>
@@ -361,7 +362,8 @@ const CreateReturnSalesInvoice: React.FC = () => {
                     const gross = qty * price;
                     const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                     const afterDiscount = Math.max(0, gross - discount);
-                    const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                    const isExempt = taxSetting === "Exempt";
+                    const vatAmount = taxCalc === 1 || isExempt ? 0 : afterDiscount * taxPercentage;
                     const beforeTax = afterDiscount - vatAmount;
                     const grandTotal = afterDiscount;
                     const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
@@ -369,7 +371,8 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                     return (
                       <div key={item.id}>
-                        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
+                        <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group", isExempt ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
+                          {" "}
                           <Controller
                             control={form.control}
                             name={`items.${index}.productId`}
@@ -395,7 +398,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
                               </Field>
                             )}
                           />
-
                           <Controller
                             control={form.control}
                             name={`items.${index}.unitName`}
@@ -419,7 +421,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
                               </Field>
                             )}
                           />
-
                           <Controller
                             control={form.control}
                             name={`items.${index}.quantity`}
@@ -430,13 +431,9 @@ const CreateReturnSalesInvoice: React.FC = () => {
                               </Field>
                             )}
                           />
-
-                          <div className="text-center font-medium text-foreground">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-
-                          <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-
+                          {!isExempt && <div className="text-center font-medium text-foreground">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>}
+                          {!isExempt && <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>}
                           <div className="text-center text-green-500 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-
                           <div className="flex items-center justify-center gap-2">
                             <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
                               <Trash2 size={16} />
