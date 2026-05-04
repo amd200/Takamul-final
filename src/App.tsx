@@ -121,7 +121,7 @@ import SalesReturn from "./pages/SalesReturn";
 import { useGetAllSettings } from "./features/settings/hooks/useGetAllSettings";
 import POSDevicesList from "./pages/POSDevicesList";
 import ShiftsList from "./pages/ShiftsList";
-import CertificatesPosDevices from "./pages/CertificatesPOSDevices";
+import CertificatesPosDevices from "./pages/CertificatesPosDevices";
 
 function AppRoutes() {
 
