@@ -26,7 +26,7 @@ export type SettingsResponse = {
     enableSecondLanguageItemName: boolean;
     showProductBalanceAtSale: boolean;
     allowPriceChangeOnSale: boolean;
-    taxPhase: string;
+    taxPhase?: string;
   };
 
   sales: {
@@ -48,5 +48,9 @@ export type SettingsResponse = {
     barcodeWeightStartPosition: number;
     barcodeWeightCharactersCount: number;
     barcodeDivideWeightBy: number;
+  };
+
+  taxSetting?: {
+    taxSetting: string;
   };
 };

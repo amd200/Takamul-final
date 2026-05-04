@@ -6,33 +6,34 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUpdateItemsSettings } from "@/features/settings/hooks/useUpdateSettings";
+import { useUpdateItemsSettings, useUpdateTaxSettings } from "@/features/settings/hooks/useUpdateSettings";
+import { useSettingsStore, selectItems } from "@/features/settings/store/settingsStore";
+import { useGetAllSettings } from "@/features/settings/hooks/useGetAllSettings";
 
 export default function ItemsSettings() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { systemSettings, updateSystemSettings } = useSettings();
   const { mutate: updateItems } = useUpdateItemsSettings();
+  const { mutate: updateTax } = useUpdateTaxSettings();
+  const itemsStore = useSettingsStore(selectItems);
+  const setItemsStore = useSettingsStore((s) => s.setItems);
+  useGetAllSettings();
 
   const handleUpdate = (field: string, value: any) => {
-    updateSystemSettings({
-      items: {
-        ...(systemSettings.items as any),
-        [field]: value,
-      },
-    });
+    setItemsStore({ [field]: value });
   };
 
   const onSave = () => {
     updateItems({
-      itemTax: systemSettings.items.itemTax,
-      itemExpiry: systemSettings.items.itemExpiry,
-      showWarehouseItems: systemSettings.items.showWarehouseItems === "إظهار جميع الأصناف حتى لو رصيدها صفر",
-      enableSecondLanguageItemName: systemSettings.items.enableSecondLangName,
-      showProductBalanceAtSale: systemSettings.items.showProductBalanceAtSale,
-      allowPriceChangeOnSale: true,
-      taxPhase: systemSettings.items.taxPhase,
+      itemTax: itemsStore.itemTax,
+      itemExpiry: itemsStore.itemExpiry,
+      showWarehouseItems: itemsStore.showWarehouseItems,
+      enableSecondLanguageItemName: itemsStore.enableSecondLanguageItemName,
+      showProductBalanceAtSale: itemsStore.showProductBalanceAtSale,
+      allowPriceChangeOnSale: itemsStore.allowPriceChangeOnSale,
     });
+    updateTax({ taxSetting: itemsStore.taxPhase });
   };
 
   const enableStr = t("enable_option") || "تمكين";
@@ -60,21 +61,73 @@ export default function ItemsSettings() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
             <Field>
-              <FieldLabel className="gap-x-0">{t("show_warehouse_items_setting")} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={systemSettings.items.showWarehouseItems} onValueChange={(val) => handleUpdate("showWarehouseItems", val)}>
+              <FieldLabel className="gap-x-0">{t("settings_item_tax") || "ضريبة الصنف"} <span className="text-red-500">*</span></FieldLabel>
+              <Select value={itemsStore.itemTax ? enableStr : disableStr} onValueChange={(val) => handleUpdate("itemTax", val === enableStr)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="إظهار جميع الأصناف حتى لو رصيدها صفر">{t("show_all_items_even_if_balance_is_zero")}</SelectItem>
-                  <SelectItem value="عدم إظهار جميع الأصناف حتى لو رصيدها صفر">{t("dont_show_all_items_even_if_balance_is_zero")}</SelectItem>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
 
             <Field>
-              <FieldLabel className="gap-x-0">{t("show_product_balance_at_sale")} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={systemSettings.items.showProductBalanceAtSale ? enableStr : disableStr} onValueChange={(val) => handleUpdate("showProductBalanceAtSale", val === enableStr)}>
+              <FieldLabel className="gap-x-0">{t("item_expiry_setting") || "تاريخ انتهاء الصنف"} <span className="text-red-500">*</span></FieldLabel>
+              <Select value={itemsStore.itemExpiry ? enableStr : disableStr} onValueChange={(val) => handleUpdate("itemExpiry", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
+              <FieldLabel className="gap-x-0">{t("show_warehouse_items_setting") || "إظهار جميع الأصناف"} <span className="text-red-500">*</span></FieldLabel>
+              <Select value={itemsStore.showWarehouseItems ? enableStr : disableStr} onValueChange={(val) => handleUpdate("showWarehouseItems", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
+              <FieldLabel className="gap-x-0">{t("enable_second_language_item_name") || "تفعيل اللغة الثانية لاسم الصنف"} <span className="text-red-500">*</span></FieldLabel>
+              <Select value={itemsStore.enableSecondLanguageItemName ? enableStr : disableStr} onValueChange={(val) => handleUpdate("enableSecondLanguageItemName", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
+              <FieldLabel className="gap-x-0">{t("show_product_balance_at_sale") || "إظهار رصيد المنتج عند البيع"} <span className="text-red-500">*</span></FieldLabel>
+              <Select value={itemsStore.showProductBalanceAtSale ? enableStr : disableStr} onValueChange={(val) => handleUpdate("showProductBalanceAtSale", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
+              <FieldLabel className="gap-x-0">{t("allow_price_change_on_sale") || "السماح بتغيير السعر عند البيع"} <span className="text-red-500">*</span></FieldLabel>
+              <Select value={itemsStore.allowPriceChangeOnSale ? enableStr : disableStr} onValueChange={(val) => handleUpdate("allowPriceChangeOnSale", val === enableStr)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>

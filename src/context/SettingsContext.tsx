@@ -246,7 +246,7 @@ const defaultSystemSettings: SystemSettings = {
     enableSecondLangName: false,
     enableThirdLangName: false,
     showProductBalanceAtSale: true,
-    taxPhase: "مرحلة اولى",
+    taxPhase: "FirstStage",
   },
   sales: {
     sellIfZero: false,
@@ -428,6 +428,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           showWarehouseItems: apiSettings.items?.showWarehouseItems ? "إظهار جميع الأصناف حتى لو رصيدها صفر" : "عدم إظهار جميع الأصناف حتى لو رصيدها صفر",
           enableSecondLangName: apiSettings.items?.enableSecondLanguageItemName ?? prev.items.enableSecondLangName,
           showProductBalanceAtSale: apiSettings.items?.showProductBalanceAtSale ?? prev.items.showProductBalanceAtSale,
+          taxPhase: apiSettings.items?.taxPhase ?? prev.items.taxPhase,
         },
         sales: {
           ...prev.sales,

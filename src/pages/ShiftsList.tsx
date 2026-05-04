@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Search, Plus, History, Monitor, User, Calendar, Clock } from "lucide-react";
+import { Search, Plus, History, Monitor, User, Calendar, Clock, Eye } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -12,21 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import ShiftReportModal from "@/components/pos/modals/ShiftReportModal";
 import { ShiftReportData } from "@/components/pos/orders/printShiftReport";
-import { Eye } from "lucide-react";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetAllUsers } from "@/features/users/hooks/useGetAllUsers";
 import { useGetAllPOSDevices } from "@/features/pos/hooks/useGetAllPOSDevices";
-
-interface Shift {
-  id: string;
-  shift_number: string;
-  date: string;
-  time: string;
-  branch_name: string;
-  invoice_device: string;
-  user_name: string;
-  opening_balance: number;
-}
+import { useGetAllShifts, useOpenShift, useCloseShift } from "@/features/shifts/hooks/useShifts";
+import { Shift } from "@/features/shifts/types/shifts.types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "react-toastify";
 
 export default function ShiftsList() {
   const { direction, t } = useLanguage();
@@ -34,62 +26,81 @@ export default function ShiftsList() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
-  const [filters, setFilters] = useState({ branch: "", userId: "", deviceId: "" });
+  
+  const [newShift, setNewShift] = useState({
+    openingBalance: 0,
+    branchId: 0,
+    employeeId: 0,
+    deviceId: 0
+  });
 
-  // Current date and time for default values
+  // Current date and time for display
   const now = new Date();
   const currentDate = now.toISOString().split('T')[0];
-  const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
+  const { data: shifts, isLoading: isShiftsLoading } = useGetAllShifts();
   const { data: branchesData, isLoading: isBranchesLoading } = useGetAllBranches();
   const { data: usersData, isLoading: isUsersLoading } = useGetAllUsers({ page: 1, limit: 100 });
   const { data: devicesData, isLoading: isDevicesLoading } = useGetAllPOSDevices();
+  
+  const { mutate: openShift, isPending: isOpening } = useOpenShift();
+  const { mutate: closeShift, isPending: isClosing } = useCloseShift();
 
-  const branches = useMemo(() => {
-    return branchesData || [];
-  }, [branchesData]);
+  const branches = useMemo(() => branchesData || [], [branchesData]);
+  const users = useMemo(() => usersData?.items || [], [usersData]);
+  const devices = useMemo(() => devicesData?.data || [], [devicesData]);
 
-  const users = useMemo(() => {
-    return usersData?.items || [];
-  }, [usersData]);
+  // Set default values when data is loaded
+  React.useEffect(() => {
+    if (branches.length > 0 && newShift.branchId === 0) {
+      setNewShift(prev => ({ ...prev, branchId: branches[0].id }));
+    }
+  }, [branches]);
 
-  const devices = useMemo(() => {
-    return devicesData?.data || [];
-  }, [devicesData]);
+  React.useEffect(() => {
+    if (users.length > 0 && newShift.employeeId === 0) {
+      setNewShift(prev => ({ ...prev, employeeId: users[0].id }));
+    }
+  }, [users]);
 
-  // Dummy data with separated date and time
-  const [shifts] = useState<Shift[]>([
-    {
-      id: "1",
-      shift_number: "SH-001",
-      date: "2024-04-06",
-      time: "10:00 AM",
-      branch_name: direction === "rtl" ? "الفرع الرئيسي" : "Main Branch",
-      invoice_device: "POS-01",
-      user_name: direction === "rtl" ? "أحمد محمد" : "Ahmed Mohamed",
-      opening_balance: 500
-    },
-    {
-      id: "2",
-      shift_number: "SH-002",
-      date: "2024-04-06",
-      time: "11:30 AM",
-      branch_name: direction === "rtl" ? "فرع فرعي" : "Sub Branch",
-      invoice_device: "POS-02",
-      user_name: direction === "rtl" ? "سارة علي" : "Sara Ali",
-      opening_balance: 300
-    },
-  ]);
+  React.useEffect(() => {
+    if (devices.length > 0 && newShift.deviceId === 0) {
+      setNewShift(prev => ({ ...prev, deviceId: devices[0].id }));
+    }
+  }, [devices]);
 
   const filteredData = useMemo(() => {
+    const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
+    if (!shiftsArray) return [];
+    
     const term = searchTerm.trim().toLowerCase();
-    return shifts.filter(
-      (item) =>
-        item.shift_number.toLowerCase().includes(term) ||
-        item.user_name.toLowerCase().includes(term) ||
-        item.branch_name.toLowerCase().includes(term)
+    return shiftsArray.filter(
+      (item: any) =>
+        item.id.toString().includes(term) ||
+        item.employeeName?.toLowerCase().includes(term) ||
+        item.branchName?.toLowerCase().includes(term)
     );
-  }, [shifts, searchTerm, direction]);
+  }, [shifts, searchTerm]);
+
+  const handleOpenShift = () => {
+    if (newShift.branchId === 0 || newShift.employeeId === 0) {
+      return alert("الرجاء اختيار الفرع والموظف");
+    }
+
+    const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false }); // "HH:mm:ss"
+
+    openShift({
+      shiftDate: currentDate,
+      startTime: fullTime,
+      openingBalance: newShift.openingBalance,
+      branchId: newShift.branchId,
+      employeeId: newShift.employeeId,
+      deviceId: newShift.deviceId
+    }, {
+      onSuccess: () => setIsAddModalOpen(false)
+    });
+  };
 
   const header = (
     <div className="relative w-full md:w-80">
@@ -110,8 +121,19 @@ export default function ShiftsList() {
   const balanceTemplate = (rowData: Shift) => {
     return (
       <div className="flex items-center justify-center gap-1 font-bold">
-        <span>SAR</span>
-        <span>{rowData.opening_balance}</span>
+        <span>{rowData.openingBalance}</span>
+      </div>
+    );
+  };
+
+  const statusTemplate = (rowData: Shift) => {
+    const isOpen = rowData.status === "Open";
+    return (
+      <div className={cn(
+        "px-3 py-1 rounded-full text-xs font-bold inline-block",
+        isOpen ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
+      )}>
+        {isOpen ? (t("open") || "مفتوحة") : (t("closed") || "مغلقة")}
       </div>
     );
   };
@@ -121,46 +143,39 @@ export default function ShiftsList() {
       <div className="flex justify-center">
         <Button
           variant="ghost"
-          size="sm"
-          className="text-[var(--primary)] hover:bg-[var(--primary)]/10 gap-2 font-bold"
+          size="icon"
+          className="text-[var(--primary)] hover:bg-[var(--primary)]/10 h-8 w-8 rounded-full transition-all"
           onClick={() => {
             setSelectedShift(rowData);
             setIsReportModalOpen(true);
           }}
+          title={t("view_report") || "عرض التقرير"}
         >
-          <Eye size={16} />
-          {t("view_report") || "عرض التقرير"}
+          <Eye size={18} />
         </Button>
       </div>
     );
   };
 
-  // Mock data for report
   const reportData: ShiftReportData = useMemo(() => {
     return {
-      shiftNumber: selectedShift?.shift_number || "",
-      userName: selectedShift?.user_name || "",
-      shiftDate: selectedShift?.date || "",
-      fromTime: selectedShift?.time || "",
-      toTime: "06:00 PM",
-      items: [
-        { index: 1, productName: "كابتشينو", price: 15, quantity: 10, total: 150 },
-        { index: 2, productName: "لاتيه", price: 18, quantity: 5, total: 90 },
-      ],
-      totalBeforeTax: 208.7,
-      totalTax: 31.3,
-      grandTotal: 240,
+      shiftNumber: selectedShift?.id.toString() || "",
+      userName: selectedShift?.employeeName || "",
+      shiftDate: selectedShift?.shiftDate || "",
+      fromTime: selectedShift?.startTime || "",
+      toTime: selectedShift?.endTime || "---",
+      items: [],
+      totalBeforeTax: selectedShift?.totalSales || 0,
+      totalTax: 0,
+      grandTotal: selectedShift?.netTotal || 0,
       payment: {
-        cash: 100,
-        network: 140,
+        cash: selectedShift?.netTotal || 0,
+        network: 0,
         delivery: 0
       },
-      totalPurchases: 50,
-      totalExpenses: 20,
-      deliveryCompanies: [
-        { name: "هنقرستيشن", amount: 0 },
-        { name: "جاهز", amount: 0 }
-      ]
+      totalPurchases: selectedShift?.totalPurchases || 0,
+      totalExpenses: selectedShift?.totalExpenses || 0,
+      deliveryCompanies: []
     };
   }, [selectedShift]);
 
@@ -180,6 +195,11 @@ export default function ShiftsList() {
           <CardAction>
             <Button
               onClick={() => {
+                const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
+                const hasOpenShift = shiftsArray.some((s: any) => s.status === "Open");
+                if (hasOpenShift) {
+                  return toast.error("يوجد وردية مفتوحة بالفعل، يجب إغلاقها أولاً");
+                }
                 setIsAddModalOpen(true);
               }}
               className="bg-[var(--primary)] hover:opacity-90 text-white gap-2 rounded-xl h-11 px-6 font-bold transition-all"
@@ -191,40 +211,51 @@ export default function ShiftsList() {
         </CardHeader>
 
         <CardContent>
-          <DataTable
-            value={filteredData}
-            paginator
-            rows={10}
-            header={header}
-            className="custom-green-table no-wrap-header"
-            responsiveLayout="stack"
-            dir={direction}
-            rowHover
-            stripedRows
-          >
-            <Column field="shift_number" header={t("shift_number") || "رقم الوردية"} sortable className="text-center font-bold" />
-            <Column field="date" header={t("date") || "التاريخ"} sortable />
-            <Column field="time" header={t("time") || "الوقت"} sortable />
-            <Column field="branch_name" header={t("branch_name") || "الفرع"} sortable />
-            <Column field="invoice_device" header={t("invoice_device") || "جهاز الفواتير"} sortable />
-            <Column field="user_name" header={t("user_name") || "المستخدم"} sortable />
-            <Column
-              field="opening_balance"
-              header={t("opening_balance") || "الرصيد الافتتاحي"}
-              sortable
-              body={balanceTemplate}
-              className="text-center"
-            />
-            <Column 
-              header={t("actions") || "العمليات"} 
-              body={actionsTemplate}
-              className="text-center"
-            />
-          </DataTable>
+          {isShiftsLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+          ) : (
+              <DataTable
+                value={filteredData}
+                paginator
+                rows={10}
+                header={header}
+                className="custom-green-table no-wrap-header text-xs"
+                tableStyle={{ minWidth: "100%" }}
+                responsiveLayout="scroll"
+                dir={direction}
+                rowHover
+                stripedRows
+                pt={{
+                  header: { className: "py-2 px-2" },
+                  bodyRow: { className: "text-xs" },
+                }}
+              >
+                <Column field="id" header="رقم" sortable className="text-center whitespace-nowrap py-2 px-1 w-[50px] font-bold" />
+                <Column field="shiftDate" header="التاريخ" sortable body={(row) => <span className="whitespace-nowrap text-[13px] font-semibold">{row.shiftDate?.split('T')[0]}</span>} className="whitespace-nowrap py-2 px-1 w-[110px]" />
+                <Column field="startTime" header="الوقت" sortable className="whitespace-nowrap py-2 px-1 w-[90px]" />
+                <Column field="branchName" header="الفرع" sortable className="whitespace-nowrap py-2 px-2" />
+                <Column header="الجهاز" className="whitespace-nowrap py-2 px-1 w-[80px] text-center" body={(row) => row.deviceName || row.deviceId || "---"} />
+                <Column field="employeeName" header="المستخدم" sortable className="whitespace-nowrap py-2 px-2" body={(row) => row.employeeName || "المسؤول"} />
+                <Column
+                  field="openingBalance"
+                  header="الرصيد"
+                  sortable
+                  body={balanceTemplate}
+                  className="text-center whitespace-nowrap py-2 px-1 w-[80px]"
+                />
+                <Column 
+                  header="العمليات" 
+                  body={actionsTemplate}
+                  className="text-center whitespace-nowrap py-2 px-1 w-[70px]"
+                />
+              </DataTable>
+          )}
         </CardContent>
       </Card>
 
-      {/* Add Shift Modal */}
       <ResponsiveModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -236,98 +267,110 @@ export default function ShiftsList() {
             <Button onClick={() => setIsAddModalOpen(false)} variant="outline" className="w-fit px-6 border-gray-200 h-10 text-sm font-bold rounded-xl transition-all hover:bg-gray-100">
               {t("cancel") || "إلغاء"}
             </Button>
-            <Button onClick={() => setIsAddModalOpen(false)} className="bg-[var(--primary)] hover:opacity-90 text-white w-fit px-8 h-10 text-sm font-bold rounded-xl transition-all shadow-sm">
-              {t("save") || "حفظ"}
+            <Button 
+              onClick={handleOpenShift} 
+              disabled={isOpening}
+              className="bg-[var(--primary)] hover:opacity-90 text-white w-fit px-8 h-10 text-sm font-bold rounded-xl transition-all shadow-sm"
+            >
+              {isOpening ? (t("saving") || "جاري الحفظ...") : (t("save") || "حفظ")}
             </Button>
           </>
         )}
       >
-        <div className="px-2 py-1 space-y-3" dir={direction}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+        <div className="px-5 py-2 space-y-2" dir={direction}>
+          <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel className="mb-0.5 text-[11px] font-semibold">التاريخ</FieldLabel>
+                <Input value={currentDate} readOnly className="bg-gray-100 border-gray-200 h-9 text-xs rounded-lg" />
+              </Field>
+
+              <Field>
+                <FieldLabel className="mb-0.5 text-[11px] font-semibold">الوقت</FieldLabel>
+                <Input value={currentTime} readOnly className="bg-gray-100 border-gray-200 h-9 text-xs rounded-lg" />
+              </Field>
+            </div>
+
             <Field>
-              <FieldLabel className="mb-1 text-xs font-semibold">{t("date") || "التاريخ"}</FieldLabel>
-              <Input value={currentDate} readOnly className="bg-gray-50 border-gray-200 h-9 text-xs rounded-lg" />
+              <FieldLabel className="mb-0.5 text-[11px] font-semibold">الفرع</FieldLabel>
+              <Select
+                value={newShift.branchId ? newShift.branchId.toString() : ""}
+                onValueChange={(val) => setNewShift({ ...newShift, branchId: parseInt(val) })}
+              >
+                <SelectTrigger className="w-full h-9 text-xs">
+                  <SelectValue placeholder="اختر الفرع" />
+                </SelectTrigger>
+                <SelectContent className="z-[250]">
+                  {branches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id.toString()}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field>
-              <FieldLabel className="mb-1 text-xs font-semibold">{t("time") || "الوقت"}</FieldLabel>
-              <Input value={currentTime} readOnly className="bg-gray-50 border-gray-200 h-9 text-xs rounded-lg" />
+              <FieldLabel className="mb-0.5 text-[11px] font-semibold">الموظف</FieldLabel>
+              <Select
+                value={newShift.employeeId ? newShift.employeeId.toString() : ""}
+                onValueChange={(val) => setNewShift({ ...newShift, employeeId: parseInt(val) })}
+              >
+                <SelectTrigger className="w-full h-9 text-xs">
+                  <SelectValue placeholder="اختر الموظف" />
+                </SelectTrigger>
+                <SelectContent className="z-[250]">
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      {user.userName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
+              <FieldLabel className="mb-0.5 text-[11px] font-semibold">جهاز إصدار الفواتير</FieldLabel>
+              <Select
+                value={newShift.deviceId ? newShift.deviceId.toString() : ""}
+                onValueChange={(val) => setNewShift({ ...newShift, deviceId: parseInt(val) })}
+              >
+                <SelectTrigger className="w-full h-9 text-xs">
+                  <SelectValue placeholder="اختر الجهاز" />
+                </SelectTrigger>
+                <SelectContent className="z-[250]">
+                  {devices.map((device) => (
+                    <SelectItem key={device.id} value={device.id.toString()}>
+                      {device.deviceName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
+              <FieldLabel className="mb-0.5 text-[11px] font-semibold">الرصيد الافتتاحي</FieldLabel>
+              <Input 
+                type="number" 
+                placeholder="0.00" 
+                value={newShift.openingBalance}
+                onChange={(e) => setNewShift({ ...newShift, openingBalance: parseFloat(e.target.value) })}
+                className="border-gray-200 h-9 text-xs rounded-lg focus:border-[var(--primary)]" 
+              />
             </Field>
           </div>
-
-          <Field>
-            <FieldLabel className="mb-1 text-xs font-semibold">{t("branch") || "الفرع"}</FieldLabel>
-            <Select
-              value={filters.branch}
-              onValueChange={(val) => setFilters({ ...filters, branch: val })}
-            >
-              <SelectTrigger className="w-full h-10">
-                <SelectValue placeholder={t("select_branch") || "اختر الفرع"} />
-              </SelectTrigger>
-              <SelectContent className="z-[200]">
-                {branches.map((branch) => (
-                  <SelectItem key={branch.id} value={branch.id.toString()}>
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field>
-            <FieldLabel className="mb-1 text-xs font-semibold">{t("user_name") || "اسم المستخدم"}</FieldLabel>
-            <Select
-              value={filters.userId}
-              onValueChange={(val) => setFilters({ ...filters, userId: val })}
-            >
-              <SelectTrigger className="w-full h-10">
-                <SelectValue placeholder={t("select_user") || "اختر المستخدم"} />
-              </SelectTrigger>
-              <SelectContent className="z-[200]">
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    {user.userName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field>
-            <FieldLabel className="mb-1 text-xs font-semibold">{t("invoice_device") || "جهاز إصدار الفواتير"}</FieldLabel>
-            <Select
-              value={filters.deviceId}
-              onValueChange={(val) => setFilters({ ...filters, deviceId: val })}
-            >
-              <SelectTrigger className="w-full h-10">
-                <SelectValue placeholder={t("select_device") || "اختر الجهاز"} />
-              </SelectTrigger>
-              <SelectContent className="z-[200]">
-                {devices.map((device) => (
-                  <SelectItem key={device.id} value={device.id.toString()}>
-                    {device.deviceName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field>
-            <FieldLabel className="mb-1 text-xs font-semibold">{t("opening_balance") || "الرصيد الافتتاحي"}</FieldLabel>
-            <Input type="number" placeholder="0.00" className="border-gray-200 h-9 text-xs rounded-lg transition-colors" />
-          </Field>
         </div>
       </ResponsiveModal>
 
-      {/* Shift Report Modal */}
       {isReportModalOpen && (
         <ShiftReportModal 
           isOpen={isReportModalOpen} 
           onClose={() => setIsReportModalOpen(false)} 
           data={reportData}
           onConfirmCloseShift={() => {
-            setIsReportModalOpen(false);
-            // Handle close shift logic here
+            closeShift(undefined, {
+              onSuccess: () => setIsReportModalOpen(false)
+            });
           }}
         />
       )}

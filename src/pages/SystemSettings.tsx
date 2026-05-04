@@ -16,7 +16,9 @@ import CategoryDiscount from "./CategoryDiscount";
 import TablesList from "./Tables";
 import TaxesList from "./TaxesList";
 import { useUpdateTobaccoFees } from "@/features/settings/hooks/useUpdateTobaccoFees";
-import { useUpdateGeneralSettings, useUpdateItemsSettings } from "@/features/settings/hooks/useUpdateSettings";
+import { useUpdateGeneralSettings, useUpdateItemsSettings, useUpdateTaxSettings } from "@/features/settings/hooks/useUpdateSettings";
+import { useSettingsStore, selectItems } from "@/features/settings/store/settingsStore";
+import { useGetAllSettings } from "@/features/settings/hooks/useGetAllSettings";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Field, FieldLabel } from "@/components/ui/field";
 
@@ -60,6 +62,17 @@ export default function SystemSettings() {
   const { mutate: updateTobaccoFees } = useUpdateTobaccoFees();
   const { mutate: updateGeneral } = useUpdateGeneralSettings();
   const { mutate: updateItems } = useUpdateItemsSettings();
+  const { mutate: updateTax } = useUpdateTaxSettings();
+  const itemsStore = useSettingsStore(selectItems);
+  const setItemsStore = useSettingsStore((s) => s.setItems);
+  const pointsStore = useSettingsStore((s) => s.settings.points);
+  const setPointsStore = useSettingsStore((s) => s.setPoints);
+  const tobaccoStore = useSettingsStore((s) => s.settings.tobaccoFees);
+  const setTobaccoStore = useSettingsStore((s) => s.setTobaccoFees);
+  const generalStore = useSettingsStore((s) => s.settings.general);
+  const setGeneralStore = useSettingsStore((s) => s.setGeneral);
+  useGetAllSettings(); // Ensure settings are fetched and store is populated
+
   const [activeSection, setActiveSection] = React.useState("points");
   const [headerImageFiles, setHeaderImageFiles] = React.useState<File[]>([]);
 
@@ -135,14 +148,14 @@ export default function SystemSettings() {
                     <div className="flex flex-col xl:flex-row items-center gap-4">
                       <div className="flex-1 w-full">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">كل مصروف يساوي</label>
-                        <Input type="number" value={systemSettings.points.customerPointsPerSpend} onChange={(e) => handleUpdate("points", "customerPointsPerSpend", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={pointsStore.customerPointsPerSpend} onChange={(e) => setPointsStore({ customerPointsPerSpend: parseFloat(e.target.value) })} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                       <div className="hidden xl:block pt-6">
                         <Save size={20} className="text-[var(--primary)]" />
                       </div>
                       <div className="flex-1 w-full">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">اجمالي النقاط المكتسبة</label>
-                        <Input type="number" value={systemSettings.points.totalCustomerPoints} onChange={(e) => handleUpdate("points", "totalCustomerPoints", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={pointsStore.totalCustomerPoints} onChange={(e) => setPointsStore({ totalCustomerPoints: parseFloat(e.target.value) })} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                     </div>
                   </div>
@@ -151,14 +164,14 @@ export default function SystemSettings() {
                     <div className="flex flex-col xl:flex-row items-center gap-4">
                       <div className="flex-1 w-full">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">كل بيع يعادل</label>
-                        <Input type="number" value={systemSettings.points.staffPointsPerSale} onChange={(e) => handleUpdate("points", "staffPointsPerSale", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={pointsStore.staffPointsPerSale} onChange={(e) => setPointsStore({ staffPointsPerSale: parseFloat(e.target.value) })} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                       <div className="hidden xl:block pt-6">
                         <Save size={20} className="text-[var(--primary)]" />
                       </div>
                       <div className="flex-1 w-full">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">اجمالي النقاط المكتسبة</label>
-                        <Input type="number" value={systemSettings.points.totalStaffPoints} onChange={(e) => handleUpdate("points", "totalStaffPoints", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={pointsStore.totalStaffPoints} onChange={(e) => setPointsStore({ totalStaffPoints: parseFloat(e.target.value) })} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                     </div>
                   </div>
@@ -168,7 +181,7 @@ export default function SystemSettings() {
 
             {activeSection === "tobacco" && (
               <SettingSection id="tobacco" title={t("tobacco_fees", "رسوم التبغ")} onSave={() => {
-                updateTobaccoFees({ tobaccoFees: systemSettings.tobacco?.tobaccoFees || 0 });
+                updateTobaccoFees({ tobaccoFees: tobaccoStore.tobaccoFees || 0 });
               }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
@@ -178,8 +191,8 @@ export default function SystemSettings() {
                         <label className="block text-xs text-[var(--text-muted)] mb-1">{t("tobacco_tax_value", "قيمة ضريبة التبغ")}</label>
                         <Input
                           type="number"
-                          value={systemSettings.tobacco?.tobaccoFees || 0}
-                          onChange={(e) => handleUpdate("tobacco" as any, "tobaccoFees", parseFloat(e.target.value))}
+                          value={tobaccoStore.tobaccoFees || 0}
+                          onChange={(e) => setTobaccoStore({ tobaccoFees: parseFloat(e.target.value) })}
                           className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]"
                         />
                       </div>
@@ -191,12 +204,12 @@ export default function SystemSettings() {
 
             {activeSection === "reports" && (
               <SettingSection id="reports" title={t("report_settings", "إعدادات التقارير")} onSave={() => {
-                updateGeneral({ topDataStatus: systemSettings.reports.headerStatus, image: systemSettings.reports.headerImage });
+                updateGeneral({ topDataStatus: generalStore.topDataStatus, image: generalStore.image });
               }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Field>
                     <FieldLabel className="text-sm font-medium text-[var(--text-main)] mb-1">حالة الترويسة العلوية</FieldLabel>
-                    <Select value={systemSettings.reports.headerStatus ? "إظهار" : "إخفاء"} onValueChange={(val) => handleUpdate("reports", "headerStatus", val === "إظهار")}>
+                    <Select value={generalStore.topDataStatus ? "إظهار" : "إخفاء"} onValueChange={(val) => setGeneralStore({ topDataStatus: val === "إظهار" })}>
                       <SelectTrigger className="w-full h-11">
                         <SelectValue />
                       </SelectTrigger>
@@ -214,9 +227,9 @@ export default function SystemSettings() {
                         onValueChange={(newFiles) => {
                           setHeaderImageFiles(newFiles);
                           if (newFiles.length > 0) {
-                            handleUpdate("reports", "headerImage", newFiles[0].name);
+                            setGeneralStore({ image: newFiles[0].name });
                           } else {
-                            handleUpdate("reports", "headerImage", "");
+                            setGeneralStore({ image: "" });
                           }
                         }}
                         accept="image/*"
@@ -307,14 +320,14 @@ export default function SystemSettings() {
                 title={t("tax_system", "نظام الضرائب")}
                 onSave={() => {
                   updateItems({
-                    itemTax: systemSettings.items.itemTax,
-                    itemExpiry: systemSettings.items.itemExpiry,
-                    showWarehouseItems: systemSettings.items.showWarehouseItems === "إظهار جميع الأصناف حتى لو رصيدها صفر",
-                    enableSecondLanguageItemName: systemSettings.items.enableSecondLangName,
-                    showProductBalanceAtSale: systemSettings.items.showProductBalanceAtSale,
-                    allowPriceChangeOnSale: true,
-                    taxPhase: systemSettings.items.taxPhase
+                    itemTax: itemsStore.itemTax,
+                    itemExpiry: itemsStore.itemExpiry,
+                    showWarehouseItems: itemsStore.showWarehouseItems,
+                    enableSecondLanguageItemName: itemsStore.enableSecondLanguageItemName,
+                    showProductBalanceAtSale: itemsStore.showProductBalanceAtSale,
+                    allowPriceChangeOnSale: itemsStore.allowPriceChangeOnSale,
                   });
+                  updateTax({ taxSetting: itemsStore.taxPhase });
                 }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -323,8 +336,8 @@ export default function SystemSettings() {
                       {t("settings_item_tax")} <span className="text-red-500">*</span>
                     </FieldLabel>
                     <Select
-                      value={systemSettings.items.itemTax ? (t("enable_option") || "تمكين") : (t("disable_option") || "تعطيل")}
-                      onValueChange={(val) => handleUpdate("items", "itemTax", val === (t("enable_option") || "تمكين"))}
+                      value={itemsStore.itemTax ? (t("enable_option") || "تمكين") : (t("disable_option") || "تعطيل")}
+                      onValueChange={(val) => setItemsStore({ itemTax: val === (t("enable_option") || "تمكين") })}
                     >
                       <SelectTrigger className="w-full h-11">
                         <SelectValue />
@@ -341,37 +354,20 @@ export default function SystemSettings() {
                       {t("tax_phase", "نوع المرحلة")}
                     </FieldLabel>
                     <Select
-                      value={systemSettings.items.taxPhase}
-                      onValueChange={(val) => handleUpdate("items", "taxPhase", val)}
+                      value={itemsStore.taxPhase}
+                      onValueChange={(val) => setItemsStore({ taxPhase: val })}
                     >
                       <SelectTrigger className="w-full h-11">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="مرحلة اولى">مرحلة اولى</SelectItem>
-                        <SelectItem value="مرحلة تانيه">مرحلة تانيه</SelectItem>
-                        <SelectItem value="معفي">معفي</SelectItem>
+                        <SelectItem value="FirstStage">{t("first_stage", "المرحلة الاولى")}</SelectItem>
+                        <SelectItem value="SecondStage">{t("second_stage", "المرحلة الثانية")}</SelectItem>
+                        <SelectItem value="Exempt">{t("exempt", "معفي")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </Field>
 
-                  <Field>
-                    <FieldLabel className="gap-x-0">
-                      {t("show_product_balance_at_sale")}
-                    </FieldLabel>
-                    <Select
-                      value={systemSettings.items.showProductBalanceAtSale ? (t("enable_option") || "تمكين") : (t("disable_option") || "تعطيل")}
-                      onValueChange={(val) => handleUpdate("items", "showProductBalanceAtSale", val === (t("enable_option") || "تمكين"))}
-                    >
-                      <SelectTrigger className="w-full h-11">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={t("enable_option") || "تمكين"}>{t("enable_option") || "تمكين"}</SelectItem>
-                        <SelectItem value={t("disable_option") || "تعطيل"}>{t("disable_option") || "تعطيل"}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
                 </div>
               </SettingSection>
             )}
