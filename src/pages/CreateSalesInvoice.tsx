@@ -280,7 +280,7 @@ const CreateSalesInvoice: React.FC = () => {
         const price = item?.price || 0;
         const taxCalc = product?.taxCalculation ?? 0;
         const taxPercentage = product?.taxPercentage || 0;
-        const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
+        const isExempt = taxSetting === "Exempt";
         const beforeTax = taxCalc === 1 || isExempt ? price : price / (1 + taxPercentage / 100);
         return {
           productId: item.productId,
@@ -305,7 +305,7 @@ const CreateSalesInvoice: React.FC = () => {
 
   const allowPriceChangeOnSale = useSettingsStore((s) => s.settings?.items?.allowPriceChangeOnSale);
 
-  const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
+  const isExempt = taxSetting === "Exempt";
 
   return (
     <>

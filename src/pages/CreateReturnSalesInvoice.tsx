@@ -25,6 +25,7 @@ import { useCreateSalesReturns } from "@/features/salesReturns/hooks/useCreateSa
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { calcVat } from "@/utils/calcVat";
 import { useGetSalesReturnsById } from "@/features/salesReturns/hooks/useGetSalesReturnsById";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 const ReturnInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -73,6 +74,8 @@ const CreateReturnSalesInvoice: React.FC = () => {
   const filterProducts = useMemo(() => products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared"), [products]);
 
   const schema = useMemo(() => ReturnInvoiceSchema(t), [t]);
+  const taxSetting = useSettingsStore((state) => state.settings.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
 
   const toggleDiscount = (index: number) => {
     setDiscountOpen((prev) => ({
@@ -158,7 +161,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
       const afterDisc = Math.max(0, gross - discount);
       const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
       const beforeTax = afterDisc - vatAmount;
-
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
     });

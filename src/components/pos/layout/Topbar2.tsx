@@ -26,6 +26,33 @@ import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { useGetAllShifts, useCloseShift } from "@/features/shifts/hooks/useShifts";
 import { useMemo } from "react";
 
+// Mock data for the shift report
+const mockShiftData: ShiftReportData = {
+  shiftNumber: "1010005",
+  userName: "كاشير 1",
+  shiftDate: "2026/05/03",
+  fromTime: "05:01 PM",
+  toTime: "12:04 AM",
+  items: [
+    { index: 1, productName: "منتج بيع", price: 5.0, quantity: 7.0, total: 35.0 },
+    { index: 2, productName: "صنف جديد", price: 10.0, quantity: 12.0, total: 120.0 },
+  ],
+  totalBeforeTax: 130.3,
+  totalTax: 24.7,
+  grandTotal: 155.0,
+  payment: {
+    cash: 55.0,
+    network: 100.0,
+    delivery: 0.0,
+  },
+  totalPurchases: 0.0,
+  totalExpenses: 0.0,
+  deliveryCompanies: [
+    { name: "هنقرستيشن", amount: 0.0 },
+    { name: "كيتا", amount: 0.0 },
+    { name: "نينجا", amount: 0.0 },
+  ],
+};
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [employee, setEmployee] = useState("");
@@ -54,7 +81,7 @@ export default function Topbar2() {
     return {
       shiftNumber: currentOpenShift.id.toString(),
       userName: currentOpenShift.employeeName || "---",
-      shiftDate: currentOpenShift.shiftDate?.split('T')[0] || "---",
+      shiftDate: currentOpenShift.shiftDate?.split("T")[0] || "---",
       fromTime: currentOpenShift.startTime || "---",
       toTime: "---",
       items: [],
@@ -72,34 +99,6 @@ export default function Topbar2() {
     };
   }, [currentOpenShift]);
 
-
-  // Mock data for the shift report
-  const mockShiftData: ShiftReportData = {
-    shiftNumber: "1010005",
-    userName: "كاشير 1",
-    shiftDate: "2026/05/03",
-    fromTime: "05:01 PM",
-    toTime: "12:04 AM",
-    items: [
-      { index: 1, productName: "منتج بيع", price: 5.00, quantity: 7.00, total: 35.00 },
-      { index: 2, productName: "صنف جديد", price: 10.00, quantity: 12.00, total: 120.00 },
-    ],
-    totalBeforeTax: 130.30,
-    totalTax: 24.70,
-    grandTotal: 155.00,
-    payment: {
-      cash: 55.00,
-      network: 100.00,
-      delivery: 0.00,
-    },
-    totalPurchases: 0.00,
-    totalExpenses: 0.00,
-    deliveryCompanies: [
-      { name: "هنقرستيشن", amount: 0.00 },
-      { name: "كيتا", amount: 0.00 },
-      { name: "نينجا", amount: 0.00 },
-    ],
-  };
   useEffect(() => {
     if (customers) {
       setSelectedCustomer(customers?.items[0]);
@@ -174,12 +173,7 @@ export default function Topbar2() {
             </div>
 
             <div className="flex items-center gap-1">
-              <Button 
-                onClick={() => setShiftReportOpen(true)}
-                disabled={!currentOpenShift}
-                size="sm" 
-                className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200"
-              >
+              <Button onClick={() => setShiftReportOpen(true)} disabled={!currentOpenShift} size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
                 <Pause className="w-3 h-3" />
                 {currentOpenShift ? "غلق الوردية" : "لا توجد وردية"}
               </Button>
@@ -279,13 +273,13 @@ export default function Topbar2() {
           />
         </div>
       )}
-      <ShiftReportModal 
-        isOpen={shiftReportOpen} 
-        onClose={() => setShiftReportOpen(false)} 
+      <ShiftReportModal
+        isOpen={shiftReportOpen}
+        onClose={() => setShiftReportOpen(false)}
         data={shiftReportData}
         onConfirmCloseShift={() => {
           closeShift(undefined, {
-            onSuccess: () => setShiftReportOpen(false)
+            onSuccess: () => setShiftReportOpen(false),
           });
         }}
       />
