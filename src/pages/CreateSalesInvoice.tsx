@@ -204,7 +204,7 @@ const CreateSalesInvoice: React.FC = () => {
   }, [items, products]);
 
   const { finalTotal, adjustedVat, adjustedBeforeTax } = useMemo(() => {
-    let discountedBeforeTax = beforeTaxTotal; // السعر الاجمالي قبل الضريبة قبل الخصم
+    let discountedBeforeTax = beforeTaxTotal;
     if (invoiceDiscountType === "fixed") {
       discountedBeforeTax = Math.max(0, beforeTaxTotal - (invoiceDiscountValue || 0));
     } else {
@@ -304,6 +304,7 @@ const CreateSalesInvoice: React.FC = () => {
   };
 
   const allowPriceChangeOnSale = useSettingsStore((s) => s.settings?.items?.allowPriceChangeOnSale);
+
   const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
 
   return (

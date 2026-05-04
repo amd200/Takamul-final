@@ -271,7 +271,7 @@ export function useAddProduct() {
   const buildFormData = useCallback(
     (data: FormValues): FormData => {
       const formData = new FormData();
-      const skipKeys = new Set(["Image", "image", "ChildrenIds", "RawMaterials", "PurchaseUnitId", "ConversionFactor"]);
+      const skipKeys = new Set(["Image", "image", "ChildrenIds", "RawMaterials", "PurchaseUnitId", "ConversionFactor", "TaxId", "TaxCalculation"]);
 
       Object.entries(data).forEach(([key, value]) => {
         if (skipKeys.has(key) || value === undefined || value === null) return;
@@ -295,9 +295,16 @@ export function useAddProduct() {
         );
       }
 
-      if (taxSetting === "Exempt") {
+      if (taxSetting === "Exempt" || taxSetting === "FirstStage") {
         formData.append("TaxId", "2");
         formData.append("TaxCalculation", "1");
+      } else {
+        if (data.TaxId !== undefined && data.TaxId !== null) {
+          formData.append("TaxId", String(data.TaxId));
+        }
+        if (data.TaxCalculation !== undefined && data.TaxCalculation !== null) {
+          formData.append("TaxCalculation", String(data.TaxCalculation));
+        }
       }
 
       if (data.Image instanceof File) {
