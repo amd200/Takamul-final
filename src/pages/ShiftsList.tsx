@@ -336,7 +336,7 @@ export default function ShiftsList() {
                 <SelectContent className="z-[250]">
                   {branchEmployees.map((emp) => (
                     <SelectItem key={emp.id} value={emp.id.toString()}>
-                      {emp.firstName || `ID: ${emp.id}`}
+                      {emp.firstName || "\u00A0"}
                     </SelectItem>
                   ))}
                 </SelectContent>
