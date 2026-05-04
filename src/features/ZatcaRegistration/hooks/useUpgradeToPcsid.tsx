@@ -4,6 +4,7 @@ import { handleApiError } from "@/lib/handleApiError";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
 import { upgradeToPcsid } from "../services/zatcha";
 import { UpgradeToPcsidRequest } from "../types/zarcha.types";
+import { zatchaKeys } from "../keys/zatca.keys";
 
 export function useUpgradeToPcsid() {
   const queryClient = useQueryClient();
@@ -11,7 +12,7 @@ export function useUpgradeToPcsid() {
   return useMutation({
     mutationFn: (data: UpgradeToPcsidRequest) => upgradeToPcsid(data),
     onSuccess: (response) => {
-      console.log(response);
+      queryClient.invalidateQueries({ queryKey: zatchaKeys.all });
       handleApiSuccess(response?.message, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
