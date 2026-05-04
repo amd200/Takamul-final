@@ -75,6 +75,8 @@ const QuoteSummaryContent: React.FC<{
   const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
   const discValue = Number(useWatch({ control, name: "quotationDiscountValue" })) || 0;
   const items: any[] = useWatch({ control, name: "items" }) || [];
+  const taxSetting = useSettingsStore((state) => state.settings.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
 
   const customerName = customers.find((c) => c.id === Number(customerId))?.customerName || t("dash");
 
@@ -101,7 +103,8 @@ const QuoteSummaryContent: React.FC<{
     const disc = dType === "fixed" ? dVal : gross * (dVal / 100);
     const afterTax = Math.max(0, gross - disc);
     const taxCalc = product?.taxCalculation ?? 1;
-    const tax = taxCalc === 1 ? 0 : afterTax * taxPercentage;
+    const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
+    const tax = taxCalc === 1 || isExempt ? 0 : afterTax * taxPercentage;
     const beforeTax = afterTax - tax;
 
     return { name, unitName, qty, price, disc, beforeTax, tax, total: beforeTax + tax };
@@ -162,7 +165,7 @@ const QuoteSummaryContent: React.FC<{
                         {t("discount")} {fmt(item.disc)}
                       </span>
                     )}
-                    {item.tax > 0 && (
+                    {item.tax > 0 && !isExempt && (
                       <span className="text-xs text-amber-500">
                         {t("tax")} {fmt(item.tax)}
                       </span>
@@ -375,7 +378,7 @@ const CreateQuote: React.FC = () => {
       const gross = qty * price;
       const disc = dType === "fixed" ? dVal * qty : gross * (dVal / 100);
       const afterDisc = Math.max(0, gross - disc);
-      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
+      const vatAmount = taxCalc === 1 || isExempt ? 0 : afterDisc * taxPercentage;
       const beforeTax = afterDisc - vatAmount;
 
       subtotal += beforeTax;
@@ -635,23 +638,23 @@ const CreateQuote: React.FC = () => {
                                   </Field>
                                 )}
                               />
-                     {!isExempt && (
-  <div className="text-center font-medium">
-    {beforeTax.toLocaleString("en-EG", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}
-  </div>
-)}
-{!isExempt && (
-  <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
-    <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("vat")}:</FieldLabel>
-    {vatAmount.toLocaleString("en-EG", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}
-  </div>
-)}
+                              {!isExempt && (
+                                <div className="text-center font-medium">
+                                  {beforeTax.toLocaleString("en-EG", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })}
+                                </div>
+                              )}
+                              {!isExempt && (
+                                <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
+                                  <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("vat")}:</FieldLabel>
+                                  {vatAmount.toLocaleString("en-EG", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })}
+                                </div>
+                              )}
                               <div className="flex items-center md:justify-center font-medium text-green-700 mt-2 md:mt-0 px-2 h-9">
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("total_including_tax")}:</FieldLabel>
                                 {grandTotal.toLocaleString("en-EG", {
