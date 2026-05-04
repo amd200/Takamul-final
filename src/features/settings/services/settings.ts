@@ -5,7 +5,33 @@ import { SettingsResponse } from "../types/settings.types";
 // GET
 // ===================
 
-export const getAllSettings = () => httpClient<SettingsResponse>(`/Settings`);
+export const getAllSettings = async () => {
+  const response = await httpClient<SettingsResponse>(`/Settings`);
+
+  if (response.items) {
+    // Map taxSetting (from separate object) to items.taxPhase (which the UI uses)
+    const rawTaxSetting = response.taxSetting?.taxSetting;
+    const rawItemsTaxPhase = (response.items as any).taxPhase;
+    const phaseSource = rawTaxSetting || rawItemsTaxPhase;
+    const phaseStr = String(phaseSource || "");
+
+    let finalPhase = "FirstStage"; // Default
+    if (phaseStr === "2" || phaseStr === "SecondStage") finalPhase = "SecondStage";
+    else if (phaseStr === "3" || phaseStr === "Exempt") finalPhase = "Exempt";
+    else if (phaseStr === "1" || phaseStr === "FirstStage") finalPhase = "FirstStage";
+    else if (phaseStr && phaseStr !== "undefined") finalPhase = phaseStr;
+
+    response.items.taxPhase = finalPhase;
+
+    // Also ensure response.taxSetting is populated for the store
+    if (!response.taxSetting) {
+      response.taxSetting = { taxSetting: finalPhase };
+    } else {
+      response.taxSetting.taxSetting = finalPhase;
+    }
+  }
+  return response;
+};
 
 // ===================
 // MUTATIONS
@@ -45,7 +71,6 @@ export const updateItemsSettings = (data: {
   enableSecondLanguageItemName: boolean;
   showProductBalanceAtSale: boolean;
   allowPriceChangeOnSale: boolean;
-  taxPhase: string;
 }) =>
   httpClient("/Settings/items", {
     method: "PUT",
@@ -77,6 +102,11 @@ export const updateBarcodeSettings = (data: {
   barcodeDivideWeightBy: number;
 }) =>
   httpClient("/Settings/barcode", {
+    method: "PUT",
+    data,
+  });
+export const updateTaxSettings = (data: { taxSetting: string }) =>
+  httpClient("/Settings/tax", {
     method: "PUT",
     data,
   });

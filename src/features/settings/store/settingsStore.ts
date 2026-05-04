@@ -67,6 +67,13 @@ interface MoneySettings {
   a4InvoiceDecimals: number;
 }
 
+interface PointsSettings {
+  customerPointsPerSpend: number;
+  totalCustomerPoints: number;
+  staffPointsPerSale: number;
+  totalStaffPoints: number;
+}
+
 export interface Settings {
   tobaccoFees: TobaccoFeesSettings;
   general: GeneralSettings;
@@ -75,6 +82,10 @@ export interface Settings {
   sales: SalesSettings;
   barcodeScale: BarcodeScaleSettings;
   money: MoneySettings;
+  points: PointsSettings;
+  taxSetting: {
+    taxSetting: string;
+  };
 }
 
 // ─── Default Values ───────────────────────────────────────────────────────────
@@ -105,7 +116,7 @@ const defaultSettings: Settings = {
     enableSecondLanguageItemName: false,
     showProductBalanceAtSale: true,
     allowPriceChangeOnSale: false,
-    taxPhase: "مرحلة اولى",
+    taxPhase: "FirstStage",
   },
   sales: {
     allowSaleWithZeroStock: false,
@@ -138,6 +149,15 @@ const defaultSettings: Settings = {
     currencySymbol: "ر.س",
     a4InvoiceDecimals: 4,
   },
+  points: {
+    customerPointsPerSpend: 1,
+    totalCustomerPoints: 0,
+    staffPointsPerSale: 1,
+    totalStaffPoints: 0,
+  },
+  taxSetting: {
+    taxSetting: "FirstStage",
+  },
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -153,6 +173,7 @@ interface SettingsStore {
   setItems: (data: Partial<ItemsSettings>) => void;
   setSales: (data: Partial<SalesSettings>) => void;
   setBarcodeScale: (data: Partial<BarcodeScaleSettings>) => void;
+  setPoints: (data: Partial<PointsSettings>) => void;
 
   // Granular field setters — useful for single-field optimistic updates
   setRowsPerPage: (value: number) => void;
@@ -164,7 +185,8 @@ interface SettingsStore {
   resetSettings: () => void;
 }
 
-export const useSettingsStore = create<SettingsStore>((set) => ({settings: defaultSettings,
+export const useSettingsStore = create<SettingsStore>((set) => ({
+  settings: defaultSettings,
 
   // ── Replace the whole settings object (e.g. after fetching from API) ────────
   setSettings: (settings) =>
@@ -226,6 +248,14 @@ export const useSettingsStore = create<SettingsStore>((set) => ({settings: defau
       },
     })),
 
+  setPoints: (data) =>
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        points: { ...state.settings.points, ...data },
+      },
+    })),
+
   // ── Granular setters ─────────────────────────────────────────────────────────
   setRowsPerPage: (value) =>
     set((state) => ({
@@ -270,6 +300,7 @@ export const selectLocation = (s: SettingsStore) => s.settings.location;
 export const selectItems = (s: SettingsStore) => s.settings.items;
 export const selectSales = (s: SettingsStore) => s.settings.sales;
 export const selectBarcodeScale = (s: SettingsStore) => s.settings.barcodeScale;
+export const selectPoints = (s: SettingsStore) => s.settings.points;
 
 export const selectRowsPerPage = (s: SettingsStore) => s.settings.location.rowsPerPage;
 export const selectAllowSaleWithZeroStock = (s: SettingsStore) => s.settings.sales.allowSaleWithZeroStock;

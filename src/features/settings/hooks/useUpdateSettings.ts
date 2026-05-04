@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateGeneralSettings, updateSiteSettings, updateItemsSettings, updateSalesSettings, updateBarcodeSettings } from "../services/settings";
+import { updateGeneralSettings, updateSiteSettings, updateItemsSettings, updateSalesSettings, updateBarcodeSettings, updateTaxSettings } from "../services/settings";
 import { settingsKeys } from "../keys/settings.keys";
 import useToast from "@/hooks/useToast";
 import { useLanguage } from "@/context/LanguageContext";
@@ -67,6 +67,20 @@ export const useUpdateBarcodeSettings = () => {
 
   return useMutation({
     mutationFn: updateBarcodeSettings,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: settingsKeys.all });
+      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
+    },
+  });
+};
+
+export const useUpdateTaxSettings = () => {
+  const queryClient = useQueryClient();
+  const { notifySuccess } = useToast();
+  const { t } = useLanguage();
+
+  return useMutation({
+    mutationFn: updateTaxSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
       notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
