@@ -9,6 +9,7 @@ export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
 });
+const authChannel = new BroadcastChannel("auth");
 
 let isRefreshing = false;
 let failedQueue: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
@@ -38,6 +39,7 @@ apiClient.interceptors.response.use(
 
     if (originalRequest.url?.includes("/Auth/refresh-token")) {
       useAuthStore.getState().clearAuth();
+      authChannel.postMessage({ type: "LOGOUT" });
       return Promise.reject(err);
     }
 
@@ -61,22 +63,16 @@ apiClient.interceptors.response.use(
           .post<LoginResponse>("/Auth/refresh-token")
           .then(({ data }) => {
             const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
-            useAuthStore.getState().setAuth(
-              data.accessToken,
-              new Date(data.accessTokenExpiration).getTime(),
-              decoded.Permission,
-              decoded?.UserId,
-              decoded?.email,
-              decoded?.username,
-            );
+            useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username);
             apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
             originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
             processQueue(null, data.accessToken);
             resolve(apiClient(originalRequest));
           })
           .catch((err) => {
-            processQueue(err, null);  
+            processQueue(err, null);
             useAuthStore.getState().clearAuth();
+            authChannel.postMessage({ type: "LOGOUT" });
             reject(err);
           })
           .finally(() => {
