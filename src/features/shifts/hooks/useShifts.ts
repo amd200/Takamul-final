@@ -19,7 +19,7 @@ export const useOpenShift = () => {
       toast.success("تم فتح الوردية بنجاح");
     },
     onError: (error: any) => {
-      const msg = error?.error || error?.message || "حدث خطأ أثناء فتح الوردية";
+      const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "حدث خطأ أثناء فتح الوردية";
       toast.error(msg);
     },
   });

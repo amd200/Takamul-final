@@ -194,14 +194,7 @@ export default function ShiftsList() {
 
           <CardAction>
             <Button
-              onClick={() => {
-                const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
-                const hasOpenShift = shiftsArray.some((s: any) => s.status === "Open");
-                if (hasOpenShift) {
-                  return toast.error("يوجد وردية مفتوحة بالفعل، يجب إغلاقها أولاً");
-                }
-                setIsAddModalOpen(true);
-              }}
+              onClick={() => setIsAddModalOpen(true)}
               className="bg-[var(--primary)] hover:opacity-90 text-white gap-2 rounded-xl h-11 px-6 font-bold transition-all"
             >
               <Plus size={18} />
