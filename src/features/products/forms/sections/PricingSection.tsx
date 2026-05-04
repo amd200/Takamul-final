@@ -23,6 +23,7 @@ export function PricingSection({ taxesData, summary, isPrepared = false }: Prici
   const isFirstStage = taxSetting === "FirstStage";
   const isSecondStage = taxSetting === "SecondStage";
   const isExempt = taxSetting === "Exempt";
+  
 
   return (
     <>

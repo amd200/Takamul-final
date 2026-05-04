@@ -69,6 +69,7 @@ const CreateSalesInvoice: React.FC = () => {
   // const isEditMode = Boolean(id);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
+  const taxSetting = useSettingsStore((state) => state.settings.taxSetting?.taxSetting);
 
   const schema = useMemo(() => SalesInvoiceSchema(t), [t]);
 
@@ -191,7 +192,8 @@ const CreateSalesInvoice: React.FC = () => {
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
+      const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
+      const vatAmount = taxCalc === 1 || isExempt ? 0 : afterDisc * taxPercentage;
       const beforeTax = afterDisc - vatAmount;
 
       beforeTaxTotal += beforeTax;
@@ -278,7 +280,8 @@ const CreateSalesInvoice: React.FC = () => {
         const price = item?.price || 0;
         const taxCalc = product?.taxCalculation ?? 0;
         const taxPercentage = product?.taxPercentage || 0;
-        const beforeTax = taxCalc === 1 ? price : price / (1 + taxPercentage / 100);
+        const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
+        const beforeTax = taxCalc === 1 || isExempt ? price : price / (1 + taxPercentage / 100);
         return {
           productId: item.productId,
           quantity: item.quantity,
@@ -301,6 +304,7 @@ const CreateSalesInvoice: React.FC = () => {
   };
 
   const allowPriceChangeOnSale = useSettingsStore((s) => s.settings?.items?.allowPriceChangeOnSale);
+  const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
 
   return (
     <>
@@ -322,7 +326,7 @@ const CreateSalesInvoice: React.FC = () => {
           <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
             <div className="bg-background p-6 rounded-sm border border-border">
               <h2 className="text-lg font-bold text-foreground mb-6">{t("basic_data")}</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              <div className={`grid grid-cols-1 ${showActualBalance ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-6`}>
                 <Controller
                   name="orderDate"
                   control={form.control}
@@ -412,7 +416,7 @@ const CreateSalesInvoice: React.FC = () => {
                   )}
                 />
 
-                <div className="lg:col-span-5  col-span-1">
+                <div className={`col-span-1 ${showActualBalance ? "lg:col-span-5" : "lg:col-span-4"}`}>
                   <Controller
                     name="notes"
                     control={form.control}
@@ -438,19 +442,16 @@ const CreateSalesInvoice: React.FC = () => {
 
                   <div className="w-full overflow-x-auto pb-4">
                     <div>
-                      <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", 
-                        showItemCode 
-                          ? (showProductBalanceAtSale ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]")
-                          : (showProductBalanceAtSale ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]"))}>
+                      <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", showItemCode ? (showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : isExempt ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]") : isExempt ? "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]")}>
                         {showItemCode && <div>{t("product_code")}</div>}
                         <div>{t("product_name")}</div>
                         <div>{t("unit")}</div>
                         {showProductBalanceAtSale && <div>{t("balance")}</div>}
                         <div>{t("unit_price")}</div>
                         <div>{t("quantity")}</div>
-                        <div>نوع الضريبة</div>
-                        <div>{t("subtotal_before_tax")}</div>
-                        <div>{t("vat")}</div>
+                        {!isExempt && <div>نوع الضريبة</div>}
+                        {!isExempt && <div>{t("subtotal_before_tax")}</div>}
+                        {!isExempt && <div>{t("vat")}</div>}
                         <div>{t("grand_total")}</div>
                         <div></div>
                       </div>
@@ -471,7 +472,8 @@ const CreateSalesInvoice: React.FC = () => {
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterDiscount = Math.max(0, gross - discount);
-                          const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                          const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
+                          const vatAmount = taxCalc === 1 || isExempt ? 0 : afterDiscount * taxPercentage;
                           const beforeTax = afterDiscount - vatAmount;
                           const grandTotal = afterDiscount;
                           const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
@@ -479,10 +481,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                           return (
                             <div key={item.id}>
-                              <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group", 
-                                showItemCode 
-                                  ? (showProductBalanceAtSale ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]")
-                                  : (showProductBalanceAtSale ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]"))}>
+                              <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group", showItemCode ? (showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : isExempt ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]") : isExempt ? "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]")}>
                                 {showItemCode && (
                                   <Field>
                                     <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
@@ -552,12 +551,11 @@ const CreateSalesInvoice: React.FC = () => {
                                   )}
                                 />
 
-                                <div className="text-center font-medium text-foreground">{nameTaxValc}</div>
-                                <div className="text-center font-medium text-foreground">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                {!isExempt && <div className="text-center font-medium text-foreground">{nameTaxValc}</div>}
+                                {!isExempt && <div className="text-center font-medium text-foreground">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>}
+                                {!isExempt && <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>}
 
-                                <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-
-                                <div className="text-center text-green-500 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                <div className={`text-center text-green-500 font-bold`}>{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
                                 <div className="flex items-center justify-center gap-2">
                                   <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
@@ -675,15 +673,19 @@ const CreateSalesInvoice: React.FC = () => {
                   <h3 className="text-base font-semibold text-foreground mb-5">{t("invoice_summary")}</h3>
 
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center text-muted-foreground">
-                      <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
-                      <span className="font-semibold text-foreground">{adjustedBeforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
+                    {!isExempt && (
+                      <div className="flex justify-between items-center text-muted-foreground">
+                        <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
+                        <span className="font-semibold text-foreground">{adjustedBeforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
 
-                    <div className="flex justify-between items-center text-muted-foreground">
-                      <span className="text-sm font-medium">{t("vat")}</span>
-                      <span className="font-semibold text-orange-500">{adjustedVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
+                    {!isExempt && (
+                      <div className="flex justify-between items-center text-muted-foreground">
+                        <span className="text-sm font-medium">{t("vat")}</span>
+                        <span className="font-semibold text-orange-500">{adjustedVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
 
                     <div className="flex justify-between items-center text-muted-foreground gap-3">
                       <span className="text-sm font-medium whitespace-nowrap">{t("discount")}</span>

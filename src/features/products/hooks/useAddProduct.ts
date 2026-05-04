@@ -27,6 +27,7 @@ import { useUpdateProductRawMatrial } from "@/features/products/hooks/useUpdateP
 import useToast from "@/hooks/useToast";
 import { createProductSchema, createBranchedProductSchema, createPreparedProductSchema, createRawMaterialSchema, baseDefaultValues } from "../schemas";
 import { FormValues, ProductType } from "../types/products.types";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ export function useAddProduct() {
   const { mutateAsync: updateProductRawMatrial } = useUpdateProductRawMatrial();
 
   const isLoading = isDirectLoading || isBranchedLoading || isPreparedLoading || isRawLoading;
+  const taxSetting = useSettingsStore((state) => state.settings.taxSetting?.taxSetting);
 
   // ── Form ───────────────────────────────────────────────────────────────────
   const activeSchema = productType === "Branched" ? createBranchedProductSchema : productType === "Prepared" ? createPreparedProductSchema : productType === "RawMatrial" ? createRawMaterialSchema : createProductSchema;
@@ -293,6 +295,11 @@ export function useAddProduct() {
         );
       }
 
+      if (taxSetting === "Exempt") {
+        formData.append("TaxId", "2");
+        formData.append("TaxCalculation", "1");
+      }
+
       if (data.Image instanceof File) {
         formData.append("Image", data.Image);
       } else if (data.Image === undefined || data.Image === null) {
@@ -301,7 +308,7 @@ export function useAddProduct() {
 
       return formData;
     },
-    [productType],
+    [productType, taxSetting],
   );
 
   const buildRawMaterialJson = useCallback(
