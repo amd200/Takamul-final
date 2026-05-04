@@ -12,6 +12,7 @@ import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 import { useDeleteDevicePOS } from "@/features/pos/hooks/useDeleteDevicePOS";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { set } from "zod";
 // import { useGetPOSDeviceById } from "@/features/pos/hooks/useGetPOSDeviceById";
 // import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 
@@ -112,7 +113,6 @@ function formatLastSent(dateStr: string) {
   });
 }
 
-
 export default function POSDevicesList() {
   const { t, direction } = useLanguage();
 
@@ -123,10 +123,10 @@ export default function POSDevicesList() {
   const [selectedDevice, setSelectedDevice] = useState<POSDevice | null>(null);
   const { data: devices } = useGetAllPOSDevices();
   const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set());
+  const [editMode, setEditMode] = useState<boolean>(false);
 
   const visibleDevices = useMemo(() => (devices?.data ?? []).filter((d) => !hiddenIds.has(d.id)), [devices?.data, hiddenIds]);
   const { mutateAsync: deleteDevice } = useDeleteDevicePOS();
-
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGlobalFilterValue(e.target.value);
@@ -217,6 +217,7 @@ export default function POSDevicesList() {
                     onClick={() => {
                       setSelectedDevice(row);
                       setIsAddModalOpen(true);
+                      setEditMode(true);
                     }}
                     className="btn-minimal-action"
                     title={!row.certificateType?.toUpperCase().includes("PCSID") && row.certificateType?.toUpperCase().includes("CCSID") ? "استكمال التسجيل" : "تعديل"}
@@ -224,17 +225,7 @@ export default function POSDevicesList() {
                     <Edit2 size={16} />
                   </button>
 
-                  {row?.id !== 1 && <DeleteDeviceButton device={row} onDelete={deleteDevice} setHiddenIds={setHiddenIds} />}
-                  <button
-                    onClick={() => {
-                      setSelectedDevice(row);
-                      // setIsOTPModalOpen(true);
-                    }}
-                    className="btn-minimal-action text-yellow-600 hover:text-yellow-700"
-                    title="إدخال OTP"
-                  >
-                    <KeyRound size={16} />
-                  </button>
+                  {<DeleteDeviceButton device={row} onDelete={deleteDevice} setHiddenIds={setHiddenIds} />}
                 </div>
               )}
             />
@@ -243,10 +234,12 @@ export default function POSDevicesList() {
       </Card>
 
       <AddPOSDeviceModal
+        editMode={editMode}
         device={selectedDevice}
         isOpen={isAddModalOpen}
         onOpenChange={(open) => {
           setIsAddModalOpen(open);
+          setEditMode(false);
 
           if (!open) {
             setSelectedDevice(null);

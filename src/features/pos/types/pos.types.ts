@@ -158,11 +158,10 @@ export interface CreateDevicePOS {
   deviceTypeId: number;
   branchId: number;
 }
-export interface UpdateDevicePOS extends CreateDevicePOS {
+export interface UpdateDevicePOS extends Omit<CreateDevicePOS, "serialNumber"> {
   isActive: boolean;
   allowOnlineInvoicing: boolean;
 }
-
 export type GetAllPOSDevicesResponse = ApiResponse<POSDevice[]>;
 export type GetPOSDevicesResponse = ApiResponse<POSDevice>;
 export type GenereateSerialResponse = ApiResponse<string>;

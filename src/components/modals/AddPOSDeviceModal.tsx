@@ -53,11 +53,6 @@ interface PCSIDResult {
 }
 
 // ─── Status → Step mapping ────────────────────────────────────────────────────
-// NotRegistered  → step 1 (معلومات الجهاز) — لم يُنشأ بعد
-// PendingOTP     → step 2 (توليد CSR) — أُنشئ الجهاز، لم يُولَّد CSR أو في انتظار OTP
-// CCSIDRegistered→ step 4 (تسجيل PCSID) — CCSID جاهز، باقي PCSID
-// PCSIDRegistered→ step 5 (اكتمل)
-
 const statusToStep: Record<DeviceStatus, number> = {
   NotRegistered: 1,
   PendingOTP: 2,
@@ -90,7 +85,7 @@ const STEPS = [
   { id: 5, label: "اكتمل", icon: CheckCircle2 },
 ];
 
-function isStepComplete(step: number, clickedGeneratedCSR: boolean, ccsid: CCSIDResult | undefined, pcsid: PCSIDResult | undefined): boolean {
+function isStepComplete(step: number, clickedGeneratedCSR: boolean, ccsid: CCSIDResult | undefined, pcsid: PCSIDResult | undefined, deviceStatus?: DeviceStatus): boolean {
   switch (step) {
     case 1:
       return true;
@@ -99,6 +94,7 @@ function isStepComplete(step: number, clickedGeneratedCSR: boolean, ccsid: CCSID
     case 3:
       return !!ccsid;
     case 4:
+      // إذا كان status الجهاز CCSIDRegistered، الخطوة دي مكتملة بدون ccsid في الـ state
       return !!pcsid;
     case 5:
       return true;
@@ -247,12 +243,16 @@ interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   device?: POSDevice;
+  editMode: boolean;
 }
 
-export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Props) {
+export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMode }: Props) {
   const { direction } = useLanguage();
   const [step, setStep] = useState(1);
-  const isEdit = !!device;
+  const isEdit = editMode;
+  const isCertificateMode = !!device && !editMode;
+
+  const [deviceStatus, setDeviceStatus] = useState<DeviceStatus | undefined>();
 
   const [clickedGeneratedCSR, setClickedGeneratedCSR] = useState<boolean>(false);
   const [createdDeviceId, setCreatedDeviceId] = useState<number | undefined>();
@@ -293,6 +293,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
       setOtp("");
       setOtpError("");
       setCreatedDeviceId(undefined);
+      setDeviceStatus(undefined);
       return;
     }
 
@@ -306,15 +307,40 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
         isActive: device.isActive,
       });
       setCreatedDeviceId(device.id);
+      setDeviceStatus(device.status as DeviceStatus);
 
       const resumeStep = statusToStep[device.status as DeviceStatus] ?? 1;
-      setStep(resumeStep);
+      if (isEdit) {
+        setStep(1);
+      } else {
+        setStep(resumeStep);
+      }
     } else {
       form.reset();
       setStep(1);
     }
   }, [isOpen, device]);
 
+  const handleUpdate = async () => {
+    const fields = STEP_FIELDS[1];
+    const valid = await form.trigger(fields);
+    if (!valid) return;
+
+    try {
+      const data = form.getValues();
+      await updateDevice({
+        id: device?.id!,
+        data: {
+          deviceName: data.deviceName,
+          deviceTypeId: data.deviceTypeId,
+          branchId: data.branchId,
+          isActive: true,
+          allowOnlineInvoicing: true,
+        },
+      });
+      onOpenChange(false);
+    } catch {}
+  };
   const handleNext = async () => {
     const fields = STEP_FIELDS[step];
     if (fields) {
@@ -322,7 +348,8 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
       if (!valid) return;
     }
 
-    if (!isStepComplete(step, clickedGeneratedCSR, ccsid, pcsid)) {
+    const isCCSIDResumed = step === 4 && deviceStatus === "CCSIDRegistered" && !pcsid;
+    if (!isCCSIDResumed && !isStepComplete(step, clickedGeneratedCSR, ccsid, pcsid, deviceStatus)) {
       return;
     }
 
@@ -345,7 +372,10 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
     setStep((s) => Math.min(s + 1, 5));
   };
 
-  const handleBack = () => setStep((s) => Math.max(s - 1, 1));
+  const handleBack = () => {
+    if (deviceStatus === "CCSIDRegistered" && step <= 4) return;
+    setStep((s) => Math.max(s - 1, 1));
+  };
 
   const handleGenerateCSR = async () => {
     if (!createdDeviceId) return;
@@ -395,17 +425,22 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
   };
 
   const anyLoading = isCreating || isUpdating || isGeneratingCSR || isRegisteringCCSID || isRegisteringPCSID;
-  const nextDisabled = anyLoading || !isStepComplete(step, clickedGeneratedCSR, ccsid, pcsid);
+
+  // الـ next button disabled logic
+  const isCCSIDResumedStep = step === 4 && deviceStatus === "CCSIDRegistered" && !pcsid;
+  const nextDisabled = anyLoading || (!isCCSIDResumedStep && !isStepComplete(step, clickedGeneratedCSR, ccsid, pcsid, deviceStatus));
+
+  const backHidden = deviceStatus === "CCSIDRegistered" && step === 4;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent dir={direction} className="sm:max-w-[600px] p-0 overflow-hidden rounded-2xl gap-0">
         <div className="px-6 pt-5 pb-6">
           <DialogHeader className="mb-4">
-            <DialogTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">{isEdit ? "استكمال تسجيل نقطة البيع" : "إضافة نقطة بيع جديدة"}</DialogTitle>
+            <DialogTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">{isCertificateMode ? "استكمال تسجيل نقطة البيع" : isEdit ? "تعديل بيانات جهاز" : "إضافة نقطة بيع جديدة"}</DialogTitle>
           </DialogHeader>
 
-          <StepperHeader current={step} />
+          {!isEdit && <StepperHeader current={step} />}
 
           <div className="max-h-[52vh] overflow-y-auto no-scrollbar pr-1">
             {step === 1 && (
@@ -462,25 +497,27 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                         الرقم التسلسلي <span className="text-red-500">*</span>
                       </FieldLabel>
                       <div className="flex flex-row items-center gap-2">
-                        <Input {...field} placeholder="POS-RUH-2024-001" className="font-mono" />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon-xl"
-                          className="shrink-0 px-3"
-                          onClick={async () => {
-                            try {
-                              const { data } = await refetch();
-                              field.onChange(data?.data ?? "");
-                            } catch (e) {
-                              console.error(e);
-                            }
-                          }}
-                        >
-                          <Barcode size={16} />
-                        </Button>
+                        <Input {...field} placeholder="POS-RUH-2024-001" className={`${isEdit && "cursor-not-allowed"}`} readOnly={isEdit} />
+                        {!isEdit && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-xl"
+                            className="shrink-0 px-3"
+                            onClick={async () => {
+                              try {
+                                const { data } = await refetch();
+                                field.onChange(data?.data ?? "");
+                              } catch (e) {
+                                console.error(e);
+                              }
+                            }}
+                          >
+                            <Barcode size={16} />
+                          </Button>
+                        )}
                       </div>
-                      <span className="text-[10px] text-gray-500">لا يمكن تعديله بعد إنشاء CSR</span>
+                      {!isEdit && <span className="text-[10px] text-gray-500">لا يمكن تعديله بعد إنشاء CSR</span>}
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -550,7 +587,6 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
                       شيله في مكان كويس عشان مش هتشوفه تاني
-                      {/* احتفظ بالمفتاح الخاص في مكان آمن. */}
                     </div>
                   </div>
                 )}
@@ -574,10 +610,6 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                           </li>
                         ))}
                       </ol>
-                      {/* <a href="https://portal.zatca.gov.sa" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2">
-                        <ExternalLink size={12} />
-                        فتح بوابة هيئة الزكاة (portal.zatca.gov.sa)
-                      </a> */}
                     </div>
 
                     <Field data-invalid={!!otpError}>
@@ -636,21 +668,24 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
 
             {step === 4 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-1">
-                  <SectionTitle>CCSID Token (مطلوب لتسجيل PCSID)</SectionTitle>
-                  <div className="flex justify-between items-center py-2.5 border-b border-gray-50">
-                    <span className="text-sm text-gray-500">الحالة</span>
-                    <StatusBadge status={ccsid?.status} expired={ccsid?.isExpired} />
+                {/* الـ card دي بتتشال لو مفيش ccsid في الـ state (حالة الاستكمال من CCSIDRegistered) */}
+                {ccsid && (
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-1">
+                    <SectionTitle>CCSID Token (مطلوب لتسجيل PCSID)</SectionTitle>
+                    <div className="flex justify-between items-center py-2.5 border-b border-gray-50">
+                      <span className="text-sm text-gray-500">الحالة</span>
+                      <StatusBadge status={ccsid?.status} expired={ccsid?.isExpired} />
+                    </div>
+                    <ReviewRow label="ينتهي في" value={formatDate(ccsid?.expiresAt)} />
+                    <div className="py-2 flex items-center justify-between">
+                      <span className="text-xs font-mono text-gray-500 truncate max-w-[300px]">{ccsid?.token?.slice(0, 38)}…</span>
+                      {ccsid?.token && <CopyButton text={ccsid.token} />}
+                    </div>
                   </div>
-                  <ReviewRow label="ينتهي في" value={formatDate(ccsid?.expiresAt)} />
-                  <div className="py-2 flex items-center justify-between">
-                    <span className="text-xs font-mono text-gray-500 truncate max-w-[300px]">{ccsid?.token?.slice(0, 38)}…</span>
-                    {ccsid?.token && <CopyButton text={ccsid.token} />}
-                  </div>
-                </div>
+                )}
 
                 {!pcsid ? (
-                  <Button type="button" onClick={handleRegisterPCSID} disabled={isRegisteringPCSID || !ccsid?.token || ccsid?.isExpired} className="w-full flex items-center justify-center gap-2 bg-[#2ecc71] hover:bg-[#27ae60] text-white h-11">
+                  <Button type="button" onClick={handleRegisterPCSID} disabled={isRegisteringPCSID || (!!ccsid && ccsid.isExpired)} className="w-full flex items-center justify-center gap-2 bg-[#2ecc71] hover:bg-[#27ae60] text-white h-11">
                     {isRegisteringPCSID && <Loader2 size={16} className="animate-spin" />}
                     {isRegisteringPCSID ? "جاري تسجيل PCSID..." : "تسجيل PCSID"}
                   </Button>
@@ -692,32 +727,54 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
               </div>
             )}
           </div>
-          <div className="flex justify-between items-center mt-5 pt-4 border-t border-gray-100">
-            <Button size="2xl" type="button" variant="outline" onClick={() => (step === 1 || step === 5 ? onOpenChange(false) : handleBack())} disabled={anyLoading} className="flex items-center gap-1.5">
-              {step === 5 ? (
-                "إغلاق"
-              ) : (
-                <>
-                  <ChevronRight size={16} />
-                  {step === 1 ? "إلغاء" : "السابق"}
-                </>
-              )}
-            </Button>
 
-            {step < 5 && (
-              <Button size="2xl" type="button" onClick={handleNext} disabled={nextDisabled} className="flex items-center gap-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white">
-                {isCreating || isUpdating ? (
-                  <>
-                    <Loader2 size={15} className="animate-spin" />
-                    جاري الحفظ...
-                  </>
-                ) : (
-                  <>
-                    التالي
-                    <ChevronLeft size={16} />
-                  </>
+          <div className="flex justify-between items-center mt-5 pt-4 border-t border-gray-100">
+            {isEdit ? (
+              <>
+                <Button size="2xl" type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={anyLoading} className="flex items-center gap-1.5">
+                  إلغاء
+                </Button>
+                <Button size="2xl" type="button" onClick={handleUpdate} disabled={anyLoading} className="flex items-center gap-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white">
+                  {isUpdating ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      جاري التحديث...
+                    </>
+                  ) : (
+                    "تحديث البيانات"
+                  )}
+                </Button>
+              </>
+            ) : (
+              // وضع الإضافة: زرار السابق/إلغاء + التالي
+              <>
+                <Button size="2xl" type="button" variant="outline" onClick={() => (step === 1 || step === 5 ? onOpenChange(false) : handleBack())} disabled={anyLoading || backHidden} className={`flex items-center gap-1.5 ${backHidden ? "invisible" : ""}`}>
+                  {step === 5 ? (
+                    "إغلاق"
+                  ) : (
+                    <>
+                      <ChevronRight size={16} />
+                      {step === 1 ? "إلغاء" : "السابق"}
+                    </>
+                  )}
+                </Button>
+
+                {step < 5 && (
+                  <Button size="2xl" type="button" onClick={handleNext} disabled={nextDisabled} className="flex items-center gap-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white">
+                    {isCreating || isUpdating ? (
+                      <>
+                        <Loader2 size={15} className="animate-spin" />
+                        جاري الحفظ...
+                      </>
+                    ) : (
+                      <>
+                        التالي
+                        <ChevronLeft size={16} />
+                      </>
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </>
             )}
           </div>
         </div>

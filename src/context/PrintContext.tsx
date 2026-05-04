@@ -171,15 +171,16 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       const ext = await prepareExtendedData(data);
       const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 
-      const htmlGetters: Record<string, () => string> = {
-        invoice: () => getA4InvoiceHTML(ext, t, apiBase),
-        stock: () => getStockReceiptHTML(ext, t),
-        claim: () => getClaimReceiptHTML(ext, t),
-        quotation: () => getA4PrintHTML(ext, "quotation", t, apiBase),
-        purchase: () => getA4PrintHTML(ext, "purchase", t, apiBase),
+      const htmlGetters: Record<string, () => Promise<string>> = {
+        invoice: () => getA4InvoiceHTML(ext, t, generateQR, apiBase),
+        stock: async () => getStockReceiptHTML(ext, t),
+        claim: async () => getClaimReceiptHTML(ext, t),
+        quotation: async () => getA4PrintHTML(ext, "quotation", t, apiBase),
+        purchase: async () => getA4PrintHTML(ext, "purchase", t, apiBase),
       };
 
-      printVoucher((htmlGetters[type] ?? htmlGetters["invoice"])());
+      const html = await (htmlGetters[type] ?? htmlGetters["invoice"])();
+      printVoucher(html);
     },
     [prepareExtendedData, printRoll, t],
   );
@@ -188,7 +189,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     async (data: PrintableData) => {
       const ext = await prepareExtendedData(data);
       const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
-      await exportCustomPDF(`Invoice_${(ext as any).invoiceNo || (ext as any).orderNumber || (ext as any).id}`, getA4InvoiceHTML(ext, t, apiBase));
+      await exportCustomPDF(`Invoice_${(ext as any).invoiceNo || (ext as any).orderNumber || (ext as any).id}`, await getA4InvoiceHTML(ext, t, apiBase));
     },
     [prepareExtendedData, t],
   );

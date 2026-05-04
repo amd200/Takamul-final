@@ -2,11 +2,15 @@ import { tafqeet } from "../utils/tafqeet";
 import type { Customer } from "@/features/customers/types/customers.types";
 import { itemBasePrice, calcItemTax, calcTotals, type CartItem } from "@/constants/data";
 import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
+import { GenereateQRRequest, GenereateQRResponse } from "@/features/zatcaInvoice/types/zarchaInvoices.types";
+import QRCode from "qrcode/lib/browser.js";
 
-export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): string => {
+export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: GenereateQRRequest) => Promise<GenereateQRResponse>, passedApiBase?: string): Promise<string> => {
   const branch: Partial<BranchInfo> = order.branchInfo || {};
   const customer: Partial<Customer> = order.customerData || {};
   const items: any[] = order.items || order.orderItems || [];
+  const res = await generateQR({ invoiceId: order.id });
+  const qrImageSrc = res?.qrCode ? await QRCode.toDataURL(res.qrCode) : null;
 
   const apiBase = passedApiBase || "";
 
@@ -562,9 +566,9 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
   <!-- ══ FOOTER SECTION ══ -->
   <div class="footer-section">
     <div class="qr-barcode-container">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(invoiceNo)}" onerror="this.style.display='none'" class="qr-code-final" alt="QR"/>
+    ${qrImageSrc ? `<img src="${qrImageSrc || ""}" onerror="this.style.display='none'" class="qr-code-final" alt="QR"/>` : `<div style="font-size: 8px; color: #555; text-align: center;">QR Code Unavailable</div>`}
       <div class="inv-no-small">${invoiceNo}</div>
-      <img src="https://www.barcodesinc.com/generator/image.php?code=${encodeURIComponent(invoiceNo)}&style=196&type=C128B&width=110&height=35&xres=1&font=3" onerror="this.style.display='none'" class="barcode-final" alt="Barcode"/>
+      // <img src="https://www.barcodesinc.com/generator/image.php?code=${encodeURIComponent(invoiceNo)}&style=196&type=C128B&width=110&height=35&xres=1&font=3" onerror="this.style.display='none'" class="barcode-final" alt="Barcode"/>
     </div>
 
     <table class="totals-table">

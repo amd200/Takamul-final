@@ -128,24 +128,12 @@ export default function CertificatesPosDevices() {
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
 
   return (
-    <div className="p-4 space-y-4" dir={direction}>
+    <>
       <Card>
         <CardHeader>
           <CardTitle>ملخص حالة الشهادات — جميع الأجهزة</CardTitle>
           <CardDescription>إدارة شهادات أجهزة نقاط البيع المسجلة</CardDescription>
-          <CardAction>
-            <Button
-              size="xl"
-              variant="default"
-              onClick={() => {
-                setSelectedDevice(null);
-                setIsAddModalOpen(true);
-              }}
-            >
-              <Plus size={20} />
-              إضافة شهادة
-            </Button>
-          </CardAction>
+     
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -313,6 +301,6 @@ export default function CertificatesPosDevices() {
           if (!open) setSelectedDevice(null);
         }}
       />
-    </div>
+    </>
   );
 }
