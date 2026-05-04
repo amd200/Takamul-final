@@ -568,7 +568,8 @@ const CreateQuote: React.FC = () => {
 
                         return (
                           <div key={item.id}>
-                            <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2  md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group", showItemCode ? "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
+                            <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group", showItemCode ? (isExempt ? "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_0.9fr_50px]" : "md:grid-cols-[1.1fr_1.4fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_50px]") : isExempt ? "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px]")}>
+                              {" "}
                               {showItemCode && (
                                 <Field>
                                   <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
@@ -602,7 +603,6 @@ const CreateQuote: React.FC = () => {
                                   </Field>
                                 )}
                               />
-
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.unitName`}
@@ -613,7 +613,6 @@ const CreateQuote: React.FC = () => {
                                   </Field>
                                 )}
                               />
-
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.unitPrice`}
@@ -662,7 +661,6 @@ const CreateQuote: React.FC = () => {
                                   maximumFractionDigits: 2,
                                 })}
                               </div>
-
                               <div className="flex items-center justify-center gap-2">
                                 <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
                                   <Trash2 size={16} />

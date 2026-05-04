@@ -76,6 +76,8 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
   const { data: treasurys } = useGetAllTreasurys();
   const [submitType, setSubmitType] = useState<"save" | "saveAndNew">("save");
+  const taxSetting = useSettingsStore((state) => state.settings.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
 
   const form = useForm<PurchaseInvoiceType>({
     resolver: zodResolver(purchasesInvoiceSchema),
@@ -276,7 +278,6 @@ const CreatePurchaseInvoice: React.FC = () => {
     }
   }, [summary.finalTotal, isEditMode]);
 
-
   const handleAddPayment = () => {
     const defaultId = Number(defaultPurchasesVault) || Number(treasurys?.[0]?.id || 0);
     appendPayment({ amount: 0, treasuryId: defaultId });
@@ -391,19 +392,18 @@ const CreatePurchaseInvoice: React.FC = () => {
                 <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
 
                 <div className="w-full overflow-x-auto pb-4">
-                    <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", 
-                      showItemCode ? "md:grid-cols-[1fr_1.4fr_0.7fr_0.8fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px]")}>
-                      {showItemCode && <div>{t("product_code")}</div>}
-                      <div>{t("product_name")}</div>
-                      <div>{t("unit")}</div>
-                      <div>{t("unit_cost")}</div>
-                      <div>{t("quantity")}</div>
-                      <div>{t("total_before_tax")}</div>
-                      <div>{t("tax_rate")}</div>
-                      <div>{t("vat")}</div>
-                      <div>{t("final_total")}</div>
-                      <div></div>
-                    </div>
+                  <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", showItemCode ? (isExempt ? "md:grid-cols-[1fr_1.4fr_0.7fr_0.8fr_0.6fr_0.8fr_50px]" : "md:grid-cols-[1fr_1.4fr_0.7fr_0.8fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : isExempt ? "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.9fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px]")}>
+                    {showItemCode && <div>{t("product_code")}</div>}
+                    <div>{t("product_name")}</div>
+                    <div>{t("unit")}</div>
+                    <div>{t("unit_cost")}</div>
+                    <div>{t("quantity")}</div>
+                    {!isExempt && <div>{t("total_before_tax")}</div>}
+                    {!isExempt && <div>{t("tax_rate")}</div>}
+                    {!isExempt && <div>{t("vat")}</div>}
+                    <div>{t("final_total")}</div>
+                    <div></div>
+                  </div>
 
                   <div className="space-y-3 mt-3">
                     {itemFields.map((item, index) => {
@@ -417,7 +417,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                       const gross = qty * price;
                       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                       const beforeTax = Math.max(0, gross - discount);
-                      const vatAmount = beforeTax * (taxRate / 100);
+                      const vatAmount = isExempt ? 0 : beforeTax * (taxRate / 100);
                       const grandTotal = beforeTax + vatAmount;
                       const isDiscOpen = !!discountOpen[index];
                       const productId = form.watch(`items.${index}.productId`);
@@ -426,15 +426,14 @@ const CreatePurchaseInvoice: React.FC = () => {
 
                       return (
                         <div key={item.id}>
-                          <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group", 
-                            showItemCode ? "md:grid-cols-[1fr_1.4fr_0.7fr_0.8fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px]")}>
+                          <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group", showItemCode ? (isExempt ? "md:grid-cols-[1fr_1.4fr_0.7fr_0.8fr_0.6fr_0.8fr_50px]" : "md:grid-cols-[1fr_1.4fr_0.7fr_0.8fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : isExempt ? "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.9fr_0.9fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px]")}>
+                            {" "}
                             {showItemCode && (
                               <Field>
                                 <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
                                 <Input value={productCode} readOnly className="bg-gray-50 text-center" />
                               </Field>
                             )}
-
                             <Controller
                               control={form.control}
                               name={`items.${index}.productId`}
@@ -459,7 +458,6 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 </Field>
                               )}
                             />
-
                             <Controller
                               control={form.control}
                               name={`items.${index}.unitName`}
@@ -470,7 +468,6 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 </Field>
                               )}
                             />
-
                             <Controller
                               control={form.control}
                               name={`items.${index}.unitPrice`}
@@ -481,7 +478,6 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 </Field>
                               )}
                             />
-
                             <Controller
                               control={form.control}
                               name={`items.${index}.quantity`}
@@ -501,34 +497,35 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 </Field>
                               )}
                             />
-
-                            <div className="self-start pt-2 text-center font-medium">
-                              {beforeTax.toLocaleString("en-EG", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </div>
-
-                            <Controller
-                              control={form.control}
-                              name={`items.${index}.taxId`}
-                              render={({ field, fieldState }) => (
-                                <Field>
-                                  <ComboboxField field={field} items={taxes} valueKey="id" labelKey="name" placeholder={t("tax")} />
-                                  {fieldState?.error && <FieldError errors={[fieldState.error]} />}
-                                </Field>
-                              )}
-                            />
-
-                            <div className="self-start pt-2 text-center text-orange-600 font-medium">
-                              {vatAmount.toLocaleString("en-EG", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </div>
-
+                            {!isExempt && (
+                              <div className="self-start pt-2 text-center font-medium">
+                                {beforeTax.toLocaleString("en-EG", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </div>
+                            )}
+                            {!isExempt && (
+                              <Controller
+                                control={form.control}
+                                name={`items.${index}.taxId`}
+                                render={({ field, fieldState }) => (
+                                  <Field>
+                                    <ComboboxField field={field} items={taxes} valueKey="id" labelKey="name" placeholder={t("tax")} />
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                  </Field>
+                                )}
+                              />
+                            )}
+                            {!isExempt && (
+                              <div className="self-start pt-2 text-center text-orange-600 font-medium">
+                                {vatAmount.toLocaleString("en-EG", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </div>
+                            )}
                             <div className="self-start pt-2 text-center text-green-600 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-
                             <div className="flex items-center justify-center gap-2">
                               <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
                                 <Trash2 size={16} />
