@@ -5,6 +5,7 @@ import { handleApiSuccess } from "@/lib/handleApiSuccess";
 import { generateCSR } from "../services/zatcha";
 import { GenerateCSR } from "../types/zarcha.types";
 import { zatchaKeys } from "../keys/zatca.keys";
+import { posKeys } from "@/features/pos/keys/pos.keys";
 
 export function useGenerateCSR() {
   const queryClient = useQueryClient();
@@ -12,7 +13,7 @@ export function useGenerateCSR() {
   return useMutation({
     mutationFn: (data: GenerateCSR) => generateCSR(data),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: zatchaKeys.all });
+      queryClient.invalidateQueries({ queryKey: posKeys.all });
       handleApiSuccess(response?.message, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),

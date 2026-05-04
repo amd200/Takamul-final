@@ -5,6 +5,7 @@ import { handleApiSuccess } from "@/lib/handleApiSuccess";
 import { registerCCSID } from "../services/zatcha";
 import { RegisterCCSIDRequest } from "../types/zarcha.types";
 import { zatchaKeys } from "../keys/zatca.keys";
+import { posKeys } from "@/features/pos/keys/pos.keys";
 
 export function useRegisterCCSID() {
   const queryClient = useQueryClient();
@@ -12,7 +13,7 @@ export function useRegisterCCSID() {
   return useMutation({
     mutationFn: (data: RegisterCCSIDRequest) => registerCCSID(data),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: zatchaKeys.all });
+      queryClient.invalidateQueries({ queryKey: posKeys.all });
       handleApiSuccess(response?.message, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
