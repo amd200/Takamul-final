@@ -84,7 +84,7 @@ export interface Settings {
   money: MoneySettings;
   points: PointsSettings;
   taxSetting: {
-    taxSetting: string;
+    taxSetting: "FirstStage" | "SecondStage" | "Exempt";
   };
 }
 
@@ -188,16 +188,15 @@ interface SettingsStore {
 export const useSettingsStore = create<SettingsStore>((set) => ({
   settings: defaultSettings,
 
-  // ── Replace the whole settings object (e.g. after fetching from API) ────────
-  setSettings: (settings) =>
-    set((state) => ({
-      settings: {
-        ...state.settings,
-        ...settings,
-        // Ensure money is preserved if not in API response
-        money: settings.money || state.settings.money,
-      },
-    })),
+  // setSettings: (settings) =>
+  //   set((state) => ({
+  //     settings: {
+  //       ...state.settings,
+  //       ...settings,
+  //       money: settings.money || state.settings.money,
+  //     },
+  //   })),
+  setSettings: (settings) => set((state) => ({ settings })),
 
   // ── Section-level setters ────────────────────────────────────────────────────
   setTobaccoFees: (data) =>
