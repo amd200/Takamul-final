@@ -52,5 +52,6 @@ export type SettingsResponse = {
 
   taxSetting?: {
     taxSetting: string;
+    itemTax: boolean;
   };
 };

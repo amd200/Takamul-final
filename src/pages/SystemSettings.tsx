@@ -327,7 +327,7 @@ export default function SystemSettings() {
                     showProductBalanceAtSale: itemsStore.showProductBalanceAtSale,
                     allowPriceChangeOnSale: itemsStore.allowPriceChangeOnSale,
                   });
-                  updateTax({ taxSetting: itemsStore.taxPhase });
+                  updateTax({ taxSetting: itemsStore.taxPhase, itemTax: itemsStore.itemTax });
                 }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -15,7 +15,7 @@ import { ShiftReportData } from "@/components/pos/orders/printShiftReport";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetAllUsers } from "@/features/users/hooks/useGetAllUsers";
 import { useGetAllPOSDevices } from "@/features/pos/hooks/useGetAllPOSDevices";
-import { useGetAllShifts, useOpenShift, useCloseShift } from "@/features/shifts/hooks/useShifts";
+import { useGetAllShifts, useOpenShift, useCloseShift, useGetEmployeesByBranch } from "@/features/shifts/hooks/useShifts";
 import { Shift } from "@/features/shifts/types/shifts.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
@@ -37,18 +37,19 @@ export default function ShiftsList() {
   // Current date and time for display
   const now = new Date();
   const currentDate = now.toISOString().split('T')[0];
-  const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
   const { data: shifts, isLoading: isShiftsLoading } = useGetAllShifts();
   const { data: branchesData, isLoading: isBranchesLoading } = useGetAllBranches();
   const { data: usersData, isLoading: isUsersLoading } = useGetAllUsers({ page: 1, limit: 100 });
   const { data: devicesData, isLoading: isDevicesLoading } = useGetAllPOSDevices();
+  const { data: branchEmployeesData } = useGetEmployeesByBranch(newShift.branchId);
   
   const { mutate: openShift, isPending: isOpening } = useOpenShift();
   const { mutate: closeShift, isPending: isClosing } = useCloseShift();
 
   const branches = useMemo(() => branchesData || [], [branchesData]);
-  const users = useMemo(() => usersData?.items || [], [usersData]);
+  const branchEmployees = useMemo(() => branchEmployeesData?.data || [], [branchEmployeesData]);
   const devices = useMemo(() => devicesData?.data || [], [devicesData]);
 
   // Set default values when data is loaded
@@ -59,10 +60,12 @@ export default function ShiftsList() {
   }, [branches]);
 
   React.useEffect(() => {
-    if (users.length > 0 && newShift.employeeId === 0) {
-      setNewShift(prev => ({ ...prev, employeeId: users[0].id }));
+    if (branchEmployees.length > 0) {
+      setNewShift(prev => ({ ...prev, employeeId: branchEmployees[0].id }));
+    } else {
+      setNewShift(prev => ({ ...prev, employeeId: 0 }));
     }
-  }, [users]);
+  }, [branchEmployees]);
 
   React.useEffect(() => {
     if (devices.length > 0 && newShift.deviceId === 0) {
@@ -228,10 +231,28 @@ export default function ShiftsList() {
               >
                 <Column field="id" header="رقم" sortable className="text-center whitespace-nowrap py-2 px-1 w-[50px] font-bold" />
                 <Column field="shiftDate" header="التاريخ" sortable body={(row) => <span className="whitespace-nowrap text-[13px] font-semibold">{row.shiftDate?.split('T')[0]}</span>} className="whitespace-nowrap py-2 px-1 w-[110px]" />
-                <Column field="startTime" header="الوقت" sortable className="whitespace-nowrap py-2 px-1 w-[90px]" />
+                <Column 
+                  field="startTime" 
+                  header="الوقت" 
+                  sortable 
+                  className="whitespace-nowrap py-2 px-1 w-[90px]" 
+                  body={(row) => {
+                    if (!row.startTime) return "---";
+                    try {
+                      // Handle "HH:mm:ss" format
+                      const [hours, minutes] = row.startTime.split(':');
+                      const date = new Date();
+                      date.setHours(parseInt(hours), parseInt(minutes));
+                      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                    } catch (e) {
+                      return row.startTime;
+                    }
+                  }}
+                />
                 <Column field="branchName" header="الفرع" sortable className="whitespace-nowrap py-2 px-2" />
                 <Column header="الجهاز" className="whitespace-nowrap py-2 px-1 w-[80px] text-center" body={(row) => row.deviceName || row.deviceId || "---"} />
                 <Column field="employeeName" header="المستخدم" sortable className="whitespace-nowrap py-2 px-2" body={(row) => row.employeeName || "المسؤول"} />
+                <Column field="status" header="الحالة" sortable body={statusTemplate} className="text-center whitespace-nowrap py-2 px-1 w-[80px]" />
                 <Column
                   field="openingBalance"
                   header="الرصيد"
@@ -313,9 +334,9 @@ export default function ShiftsList() {
                   <SelectValue placeholder="اختر الموظف" />
                 </SelectTrigger>
                 <SelectContent className="z-[250]">
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      {user.userName}
+                  {branchEmployees.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id.toString()}>
+                      {emp.firstName || `ID: ${emp.id}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -361,7 +382,12 @@ export default function ShiftsList() {
           onClose={() => setIsReportModalOpen(false)} 
           data={reportData}
           onConfirmCloseShift={() => {
-            closeShift(undefined, {
+            if (!selectedShift) return;
+            const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false });
+            closeShift({ 
+              shiftId: selectedShift.id, 
+              endTime: fullTime 
+            }, {
               onSuccess: () => setIsReportModalOpen(false)
             });
           }}

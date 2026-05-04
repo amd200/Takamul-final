@@ -33,7 +33,7 @@ export default function ItemsSettings() {
       showProductBalanceAtSale: itemsStore.showProductBalanceAtSale,
       allowPriceChangeOnSale: itemsStore.allowPriceChangeOnSale,
     });
-    updateTax({ taxSetting: itemsStore.taxPhase });
+    updateTax({ taxSetting: itemsStore.taxPhase, itemTax: itemsStore.itemTax });
   };
 
   const enableStr = t("enable_option") || "تمكين";
@@ -60,34 +60,9 @@ export default function ItemsSettings() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
-            <Field>
-              <FieldLabel className="gap-x-0">{t("settings_item_tax") || "ضريبة الصنف"} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={itemsStore.itemTax ? enableStr : disableStr} onValueChange={(val) => handleUpdate("itemTax", val === enableStr)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
-                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
 
             <Field>
-              <FieldLabel className="gap-x-0">{t("item_expiry_setting") || "تاريخ انتهاء الصنف"} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={itemsStore.itemExpiry ? enableStr : disableStr} onValueChange={(val) => handleUpdate("itemExpiry", val === enableStr)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
-                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field>
-              <FieldLabel className="gap-x-0">{t("show_warehouse_items_setting") || "إظهار جميع الأصناف"} <span className="text-red-500">*</span></FieldLabel>
+              <FieldLabel className="gap-x-0">{t("show_warehouse_items_setting") || "إظهار أصناف المخزن  "} <span className="text-red-500">*</span></FieldLabel>
               <Select value={itemsStore.showWarehouseItems ? enableStr : disableStr} onValueChange={(val) => handleUpdate("showWarehouseItems", val === enableStr)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
@@ -99,18 +74,7 @@ export default function ItemsSettings() {
               </Select>
             </Field>
 
-            <Field>
-              <FieldLabel className="gap-x-0">{t("enable_second_language_item_name") || "تفعيل اللغة الثانية لاسم الصنف"} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={itemsStore.enableSecondLanguageItemName ? enableStr : disableStr} onValueChange={(val) => handleUpdate("enableSecondLanguageItemName", val === enableStr)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
-                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
+
 
             <Field>
               <FieldLabel className="gap-x-0">{t("show_product_balance_at_sale") || "إظهار رصيد المنتج عند البيع"} <span className="text-red-500">*</span></FieldLabel>
@@ -124,19 +88,7 @@ export default function ItemsSettings() {
                 </SelectContent>
               </Select>
             </Field>
-
-            <Field>
-              <FieldLabel className="gap-x-0">{t("allow_price_change_on_sale") || "السماح بتغيير السعر عند البيع"} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={itemsStore.allowPriceChangeOnSale ? enableStr : disableStr} onValueChange={(val) => handleUpdate("allowPriceChangeOnSale", val === enableStr)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
-                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
+            
           </div>
 
           <div className="flex flex-col-reverse lg:flex-row justify-between py-4 border px-3 gap-3 rounded border-gray-100 mt-8">

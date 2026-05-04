@@ -9,7 +9,11 @@ export const openShift = (data: OpenShiftRequest) =>
     data,
   });
 
-export const closeShift = () =>
+export const closeShift = (data: { shiftId: number; endTime: string }) =>
   httpClient("/Shifts/close", {
     method: "POST",
+    data,
   });
+
+export const getEmployeesByBranch = (branchId: number) =>
+  httpClient<{ success: boolean; data: { id: number; firstName: string }[] }>(`/Shifts/EmployeeBybranch/${branchId}`);
