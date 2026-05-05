@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
+import { useAuthStore } from "@/store/authStore";
 
 export interface BranchInfo {
   id: number;
@@ -30,6 +31,8 @@ export interface BranchInfo {
 }
 
 export const useBranch = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   return useQuery<BranchInfo>({
     queryKey: ["employee-branch"],
     queryFn: async () => {
@@ -38,5 +41,6 @@ export const useBranch = () => {
       return branchData;
     },
     staleTime: 1000 * 60 * 60,
+    enabled: !!accessToken,
   });
 };

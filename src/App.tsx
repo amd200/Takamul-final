@@ -125,6 +125,7 @@ import CertificatesPosDevices from "./pages/CertificatesPosDevices";
 import { useEffect } from "react";
 import { authChannel } from "./utils/authChannel";
 import { useAuthStore } from "./store/authStore";
+import { useAuthChannel } from "./hooks/useAuthChannel";
 
 function AppRoutes() {
   return (
@@ -289,6 +290,7 @@ export default function App() {
   // }, []);
 
   useGetAllSettings();
+  useAuthChannel();
   return (
     <PrintProvider>
       <AppRoutes />
