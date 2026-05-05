@@ -125,6 +125,7 @@ import CertificatesPosDevices from "./pages/CertificatesPosDevices";
 import { useEffect } from "react";
 import { authChannel } from "./utils/authChannel";
 import { useAuthStore } from "./store/authStore";
+import { useAuthChannel } from "./hooks/useAuthChannel";
 
 function AppRoutes() {
   return (
@@ -139,7 +140,8 @@ function AppRoutes() {
           <Route path="/pos" element={<AppLayout />} />
           <Route path="/pos2" element={<AppLayout2 />} />
 
-          <Route element={<Layout />}>
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             {/* المنتجات */}
             <Route path="/products" element={<ProductsList />} />
@@ -270,6 +272,7 @@ function AppRoutes() {
             <Route path="/branches/:mode/:id" element={<AddBranch />} />
             <Route path="/warehouses" element={<WarehousesList />} />
           </Route>
+          </Route>
         </Routes>
       </div>
     </>
@@ -289,6 +292,7 @@ export default function App() {
   // }, []);
 
   useGetAllSettings();
+  useAuthChannel();
   return (
     <PrintProvider>
       <AppRoutes />

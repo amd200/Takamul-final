@@ -11,7 +11,7 @@ export const initAuth = async (): Promise<void> => {
     const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
     console.log(data?.accessToken);
     console.log(decoded);
-    useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId);
+    useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId,decoded?.ShiftId);
   } catch {
     useAuthStore.getState().clearAuth();
     useAuthStore.getState().setInitialized(true);

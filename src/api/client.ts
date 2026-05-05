@@ -11,10 +11,12 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
-let isRefreshing = false;
-let failedQueue: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
+const REFRESH_TIMEOUT = 10_000;
 
-const processQueue = (error: any, token: string | null = null) => {
+let isRefreshing = false;
+let failedQueue: { resolve: (token: string) => void; reject: (err: unknown) => void }[] = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
     else prom.resolve(token!);
@@ -22,7 +24,11 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request
+const logout = () => {
+  authChannel.postMessage("logout");
+  useAuthStore.getState().clearAuth();
+};
+
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
   if (accessToken) {
@@ -31,15 +37,17 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response
 apiClient.interceptors.response.use(
   (response) => response,
   async (err) => {
     const originalRequest = err.config;
 
-    if (originalRequest.url?.includes("/Auth/refresh-token")) {
-      authChannel.postMessage("logout");
-      useAuthStore.getState().clearAuth();
+    const isAuthRoute = originalRequest.url?.includes("/Auth/login") || originalRequest.url?.includes("/Auth/register");
+
+    if (isAuthRoute) return Promise.reject(err);
+
+    if (originalRequest._isRefreshRequest) {
+      logout();
       return Promise.reject(err);
     }
 
@@ -47,40 +55,42 @@ apiClient.interceptors.response.use(
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers["Authorization"] = "Bearer " + token;
-            return apiClient(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
+        }).then((token) => {
+          originalRequest.headers["Authorization"] = "Bearer " + token;
+          return apiClient(originalRequest);
+        });
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
-      return new Promise((resolve, reject) => {
-        apiClient
-          .post<LoginResponse>("/Auth/refresh-token")
-          .then(({ data }) => {
-            const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
-            useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId);
-            apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
-            originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
-            processQueue(null, data.accessToken);
-            resolve(apiClient(originalRequest));
-          })
-          .catch((err) => {
-            processQueue(err, null);
-            authChannel.postMessage("logout");
-            useAuthStore.getState().clearAuth();
-            reject(err);
-          })
-          .finally(() => {
-            isRefreshing = false;
-          });
-      });
+      const refreshRequest = apiClient.post<LoginResponse>("/Auth/refresh-token", null, {
+        _isRefreshRequest: true,
+      } as object);
+
+      const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Token refresh timeout")), REFRESH_TIMEOUT));
+
+      return Promise.race([refreshRequest, timeoutPromise])
+        .then(({ data }) => {
+          const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
+          useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId, decoded?.ShiftId);
+          apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
+          originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
+          processQueue(null, data.accessToken);
+          return apiClient(originalRequest);
+        })
+        .catch((refreshErr) => {
+          processQueue(refreshErr, null);
+          logout(); 
+          return Promise.reject(refreshErr);
+        })
+        .finally(() => {
+          isRefreshing = false;
+        });
     }
 
     return Promise.reject(err);
   },
 );
+
+export const closeAuthChannel = () => authChannel.close();
