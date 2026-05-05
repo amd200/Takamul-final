@@ -413,9 +413,13 @@ html, body {
   </div>
 
   <!-- QR -->
-  <div class="qr-wrap">
+  ${
+    !isExempt &&
+    `
+    <div class="qr-wrap">
       ${qrImageSrc && `<img src="${qrImageSrc}" alt="QR" width="90" height="90"/>`}
-  </div>
+  </div>`
+  }
 
 </div>
 </body>
