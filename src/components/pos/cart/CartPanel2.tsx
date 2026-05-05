@@ -32,6 +32,7 @@ import useToast from "@/hooks/useToast";
 import { Customer } from "@/features/customers/types/customers.types";
 import { useBranchStore } from "@/store/employeeStore";
 import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
