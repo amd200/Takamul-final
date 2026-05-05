@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllShifts, openShift, closeShift, getEmployeesByBranch, getShiftReport } from "../services/shifts.service";
 import { shiftsKeys } from "../keys/shifts.keys";
 import { toast } from "react-toastify";
+import { salesKeys } from "@/features/sales/keys/sales.keys";
+import { handleApiError } from "@/lib/handleApiError";
+import useToast from "@/hooks/useToast";
 
 export const useGetAllShifts = () => {
   return useQuery({
@@ -15,6 +18,7 @@ export const useGetAllShifts = () => {
 
 export const useOpenShift = () => {
   const queryClient = useQueryClient();
+  const {notifyError} = useToast();
   return useMutation({
     mutationFn: openShift,
     onSuccess: () => {
@@ -22,23 +26,23 @@ export const useOpenShift = () => {
       toast.success("تم فتح الوردية بنجاح");
     },
     onError: (error: any) => {
-      const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "حدث خطأ أثناء فتح الوردية";
-      toast.error(msg);
+      handleApiError(error, notifyError);
     },
   });
 };
 
 export const useCloseShift = () => {
   const queryClient = useQueryClient();
+  const {notifyError} = useToast();
   return useMutation({
     mutationFn: closeShift,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: shiftsKeys.all });
+      queryClient.invalidateQueries({ queryKey: salesKeys.all });
       toast.success("تم إغلاق الوردية بنجاح");
     },
     onError: (error: any) => {
-      const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || "حدث خطأ أثناء إغلاق الوردية";
-      toast.error(msg);
+     handleApiError(error, notifyError);
     },
   });
 };

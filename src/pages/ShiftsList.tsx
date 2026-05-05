@@ -16,6 +16,7 @@ import { Shift } from "@/features/shifts/types/shifts.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/authStore";
 import AddShiftModal from "@/components/modals/AddShiftsModal";
+import { Permissions } from "@/lib/permissions";
 
 export default function ShiftsList() {
   const { direction, t } = useLanguage();
@@ -51,6 +52,7 @@ export default function ShiftsList() {
 
   const { branchId: userBranchId, userId, userName: authUserName } = useAuthStore();
   const isAdmin = authUserName?.toLowerCase() === "admin" || authUserName?.toLowerCase() === "superadmin";
+  const hasPermission = useAuthStore((state) => state.hasPermission);
 
   // Handle initial pre-fill and reset when modal opens
   React.useEffect(() => {
@@ -156,12 +158,14 @@ export default function ShiftsList() {
 
           <CardDescription className="text-gray-500">{t("shifts_list_desc") || "إضافة وعرض وإدارة ورديات الكاشير في مختلف الفروع"}</CardDescription>
 
-          <CardAction>
+         { hasPermission(Permissions?.shifts?.open) && (
+           <CardAction>
             <Button onClick={() => setIsAddModalOpen(true)} className="bg-[var(--primary)] hover:opacity-90 text-white gap-2 rounded-xl h-11 px-6 font-bold transition-all">
               <Plus size={18} />
               {t("add_shift") || "إضافة وردية"}
             </Button>
-          </CardAction>
+          </CardAction> 
+          )}
         </CardHeader>
 
         <CardContent>

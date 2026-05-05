@@ -315,6 +315,35 @@ const GROUPS: Group[] = [
       },
     ],
   },
+   {
+    id: "shifts",
+    label: "الورديات",
+    pages: [
+      {
+        id: "shifts_list",
+        label: "قائمة الورديات",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            value: Permissions?.shifts?.view,
+          },
+
+          {
+            id: "add",
+            label: "فتح",
+            value: Permissions?.shifts?.open,
+          },
+          {
+            id: "edit",
+            label: "غلق",
+            value: Permissions?.shifts?.close,
+          },
+         
+        ],
+      },
+    ],
+  },
   {
     id: "customers",
     label: "العملاء",
