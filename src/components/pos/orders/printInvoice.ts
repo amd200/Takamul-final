@@ -285,7 +285,7 @@ html, body {
 
   <!-- LOGO -->
   <div class="logo">
-    ${data.branch.imageUrl ? `<img src="${data.branch.imageUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
+    ${data?.branch?.imageUrl ? `<img src="${data?.branch?.imageUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
   </div>
 
   <!-- HEADER INFO ROWS -->

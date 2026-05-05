@@ -477,15 +477,19 @@ const CreateReturnSalesInvoice: React.FC = () => {
                 <div className="w-full max-w-sm bg-muted/30 border border-border rounded-2xl p-5 space-y-3">
                   <h3 className="text-sm font-bold text-foreground mb-4">{t("invoice_summary")}</h3>
 
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">{t("subtotal_before_tax")}</span>
-                    <span className="font-semibold text-foreground tabular-nums">{adjustedBeforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
+                  {!isExempt && (
+                    <>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">{t("subtotal_before_tax")}</span>
+                        <span className="font-semibold text-foreground tabular-nums">{adjustedBeforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
 
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">{t("vat")}</span>
-                    <span className="font-semibold text-amber-600 tabular-nums">{adjustedVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">{t("vat")}</span>
+                        <span className="font-semibold text-amber-600 tabular-nums">{adjustedVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+                    </>
+                  )}
 
                   <hr className="border-border" />
 
