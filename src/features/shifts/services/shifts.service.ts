@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import { Shift, OpenShiftRequest } from "../types/shifts.types";
+import { Shift, OpenShiftRequest, ShiftReport } from "../types/shifts.types";
 
 export const getAllShifts = () => httpClient<Shift[]>("/Shifts");
 
@@ -17,3 +17,6 @@ export const closeShift = (data: { shiftId: number; endTime: string }) =>
 
 export const getEmployeesByBranch = (branchId: number) =>
   httpClient<{ success: boolean; data: { id: number; firstName: string }[] }>(`/Shifts/EmployeeBybranch/${branchId}`);
+
+export const getShiftReport = (id: number) =>
+  httpClient<ShiftReport>(`/Shifts/${id}/report`);

@@ -27,7 +27,11 @@ import {
   PanelLeftOpen,
   CreditCard,
   Save,
+  Lock,
 } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import ShiftReportModal from '@/components/pos/modals/ShiftReportModal';
+import { useCloseShift } from '@/features/shifts/hooks/useShifts';
 
 interface CartItem extends Product {
   cartQuantity: number;
@@ -53,6 +57,10 @@ export default function POS() {
   const [isCartCollapsed, setIsCartCollapsed] = useState(false);
 
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { shiftId } = useAuthStore();
+  const [isShiftReportOpen, setIsShiftReportOpen] = useState(false);
+  const { mutate: closeShiftMutate } = useCloseShift();
+
   useEffect(() => {
     const timer = window.setInterval(() => setCurrentTime(new Date()), 1000);
     return () => window.clearInterval(timer);
@@ -1010,6 +1018,21 @@ export default function POS() {
               </div>
             </div>
           </div>
+
+          {shiftId && (
+            <button
+              onClick={() => setIsShiftReportOpen(true)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-1.5 rounded-lg border transition-all active:scale-95",
+                isBlueScreen
+                  ? "bg-red-500/20 text-white border-red-500/30 hover:bg-red-500/30"
+                  : "bg-red-50 text-red-600 border-red-100 hover:bg-red-100"
+              )}
+            >
+              <Lock size={16} />
+              <span className="text-sm font-bold">غلق الوردية</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -1480,6 +1503,27 @@ export default function POS() {
             </div>
           </div>
         </div>
+      )}
+      {isShiftReportOpen && shiftId && (
+        <ShiftReportModal
+          isOpen={isShiftReportOpen}
+          onClose={() => setIsShiftReportOpen(false)}
+          shiftId={parseInt(shiftId)}
+          onConfirmCloseShift={() => {
+            const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false });
+            closeShiftMutate(
+              {
+                shiftId: parseInt(shiftId),
+                endTime: fullTime,
+              },
+              {
+                onSuccess: () => {
+                  setIsShiftReportOpen(false);
+                },
+              },
+            );
+          }}
+        />
       )}
     </div>
   );

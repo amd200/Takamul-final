@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllShifts, openShift, closeShift, getEmployeesByBranch } from "../services/shifts.service";
+import { getAllShifts, openShift, closeShift, getEmployeesByBranch, getShiftReport } from "../services/shifts.service";
 import { shiftsKeys } from "../keys/shifts.keys";
 import { toast } from "react-toastify";
 
@@ -45,5 +45,13 @@ export const useGetEmployeesByBranch = (branchId: number) => {
     queryKey: [...shiftsKeys.all, "employees", branchId],
     queryFn: () => getEmployeesByBranch(branchId),
     enabled: !!branchId,
+  });
+};
+
+export const useGetShiftReport = (id: number) => {
+  return useQuery({
+    queryKey: [...shiftsKeys.all, "report", id],
+    queryFn: () => getShiftReport(id),
+    enabled: !!id,
   });
 };

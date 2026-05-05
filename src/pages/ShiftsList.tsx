@@ -5,20 +5,15 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction } from "@/components/ui/card";
-import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import ShiftReportModal from "@/components/pos/modals/ShiftReportModal";
-import { ShiftReportData } from "@/components/pos/orders/printShiftReport";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetAllUsers } from "@/features/users/hooks/useGetAllUsers";
 import { useGetAllPOSDevices } from "@/features/pos/hooks/useGetAllPOSDevices";
 import { useGetAllShifts, useOpenShift, useCloseShift, useGetEmployeesByBranch } from "@/features/shifts/hooks/useShifts";
 import { Shift } from "@/features/shifts/types/shifts.types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
 import AddShiftModal from "@/components/modals/AddShiftsModal";
 
@@ -111,28 +106,6 @@ export default function ShiftsList() {
     return shiftsArray.filter((item: any) => item.id.toString().includes(term) || item.employeeName?.toLowerCase().includes(term) || item.branchName?.toLowerCase().includes(term));
   }, [shifts, searchTerm]);
 
-  const handleOpenShift = () => {
-    if (newShift.branchId === 0 || newShift.employeeId === 0) {
-      return alert("الرجاء اختيار الفرع والموظف");
-    }
-
-    const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false }); // "HH:mm:ss"
-
-    openShift(
-      {
-        shiftDate: currentDate,
-        startTime: fullTime,
-        openingBalance: newShift.openingBalance,
-        branchId: newShift.branchId,
-        employeeId: newShift.employeeId,
-        deviceId: newShift.deviceId,
-      },
-      {
-        onSuccess: () => setIsAddModalOpen(false),
-      },
-    );
-  };
-
   const header = (
     <div className="relative w-full md:w-80">
       <Search className={cn("absolute top-2.5 text-gray-400", direction === "rtl" ? "right-3" : "left-3")} size={18} />
@@ -171,28 +144,6 @@ export default function ShiftsList() {
       </div>
     );
   };
-
-  const reportData: ShiftReportData = useMemo(() => {
-    return {
-      shiftNumber: selectedShift?.id.toString() || "",
-      userName: selectedShift?.employeeName || "",
-      shiftDate: selectedShift?.shiftDate || "",
-      fromTime: selectedShift?.startTime || "",
-      toTime: selectedShift?.endTime || "---",
-      items: [],
-      totalBeforeTax: selectedShift?.totalSales || 0,
-      totalTax: 0,
-      grandTotal: selectedShift?.netTotal || 0,
-      payment: {
-        cash: selectedShift?.netTotal || 0,
-        network: 0,
-        delivery: 0,
-      },
-      totalPurchases: selectedShift?.totalPurchases || 0,
-      totalExpenses: selectedShift?.totalExpenses || 0,
-      deliveryCompanies: [],
-    };
-  }, [selectedShift]);
 
   return (
     <div dir={direction} className="p-4 lg:p-8">
@@ -266,14 +217,14 @@ export default function ShiftsList() {
           )}
         </CardContent>
       </Card>
+      
       <AddShiftModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} isAdmin={isAdmin} defaultBranchId={isAdmin ? 0 : userBranchId ? parseInt(userBranchId) : 0} defaultEmployeeId={userId ? parseInt(userId) : 0} />
    
-
-      {isReportModalOpen && (
+      {isReportModalOpen && selectedShift && (
         <ShiftReportModal
           isOpen={isReportModalOpen}
           onClose={() => setIsReportModalOpen(false)}
-          data={reportData}
+          shiftId={selectedShift.id}
           onConfirmCloseShift={() => {
             if (!selectedShift) return;
             const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false });
@@ -287,6 +238,7 @@ export default function ShiftsList() {
               },
             );
           }}
+          showCloseButton={selectedShift.status === "Open"}
         />
       )}
     </div>
