@@ -1,4 +1,3 @@
-import { DeliveryCompany } from "@/features/delivery-companies/types/delivery-companies.types";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { printInvoicePrinter } from "@/lib/qzService";
 
@@ -15,6 +14,11 @@ export interface ShiftTreasurySales {
   sales: number;
 }
 
+export interface ShiftDeliveryCompany {
+  name: string;
+  amount: number;
+}
+
 export interface ShiftReportData {
   shiftNumber: string | number;
   userName: string;
@@ -28,7 +32,7 @@ export interface ShiftReportData {
   treasuries: ShiftTreasurySales[];
   totalPurchases: number;
   totalExpenses: number;
-  deliveryCompanies: DeliveryCompany[];
+  deliveryCompanies: ShiftDeliveryCompany[];
 }
 
 export async function printShiftReport(data: ShiftReportData): Promise<void> {
@@ -44,9 +48,9 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
       <tr>
         <td class="td-num">.${item.index}</td>
         <td class="td-name">${item.productName ?? ""}</td>
-        <td>${fmt(item.price)}</td>
-        <td>${fmt(item.quantity)}</td>
-        <td>${fmt(item.total)}</td>
+        <td class="td-price">${fmt(item.price)}</td>
+        <td class="td-qty">${fmt(item.quantity)}</td>
+        <td class="td-total">${fmt(item.total)}</td>
       </tr>`
     )
     .join("");
@@ -161,35 +165,41 @@ html, body {
 .tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 7pt;
+  font-size: 7.5pt;
   font-weight: 500;
   table-layout: fixed;
 }
 
 .tbl th {
-  border-bottom: 1px solid #000;
+  border-bottom: 2px solid #000;
   border-left: 1px solid #000;
-  padding: 3px 2px;
+  padding: 4px 2px;
   text-align: center;
-  font-size: 7pt;
+  font-size: 8pt;
   font-weight: 700;
+  background: #f0f0f0;
 }
 .tbl th:last-child { border-left: none; }
 
 .tbl td {
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #000;
   border-left: 1px solid #000;
-  padding: 3px 2px;
+  padding: 5px 2px;
   text-align: center;
-  font-size: 7pt;
+  font-size: 8pt;
   font-weight: 500;
-  word-break: break-word;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 .tbl td:last-child { border-left: none; }
 .tbl tr:last-child td { border-bottom: none; }
 
-.td-num { width: 10%; }
-.td-name { text-align: center !important; width: 35%; }
+.td-num { width: 8%; }
+.td-name { width: 37%; text-align: center !important; }
+.td-price { width: 18%; }
+.td-qty { width: 15%; }
+.td-total { width: 22%; }
 
 /* TOTALS BOX */
 .totals-box {
@@ -259,11 +269,11 @@ html, body {
       <table class="tbl">
         <thead>
           <tr>
-            <th style="width:10%">م</th>
-            <th style="width:35%">الصنف</th>
-            <th>السعر</th>
-            <th>الكمية</th>
-            <th>الاجمالي</th>
+            <th class="td-num">م</th>
+            <th class="td-name">الصنف</th>
+            <th class="td-price">السعر</th>
+            <th class="td-qty">الكمية</th>
+            <th class="td-total">الاجمالي</th>
           </tr>
         </thead>
         <tbody>${itemRows}</tbody>

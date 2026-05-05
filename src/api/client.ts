@@ -63,7 +63,19 @@ apiClient.interceptors.response.use(
           .post<LoginResponse>("/Auth/refresh-token")
           .then(({ data }) => {
             const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
-            useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId);
+            const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            const role = Array.isArray(roleClaim) ? roleClaim[0] : roleClaim || "";
+            useAuthStore.getState().setAuth(
+              data.accessToken, 
+              new Date(data.accessTokenExpiration).getTime(), 
+              decoded.Permission, 
+              decoded?.UserId, 
+              decoded?.email, 
+              decoded?.username, 
+              decoded?.BranchId, 
+              decoded?.ShiftId, 
+              role
+            );
             apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
             originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
             processQueue(null, data.accessToken);

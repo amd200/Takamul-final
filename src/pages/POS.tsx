@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import ShiftReportModal from '@/components/pos/modals/ShiftReportModal';
-import { useCloseShift } from '@/features/shifts/hooks/useShifts';
+import { useCloseShift, useGetAllShifts } from '@/features/shifts/hooks/useShifts';
 
 interface CartItem extends Product {
   cartQuantity: number;
@@ -57,9 +57,42 @@ export default function POS() {
   const [isCartCollapsed, setIsCartCollapsed] = useState(false);
 
   const [currentTime, setCurrentTime] = useState(new Date());
-  const { shiftId } = useAuthStore();
+  const { shiftId: storeShiftId, userName } = useAuthStore();
   const [isShiftReportOpen, setIsShiftReportOpen] = useState(false);
   const { mutate: closeShiftMutate } = useCloseShift();
+  const { data: shifts } = useGetAllShifts();
+
+  const currentOpenShift = useMemo(() => {
+    const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
+    if (!shiftsArray || !Array.isArray(shiftsArray)) return null;
+
+    // 0. Priority: Find the shift that matches shiftId from auth token
+    if (storeShiftId && storeShiftId !== "0") {
+      const tokenShift = shiftsArray.find((s: any) => String(s.id) === String(storeShiftId));
+      if (tokenShift) return tokenShift;
+    }
+
+    const normalizedUserName = userName?.toLowerCase().trim();
+
+    // 1. Try to find an open shift for the current user
+    const openShiftForUser = shiftsArray.find((s: any) => 
+      s.status === "Open" && 
+      s.employeeName?.toLowerCase().trim() === normalizedUserName
+    );
+    if (openShiftForUser) return openShiftForUser;
+
+    // 2. Fallback: Find any open shift in the list
+    const anyOpenShift = shiftsArray.find((s: any) => s.status === "Open");
+    if (anyOpenShift) return anyOpenShift;
+
+    // 3. Fallback: Find the latest shift for the current user even if not marked "Open"
+    const latestUserShift = shiftsArray.find((s: any) => 
+      s.employeeName?.toLowerCase().trim() === normalizedUserName
+    );
+    return latestUserShift || null;
+  }, [shifts, userName]);
+
+  const activeShiftId = (storeShiftId && storeShiftId !== "0") ? Number(storeShiftId) : currentOpenShift?.id || null;
 
   useEffect(() => {
     const timer = window.setInterval(() => setCurrentTime(new Date()), 1000);
@@ -1019,7 +1052,7 @@ export default function POS() {
             </div>
           </div>
 
-          {shiftId && (
+          {activeShiftId && (
             <button
               onClick={() => setIsShiftReportOpen(true)}
               className={cn(
@@ -1504,16 +1537,16 @@ export default function POS() {
           </div>
         </div>
       )}
-      {isShiftReportOpen && shiftId && (
+      {isShiftReportOpen && activeShiftId && (
         <ShiftReportModal
           isOpen={isShiftReportOpen}
           onClose={() => setIsShiftReportOpen(false)}
-          shiftId={parseInt(shiftId)}
+          shiftId={Number(activeShiftId)}
           onConfirmCloseShift={() => {
             const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false });
             closeShiftMutate(
               {
-                shiftId: parseInt(shiftId),
+                shiftId: Number(activeShiftId),
                 endTime: fullTime,
               },
               {

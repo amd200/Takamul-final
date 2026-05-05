@@ -7,6 +7,9 @@ export const useGetAllShifts = () => {
   return useQuery({
     queryKey: shiftsKeys.lists(),
     queryFn: getAllShifts,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 };
 

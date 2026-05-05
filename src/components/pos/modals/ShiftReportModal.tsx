@@ -130,25 +130,25 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
                 <div className="relative z-10">
                   <span className="inline-block border-[2px] border-black px-6 py-1 text-[10pt] font-bold bg-white uppercase">بيان الوردية</span>
                 </div>
-                <div className="border-[1.5px] border-black">
-                  <table className="w-full border-collapse text-[8pt] font-medium">
+                <div className="border-[1.5px] border-black overflow-hidden">
+                  <table className="w-full border-collapse text-[8pt] font-medium table-fixed">
                     <thead>
                       <tr className="bg-slate-50">
                         <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-[10%]">م</th>
                         <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-[35%]">الصنف</th>
-                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold">السعر</th>
-                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold">الكمية</th>
-                        <th className="border-b-[1.5px] border-black p-1.5 text-center font-bold">الاجمالي</th>
+                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-[18%]">السعر</th>
+                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-[15%]">الكمية</th>
+                        <th className="border-b-[1.5px] border-black p-1.5 text-center font-bold w-[22%]">الاجمالي</th>
                       </tr>
                     </thead>
                     <tbody>
                       {report.soldItems.map((item, idx) => (
                         <tr key={idx}>
-                          <td className="border-b border-l border-slate-300 p-1.5 text-center">.{idx + 1}</td>
-                          <td className="border-b border-l border-slate-300 p-1.5 text-center">{item.productName}</td>
-                          <td className="border-b border-l border-slate-300 p-1.5 text-center font-bold">{fmt(item.unitPrice)}</td>
-                          <td className="border-b border-l border-slate-300 p-1.5 text-center font-bold">{fmt(item.quantity)}</td>
-                          <td className="border-b border-slate-300 p-1.5 text-center font-bold">{fmt(item.lineTotal)}</td>
+                          <td className="border-b border-l border-black p-1.5 text-center break-words">.{idx + 1}</td>
+                          <td className="border-b border-l border-black p-1.5 text-center break-all">{item.productName}</td>
+                          <td className="border-b border-l border-black p-1.5 text-center font-bold">{fmt(item.unitPrice)}</td>
+                          <td className="border-b border-l border-black p-1.5 text-center font-bold">{fmt(item.quantity)}</td>
+                          <td className="border-b border-black p-1.5 text-center font-bold">{fmt(item.lineTotal)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -182,7 +182,7 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
                   <span className="inline-block border-[1.5px] border-black px-5 py-1 text-[9pt] font-bold bg-white uppercase">يومية الخزائن</span>
                 </div>
                 <div className="border-[1.5px] border-black overflow-hidden">
-                  <table className="w-full border-collapse text-[8.5pt] font-medium">
+                  <table className="w-full border-collapse text-[8.5pt] font-medium table-fixed">
                     <thead>
                       <tr className="bg-slate-50">
                         {report.treasuries.map((t, idx) => (
@@ -195,7 +195,7 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
                     <tbody>
                       <tr>
                         {report.treasuries.map((t, idx) => (
-                          <td key={idx} className="border-b border-l border-slate-300 p-1.5 text-center font-bold text-blue-700">
+                          <td key={idx} className="border-b border-l border-black p-1.5 text-center font-bold text-blue-700">
                             {fmt(t.totalSales)}
                           </td>
                         ))}
@@ -211,11 +211,11 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
                   <span className="inline-block border-[1.5px] border-black px-5 py-1 text-[9pt] font-bold bg-white uppercase">المشتريات و المصروفات</span>
                 </div>
                 <div className="border-[1.5px] border-black overflow-hidden">
-                  <table className="w-full border-collapse text-[8.5pt] font-medium">
+                  <table className="w-full border-collapse text-[8.5pt] font-medium table-fixed">
                     <thead>
                       <tr className="bg-slate-50">
-                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold">إجمالي المشتريات</th>
-                        <th className="border-b-[1.5px] border-black p-1.5 text-center font-bold">اجمالي المصروفات</th>
+                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-1/2">إجمالي المشتريات</th>
+                        <th className="border-b-[1.5px] border-black p-1.5 text-center font-bold w-1/2">اجمالي المصروفات</th>
                       </tr>
                     </thead>
                     <tbody>
