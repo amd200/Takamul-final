@@ -76,7 +76,7 @@ export default function AddShiftModal({ isOpen, onClose, isAdmin, defaultBranchI
     try {
       const payload: OpenShiftRequest = {
         shiftDate: new Date().toISOString().split("T")[0],
-        startTime: new Date().toISOString(),
+        startTime: new Date().toTimeString().split(" ")[0],
         branchId: data.branchId,
         employeeId: data.employeeId,
         deviceId: data.deviceId,
