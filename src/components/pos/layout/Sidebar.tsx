@@ -418,7 +418,7 @@ export default function Sidebar() {
                 return;
               }
               if (isNav) {
-                navigate("/dashboard");
+                navigate("/");
                 return;
               }
               setScreen(id as Screen);
