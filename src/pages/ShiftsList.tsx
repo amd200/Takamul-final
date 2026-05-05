@@ -217,9 +217,9 @@ export default function ShiftsList() {
           )}
         </CardContent>
       </Card>
-      
+
       <AddShiftModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} isAdmin={isAdmin} defaultBranchId={isAdmin ? 0 : userBranchId ? parseInt(userBranchId) : 0} defaultEmployeeId={userId ? parseInt(userId) : 0} />
-   
+
       {isReportModalOpen && selectedShift && (
         <ShiftReportModal
           isOpen={isReportModalOpen}

@@ -12,6 +12,8 @@ export interface Shift {
   status: "Open" | "Closed";
   employeeName: string;
   branchName: string;
+  deviceId?: string | number;
+  deviceName?: string;
 }
 
 export interface OpenShiftRequest {

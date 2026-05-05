@@ -10,7 +10,12 @@ import {
   User,
   CreditCard,
   DollarSign,
-  Wallet
+  Wallet,
+  ShoppingBag,
+  Eye,
+  Calendar as CalendarIcon,
+  TrendingUp,
+  BarChart2
 } from 'lucide-react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -24,60 +29,106 @@ import {
   exportCustomPDF, 
   exportToExcel 
 } from "@/utils/customExportUtils";
+import { useGetAllShifts } from '@/features/shifts/hooks/useShifts';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Shift } from '@/features/shifts/types/shifts.types';
+import ShiftReportModal from "@/components/pos/modals/ShiftReportModal";
+import { Button } from '@/components/ui/button';
+import { useGetAllBranches } from '@/features/Branches/hooks/Usegetallbranches';
+import { useAuthStore } from '@/store/authStore';
+import { Permissions } from '@/lib/permissions';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format } from "date-fns";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function ShiftsReport() {
   const { t, direction, language } = useLanguage();
   const [globalFilterValue, setGlobalFilterValue] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [selectedShiftId, setSelectedShiftId] = useState<number | null>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  // Mock data based on the previous implementation
-  const shifts = [
-    { id: 59, openTime: '16:54:29 28/02/2026', closeTime: '-', user: 'market market mtawfik12b@gmail.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
-    { id: 58, openTime: '14:59:42 31/01/2026', closeTime: '-', user: 'admin ds@hotmail.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
-    { id: 57, openTime: '19:20:59 30/01/2026', closeTime: '-', user: 'salon salon info11@posit2030.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
-    { id: 55, openTime: '20:22:18 21/01/2026', closeTime: '02:34:33 24/01/2026', user: 'salon salon info11@posit2030.com', cash: 0.00, network: 102.00, bank: 0.00, total: 105.00, notes: '' },
-    { id: 54, openTime: '16:04:23 18/01/2026', closeTime: '14:59:31 31/01/2026', user: 'admin ds@hotmail.com', cash: 0.00, network: 16.00, bank: 0.00, total: 16.00, notes: '' },
-    { id: 52, openTime: '23:24:52 10/01/2026', closeTime: '02:31:35 24/01/2026', user: 'rest rest mmmmmmm@gmail.com', cash: 100.00, network: 278.00, bank: 0.00, total: 378.00, notes: '' },
-  ];
+  const [filters, setFilters] = useState({
+    branchId: " ",
+    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+    to: new Date().toISOString().split("T")[0],
+  });
+
+  const [searchParams, setSearchParams] = useState(filters);
+
+  const { data: shiftsData, isLoading } = useGetAllShifts();
+  const { data: branches = [] } = useGetAllBranches();
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
+
+  const allShifts = useMemo(() => {
+    return Array.isArray(shiftsData) ? shiftsData : (shiftsData as any)?.items || (shiftsData as any)?.data || [];
+  }, [shiftsData]);
+
+  // Client-side filtering
+  const filteredShifts = useMemo(() => {
+    return allShifts.filter((shift: Shift) => {
+      const shiftDate = new Date(shift.shiftDate).getTime();
+      const fromDate = new Date(searchParams.from).getTime();
+      const toDate = new Date(searchParams.to).getTime();
+      
+      const branchMatch = searchParams.branchId.trim() === "" || String(shift.branchName).includes(searchParams.branchId.trim()) || searchParams.branchId === " ";
+      // Note: branchId filtering might need real branchId if available in Shift type, for now using name matching or ignoring
+      
+      return shiftDate >= fromDate && shiftDate <= toDate;
+    });
+  }, [allShifts, searchParams]);
 
   const summary = useMemo(() => {
-    const totalCash = shifts.reduce((s, r) => s + (r.cash || 0), 0);
-    const totalNetwork = shifts.reduce((s, r) => s + (r.network || 0), 0);
-    const totalAll = shifts.reduce((s, r) => s + (r.total || 0), 0);
-
-    return {
-      totalCash,
-      totalNetwork,
-      totalAll,
-      activeShifts: shifts.filter(s => s.closeTime === '-').length
-    };
-  }, [shifts]);
+    return filteredShifts.reduce(
+      (acc: any, shift: Shift) => {
+        acc.totalSales += shift.totalSales || 0;
+        acc.totalExpenses += shift.totalExpenses || 0;
+        acc.totalPurchases += shift.totalPurchases || 0;
+        if (shift.status === "Open") acc.activeShifts++;
+        return acc;
+      },
+      { totalSales: 0, totalExpenses: 0, totalPurchases: 0, activeShifts: 0 }
+    );
+  }, [filteredShifts]);
 
   const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  
+  const handleSearch = () => {
+    setSearchParams(filters);
+  };
+
+  const handleClear = () => {
+    const reset = {
+      branchId: " ",
+      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+      to: new Date().toISOString().split("T")[0],
+    };
+    setFilters(reset);
+    setSearchParams(reset);
+  };
   const reportTitle = t('shifts_report', 'تقرير الورديات');
 
   const handlePrint = () => {
     const columns = [
       { header: t("serial", "م"), field: "serial" },
       { header: t('shift_id', 'رقم الوردية'), field: 'id' },
-      { header: t('open_time', 'وقت الافتتاح'), field: 'openTime' },
-      { header: t('user', 'المستخدم'), field: 'user' },
-      { header: t('cash', 'نقدي'), field: 'cash' },
-      { header: t('network', 'شبكة'), field: 'network' },
-      { header: t('total', 'الإجمالي'), field: 'total' }
+      { header: t('open_time', 'وقت الافتتاح'), field: 'startTime' },
+      { header: t('user', 'المستخدم'), field: 'employeeName' },
+      { header: t('sales', 'المبيعات'), field: 'totalSales' },
+      { header: t('expenses', 'المصاريف'), field: 'totalExpenses' },
+      { header: t('total', 'صافي الوردية'), field: 'netTotal' }
     ];
 
-    const data = shifts.map(s => ({
+    const data = filteredShifts.map(s => ({
       ...s,
-      cash: fmt(s.cash),
-      network: fmt(s.network),
-      total: fmt(s.total)
+      totalSales: fmt(s.totalSales),
+      totalExpenses: fmt(s.totalExpenses),
+      netTotal: fmt(s.netTotal)
     }));
 
-    const summaryCards = [
-      { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalAll)} ${t('sar', 'ر.س')}`, icon: 'DollarSign' },
-      { title: t('total_cash', 'إجمالي النقدي'), value: `${fmt(summary.totalCash)} ${t('sar', 'ر.س')}`, icon: 'Wallet' }
-    ];
+    const summaryCards: any[] = [];
 
     const html = generateReportHTML(reportTitle, t('all_shifts', 'جميع الورديات'), summaryCards, columns, data, t, direction);
     printCustomHTML(reportTitle, html);
@@ -89,19 +140,17 @@ export default function ShiftsReport() {
       const columns = [
         { header: t("serial", "م"), field: "serial" },
         { header: t('shift_id', 'رقم الوردية'), field: 'id' },
-        { header: t('user', 'المستخدم'), field: 'user' },
-        { header: t('total', 'الإجمالي'), field: 'total' }
+        { header: t('user', 'المستخدم'), field: 'employeeName' },
+        { header: t('total', 'صافي الوردية'), field: 'netTotal' }
       ];
 
-      const data = shifts.map(s => ({
+      const data = filteredShifts.map(s => ({
         id: s.id,
-        user: s.user,
-        total: fmt(s.total)
+        employeeName: s.employeeName,
+        netTotal: fmt(s.netTotal)
       }));
 
-      const summaryCards = [
-        { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalAll)} ${t('sar', 'ر.س')}`, icon: 'DollarSign' }
-      ];
+      const summaryCards: any[] = [];
 
       const html = generateReportHTML(reportTitle, t('all_shifts', 'جميع الورديات'), summaryCards, columns, data, t, direction);
       await exportCustomPDF(reportTitle, html);
@@ -114,13 +163,32 @@ export default function ShiftsReport() {
     const columns = [
       { header: t("serial", "م"), field: "serial" },
       { header: t('shift_id', 'رقم الوردية'), field: 'id' },
-      { header: t('open_time', 'وقت الافتتاح'), field: 'openTime' },
-      { header: t('user', 'المستخدم'), field: 'user' },
-      { header: t('cash', 'نقدي'), field: 'cash' },
-      { header: t('network', 'شبكة'), field: 'network' },
-      { header: t('total', 'الإجمالي'), field: 'total' }
+      { header: t('open_time', 'وقت الافتتاح'), field: 'startTime' },
+      { header: t('user', 'المستخدم'), field: 'employeeName' },
+      { header: t('sales', 'المبيعات'), field: 'totalSales' },
+      { header: t('expenses', 'المصاريف'), field: 'totalExpenses' },
+      { header: t('total', 'صافي الوردية'), field: 'netTotal' }
     ];
-    exportToExcel(shifts, columns, reportTitle);
+    exportToExcel(filteredShifts, columns, reportTitle);
+  };
+
+  const actionsTemplate = (rowData: Shift) => {
+    return (
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-blue-500 hover:bg-blue-50 h-8 w-8 rounded-full"
+          onClick={() => {
+            setSelectedShiftId(rowData.id);
+            setIsReportModalOpen(true);
+          }}
+          title={t("view_details") || "عرض التفاصيل"}
+        >
+          <Eye size={16} />
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -128,12 +196,12 @@ export default function ShiftsReport() {
       <Card className="border-none shadow-sm overflow-hidden bg-white dark:bg-slate-950">
         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
           <div>
-            <CardTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+            <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-[var(--primary)]" />
               {reportTitle}
             </CardTitle>
             <CardDescription className="mt-1">
-              {t('shifts_report_desc', 'استعراض تفاصيل الورديات والمبالغ المحصلة')}
+              {t('customize_report_below', 'تخصيص التقرير أدناه')}
             </CardDescription>
           </div>
 
@@ -151,36 +219,6 @@ export default function ShiftsReport() {
         </CardHeader>
 
         <CardContent className="pt-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <FinancialStatCard 
-              title={t('total_all', 'الإجمالي الكلي')} 
-              value={fmt(summary.totalAll)}
-              suffix="SAR"
-              icon={DollarSign}
-              color="blue"
-            />
-            <FinancialStatCard 
-              title={t('total_cash', 'إجمالي النقدي')} 
-              value={fmt(summary.totalCash)}
-              suffix="SAR"
-              icon={Wallet}
-              color="teal"
-            />
-            <FinancialStatCard 
-              title={t('total_network', 'إجمالي الشبكة')} 
-              value={fmt(summary.totalNetwork)}
-              suffix="SAR"
-              icon={CreditCard}
-              color="orange"
-            />
-            <FinancialStatCard 
-              title={t('active_shifts', 'الورديات المفتوحة')} 
-              value={String(summary.activeShifts)} 
-              icon={Clock}
-              color="purple"
-            />
-          </div>
           <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -202,30 +240,46 @@ export default function ShiftsReport() {
             )}
           </div>
 
-          <DataTable
-            value={shifts} paginator 
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-            rows={10} 
-            className="custom-standard-table" dataKey="id"
-            emptyMessage={t('no_data', 'لا توجد بيانات')} 
-            globalFilter={globalFilterValue}
-            scrollable scrollHeight="600px"
-          >
-            <Column
-              header={t("serial", "م")}
-              body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>}
-              className="w-16"
-            />
-            <Column header={t('shift_id', 'رقم الوردية')} field="id" sortable body={(r) => <span className="font-bold">{r.id}</span>} />
-            <Column header={t('open_time', 'وقت الافتتاح')} field="openTime" sortable />
-            <Column header={t('close_time', 'وقت الاغلاق')} field="closeTime" sortable body={(r) => <span className={r.closeTime === '-' ? 'text-blue-500 font-medium' : ''}>{r.closeTime}</span>} />
-            <Column header={t('user', 'المستخدم')} field="user" sortable className="max-w-[200px] overflow-hidden truncate" />
-            <Column header={t('cash', 'نقدي')} field="cash" sortable body={(r) => fmt(r.cash)} />
-            <Column header={t('network', 'شبكة')} field="network" sortable body={(r) => fmt(r.network)} />
-            <Column header={t('total', 'الإجمالي')} body={(r) => <span className="font-bold text-[var(--primary)]">{fmt(r.total)}</span>} />
-          </DataTable>
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+          ) : (
+            <DataTable
+              value={allShifts} paginator 
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+              rows={10} 
+              className="custom-green-table no-wrap-header text-xs" dataKey="id"
+              emptyMessage={t('no_data', 'لا توجد بيانات')} 
+              globalFilter={globalFilterValue}
+              scrollable scrollHeight="600px"
+            >
+              <Column
+                header={t("serial", "م")}
+                body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>}
+                className="w-16"
+              />
+              <Column header={t('shift_id', 'رقم الوردية')} field="id" sortable body={(r) => <span className="font-bold">{r.id}</span>} />
+              <Column header={t('open_time', 'وقت الافتتاح')} field="startTime" sortable />
+              <Column header={t('close_time', 'وقت الاغلاق')} field="endTime" sortable body={(r) => <span className={!r.endTime ? 'text-blue-500 font-medium' : ''}>{r.endTime}</span>} />
+              <Column header={t('user', 'المستخدم')} field="employeeName" sortable className="max-w-[200px] overflow-hidden truncate" />
+              <Column header={t('status', 'الحالة')} field="isActive" sortable body={(r) => <span className={!r.isActive ? 'text-blue-500 font-medium' : ''}>{r.isActive || t('closed', 'مغلقة')}</span>} />
+              <Column header={t('total', 'الإجمالي')} body={(r) => <span className="font-bold text-[var(--primary)]">{fmt(r.netTotal)}</span>} />
+              <Column header={t('actions', 'العمليات')} body={actionsTemplate} className="text-center w-24" />
+            </DataTable>
+          )}
         </CardContent>
       </Card>
+
+      {isReportModalOpen && selectedShiftId && (
+        <ShiftReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          shiftId={selectedShiftId}
+          showCloseButton={false}
+        />
+      )}
     </div>
   );
 }

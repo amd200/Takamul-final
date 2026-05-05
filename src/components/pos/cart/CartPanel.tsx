@@ -31,11 +31,11 @@ import { useCreateDineInOrder, useCheckoutDineInOrder } from "@/features/pos/hoo
 import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
 import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
 import { usePosStore } from "@/features/pos/store/usePosStore";
-import { DeliveryCompany } from "@/types";
 import { useGetAllDeliveryCompanies } from "@/features/delivery-companies/hooks/useGetAllDeliveryCompanies";
 import ShiftReportModal from "../modals/ShiftReportModal";
-import { ShiftReportData } from "../orders/printShiftReport";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { useGetAllShifts, useCloseShift } from "@/features/shifts/hooks/useShifts";
+import { useAuthStore } from "@/store/authStore";
 import { useGenerateQR } from "@/features/zatcaInvoice/hooks/useGenerateQR";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
@@ -387,33 +387,40 @@ export default function CartPanel() {
 
   const navigate = useNavigate();
   const [shiftReportOpen, setShiftReportOpen] = useState(false);
+  const { userName, shiftId: authShiftId } = useAuthStore();
+  const { data: shifts } = useGetAllShifts();
+  const { mutate: closeShift } = useCloseShift();
 
-  const mockShiftData: ShiftReportData = {
-    shiftNumber: "1010005",
-    userName: "كاشير 1",
-    shiftDate: "2026/05/03",
-    fromTime: "05:01 PM",
-    toTime: "12:04 AM",
-    items: [
-      { index: 1, productName: "منتج بيع", price: 5.0, quantity: 7.0, total: 35.0 },
-      { index: 2, productName: "صنف جديد", price: 10.0, quantity: 12.0, total: 120.0 },
-    ],
-    totalBeforeTax: 130.3,
-    totalTax: 24.7,
-    grandTotal: 155.0,
-    payment: {
-      cash: 55.0,
-      network: 100.0,
-      delivery: 0.0,
-    },
-    totalPurchases: 0.0,
-    totalExpenses: 0.0,
-    deliveryCompanies: [
-      { name: "هنقرستيشن", amount: 0.0 },
-      { name: "كيتا", amount: 0.0 },
-      { name: "نينجا", amount: 0.0 },
-    ],
-  };
+  const currentOpenShift = useMemo(() => {
+    const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
+    if (!shiftsArray || !Array.isArray(shiftsArray)) return null;
+
+    // 0. Priority: Find the shift that matches shiftId from auth token
+    if (authShiftId && authShiftId !== "0") {
+      const tokenShift = shiftsArray.find((s: any) => String(s.id) === String(authShiftId));
+      if (tokenShift) return tokenShift;
+    }
+
+    const normalizedUserName = userName?.toLowerCase().trim();
+
+
+    // 1. Try to find an open shift for the current user
+    const openShiftForUser = shiftsArray.find((s: any) => 
+      s.status === "Open" && 
+      s.employeeName?.toLowerCase().trim() === normalizedUserName
+    );
+    if (openShiftForUser) return openShiftForUser;
+
+    // 2. Fallback: Find any open shift in the list
+    const anyOpenShift = shiftsArray.find((s: any) => s.status === "Open");
+    if (anyOpenShift) return anyOpenShift;
+
+    // 3. Fallback: Find the latest shift for the current user even if not marked "Open"
+    const latestUserShift = shiftsArray.find((s: any) => 
+      s.employeeName?.toLowerCase().trim() === normalizedUserName
+    );
+    return latestUserShift || null;
+  }, [shifts, userName]);
 
   function ThemeIcon({ theme }: { theme: string }) {
     if (theme === "dark") return <Moon className="h-3.5 w-3.5" />;
@@ -961,14 +968,24 @@ export default function CartPanel() {
           saveExtras(idx, selectedIds);
         }}
       />
-      <ShiftReportModal
-        isOpen={shiftReportOpen}
-        onClose={() => setShiftReportOpen(false)}
-        data={mockShiftData}
-        onConfirmCloseShift={() => {
-          setShiftReportOpen(false);
-        }}
-      />
+      {shiftReportOpen && (
+        <ShiftReportModal
+          isOpen={shiftReportOpen}
+          onClose={() => setShiftReportOpen(false)}
+          shiftId={(authShiftId && authShiftId !== "0") ? Number(authShiftId) : currentOpenShift?.id || 0}
+          onConfirmCloseShift={() => {
+            const targetId = (authShiftId && authShiftId !== "0") ? Number(authShiftId) : currentOpenShift?.id;
+            if (!targetId) return;
+            const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false });
+            closeShift(
+              { shiftId: targetId, endTime: fullTime },
+              {
+                onSuccess: () => setShiftReportOpen(false),
+              }
+            );
+          }}
+        />
+      )}
     </>
   );
 }
