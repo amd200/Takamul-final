@@ -21,13 +21,13 @@ import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon, DollarSign, Receipt, TrendingUp } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import { 
   generateReportHTML, 
   printCustomHTML, 
   exportCustomPDF, 
   exportToExcel 
 } from "@/utils/customExportUtils";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 interface FilterState {
   branchId: string;
@@ -47,6 +47,8 @@ const FISCAL_QUARTERS = [
 
 export default function SalesByDayReport() {
   const { t, direction } = useLanguage();
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>({
@@ -127,8 +129,8 @@ export default function SalesByDayReport() {
   const exportColumns = [
     { header: t("serial", "م"), field: "serial" },
     { header: t("date", "التاريخ"), field: "date", body: (r: any) => new Date(r.date).toLocaleDateString("en-GB") },
-    { header: t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة"), field: "totalSales", body: (r: any) => formatNumber(r.totalSales) },
-    { header: t("total_tax", "إجمالي الضريبة"), field: "totalTax", body: (r: any) => formatNumber(r.totalTax) },
+    ...(!isExempt ? [{ header: t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة"), field: "totalSales", body: (r: any) => formatNumber(r.totalSales) }] : []),
+    ...(!isExempt ? [{ header: t("total_tax", "إجمالي الضريبة"), field: "totalTax", body: (r: any) => formatNumber(r.totalTax) }] : []),
     { header: t("grand_total_with_tax", "الإجمالي النهائي"), field: "netSales", body: (r: any) => formatNumber(r.netSales) },
   ];
 
@@ -140,8 +142,8 @@ export default function SalesByDayReport() {
         title,
         getFiltersInfo(),
         [
-          { title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" },
-          { title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" },
+          ...(!isExempt ? [{ title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" }] : []),
+          ...(!isExempt ? [{ title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" }] : []),
           { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.س')}`, color: "teal" },
         ],
         exportColumns,
@@ -161,8 +163,8 @@ export default function SalesByDayReport() {
       title,
       getFiltersInfo(),
       [
-        { title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" },
-        { title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" },
+        ...(!isExempt ? [{ title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" }] : []),
+        ...(!isExempt ? [{ title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" }] : []),
         { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.س')}`, color: "teal" },
       ],
       exportColumns,
@@ -219,20 +221,24 @@ export default function SalesByDayReport() {
         <CardContent className="space-y-4">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <FinancialStatCard
-              title={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")}
-              value={formatNumber(totalSales)}
-              suffix="SAR"
-              icon={TrendingUp}
-              color="orange"
-            />
-            <FinancialStatCard
-              title={t("total_tax", "إجمالي الضريبة")}
-              value={formatNumber(totalTax)}
-              suffix="SAR"
-              icon={Receipt}
-              color="blue"
-            />
+            {!isExempt && (
+              <FinancialStatCard
+                title={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")}
+                value={formatNumber(totalSales)}
+                suffix="SAR"
+                icon={TrendingUp}
+                color="orange"
+              />
+            )}
+            {!isExempt && (
+              <FinancialStatCard
+                title={t("total_tax", "إجمالي الضريبة")}
+                value={formatNumber(totalTax)}
+                suffix="SAR"
+                icon={Receipt}
+                color="blue"
+              />
+            )}
             <FinancialStatCard
               title={t("grand_total_with_tax", "الإجمالي النهائي")}
               value={formatNumber(totalFinal)}
@@ -381,8 +387,8 @@ export default function SalesByDayReport() {
                 className="w-16"
               />
               <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm font-bold text-[var(--text-main)]">{new Date(r.date).toLocaleDateString("en-GB")}</span>} />
-              <Column field="totalSales" header={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.totalSales)}</span>} />
-              <Column field="totalTax" header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.totalTax)}</span>} />
+              {!isExempt && <Column field="totalSales" header={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.totalSales)}</span>} />}
+              {!isExempt && <Column field="totalTax" header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.totalTax)}</span>} />}
               <Column field="netSales" header={t("grand_total_with_tax", "الإجمالي النهائي")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.netSales)}</span>} />
             </DataTable>
           </div>

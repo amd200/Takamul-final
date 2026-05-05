@@ -20,7 +20,6 @@ import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import type { SalesOrder } from '@/features/sales/types/sales.types';
-import { Input } from "@/components/ui/input";
 import { FinancialStatCard } from "@/components/FinancialStatCard";
 import {
   Select,
@@ -39,6 +38,7 @@ import {
   exportCustomPDF,
   exportToExcel
 } from "@/utils/customExportUtils";
+import { useSettingsStore } from '@/features/settings/store/settingsStore';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const { t } = useLanguage();
@@ -51,6 +51,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export default function SalesReport() {
   const { t, direction, language } = useLanguage();
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -132,8 +134,10 @@ export default function SalesReport() {
 
     const summaryCards = [
       { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalSales)} ${t('sar', 'ر.س')}`, icon: 'DollarSign' },
-      { title: t('total_no_tax', 'الإجمالي بدون ضريبة'), value: `${fmt(summary.totalNoTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' },
-      { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'BarChart2' }
+      ...(!isExempt ? [
+        { title: t('total_no_tax', 'الإجمالي بدون ضريبة'), value: `${fmt(summary.totalNoTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' },
+        { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'BarChart2' }
+      ] : [])
     ];
 
     const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
@@ -159,7 +163,9 @@ export default function SalesReport() {
 
       const summaryCards = [
         { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalSales)} ${t('sar', 'ر.س')}`, icon: 'DollarSign' },
-        { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'BarChart2' }
+        ...(!isExempt ? [
+          { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'BarChart2' }
+        ] : [])
       ];
 
       const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
@@ -231,20 +237,24 @@ export default function SalesReport() {
               icon={DollarSign}
               color="blue"
             />
-            <FinancialStatCard
-              title={t('total_no_tax', 'الإجمالي بدون ضريبة')}
-              value={fmt(summary.totalNoTax)}
-              suffix="SAR"
-              icon={Receipt}
-              color="teal"
-            />
-            <FinancialStatCard
-              title={t('total_tax', 'إجمالي الضريبة')}
-              value={fmt(summary.totalTax)}
-              suffix="SAR"
-              icon={BarChart2}
-              color="orange"
-            />
+            {!isExempt && (
+              <>
+                <FinancialStatCard
+                  title={t('total_no_tax', 'الإجمالي بدون ضريبة')}
+                  value={fmt(summary.totalNoTax)}
+                  suffix="SAR"
+                  icon={Receipt}
+                  color="teal"
+                />
+                <FinancialStatCard
+                  title={t('total_tax', 'إجمالي الضريبة')}
+                  value={fmt(summary.totalTax)}
+                  suffix="SAR"
+                  icon={BarChart2}
+                  color="orange"
+                />
+              </>
+            )}
             <FinancialStatCard
               title={t('invoices_count', 'عدد الفواتير')}
               value={String(summary.count)}

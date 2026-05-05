@@ -30,6 +30,7 @@ import {
   exportCustomPDF, 
   exportToExcel 
 } from "@/utils/customExportUtils";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 interface FilterState {
   branchId: string;
@@ -49,6 +50,8 @@ const FISCAL_QUARTERS = [
 
 export default function SalesByInvoiceReport() {
   const { t, direction } = useLanguage();
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>({
@@ -130,8 +133,8 @@ export default function SalesByInvoiceReport() {
     { header: t("serial", "م"), field: "serial" },
     { header: t("date", "التاريخ"), field: "date", body: (r: any) => new Date(r.date).toLocaleDateString("en-GB") },
     { header: t("invoice_number", "رقم الفاتورة"), field: "orderNumber" },
-    { header: t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة"), field: "subTotal", body: (r: any) => formatNumber(r.subTotal) },
-    { header: t("tax", "الضريبة"), field: "tax", body: (r: any) => formatNumber(r.grandTotal - r.subTotal) },
+    ...(!isExempt ? [{ header: t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة"), field: "subTotal", body: (r: any) => formatNumber(r.subTotal) }] : []),
+    ...(!isExempt ? [{ header: t("tax", "الضريبة"), field: "tax", body: (r: any) => formatNumber(r.grandTotal - r.subTotal) }] : []),
     { header: t("grand_total_with_tax", "الإجمالي النهائي"), field: "grandTotal", body: (r: any) => formatNumber(r.grandTotal) },
   ];
 
@@ -143,8 +146,8 @@ export default function SalesByInvoiceReport() {
         title,
         getFiltersInfo(),
         [
-          { title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" },
-          { title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" },
+          ...(!isExempt ? [{ title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" }] : []),
+          ...(!isExempt ? [{ title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" }] : []),
           { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.س')}`, color: "teal" },
         ],
         exportColumns,
@@ -164,8 +167,8 @@ export default function SalesByInvoiceReport() {
       title,
       getFiltersInfo(),
       [
-        { title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" },
-        { title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" },
+        ...(!isExempt ? [{ title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" }] : []),
+        ...(!isExempt ? [{ title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" }] : []),
         { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.س')}`, color: "teal" },
       ],
       exportColumns,
@@ -222,20 +225,24 @@ export default function SalesByInvoiceReport() {
         <CardContent className="space-y-4">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <FinancialStatCard
-              title={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")}
-              value={formatNumber(totalSales)}
-              suffix="SAR"
-              icon={TrendingUp}
-              color="orange"
-            />
-            <FinancialStatCard
-              title={t("total_tax", "إجمالي الضريبة")}
-              value={formatNumber(totalTax)}
-              suffix="SAR"
-              icon={Receipt}
-              color="blue"
-            />
+            {!isExempt && (
+              <FinancialStatCard
+                title={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")}
+                value={formatNumber(totalSales)}
+                suffix="SAR"
+                icon={TrendingUp}
+                color="orange"
+              />
+            )}
+            {!isExempt && (
+              <FinancialStatCard
+                title={t("total_tax", "إجمالي الضريبة")}
+                value={formatNumber(totalTax)}
+                suffix="SAR"
+                icon={Receipt}
+                color="blue"
+              />
+            )}
             <FinancialStatCard
               title={t("grand_total_with_tax", "الإجمالي النهائي")}
               value={formatNumber(totalFinal)}
@@ -385,8 +392,8 @@ export default function SalesByInvoiceReport() {
               />
               <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm">{new Date(r.date).toLocaleDateString("en-GB")}</span>} />
               <Column field="orderNumber" header={t("invoice_number", "رقم الفاتورة")} sortable body={(r) => <span className="text-sm font-bold text-[var(--text-main)]">{r.orderNumber}</span>} />
-              <Column field="subTotal" header={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.subTotal)}</span>} />
-              <Column header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.grandTotal - r.subTotal)}</span>} />
+              {!isExempt && <Column field="subTotal" header={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.subTotal)}</span>} />}
+              {!isExempt && <Column header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.grandTotal - r.subTotal)}</span>} />}
               <Column field="grandTotal" header={t("grand_total_with_tax", "الإجمالي النهائي")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.grandTotal)}</span>} />
             </DataTable>
           </div>

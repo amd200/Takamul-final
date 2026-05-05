@@ -22,9 +22,12 @@ import {
   exportCustomPDF,
   exportToExcel
 } from "@/utils/customExportUtils";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export default function EmployeeSalesReport() {
   const { t, direction, language } = useLanguage();
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -295,8 +298,8 @@ export default function EmployeeSalesReport() {
               <Column header={t("order_number", "رقم الفاتورة")} field="orderNumber" body={(row) => <span className="font-bold text-[#22c55e] whitespace-nowrap">{row.orderNumber}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
               <Column header={t("date", "التاريخ")} field="orderDate" body={(row) => <span className="whitespace-nowrap">{formatDate(row.orderDate, "dateOnly")}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
               <Column header={t("customer_name", "اسم العميل")} field="customerName" body={(row) => <span className="whitespace-nowrap">{row.customerName}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
-              <Column header={t("sub_total", "الإجمالي قبل الضريبة")} field="subTotal" body={(row) => <span className="whitespace-nowrap">{fmt(row.subTotal)}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
-              <Column header={t("tax_amount", "قيمة الضرائب")} field="taxAmount" body={(row) => <span className="whitespace-nowrap">{fmt(row.taxAmount)}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
+              {!isExempt && <Column header={t("sub_total", "الإجمالي قبل الضريبة")} field="subTotal" body={(row) => <span className="whitespace-nowrap">{fmt(row.subTotal)}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />}
+              {!isExempt && <Column header={t("tax_amount", "قيمة الضرائب")} field="taxAmount" body={(row) => <span className="whitespace-nowrap">{fmt(row.taxAmount)}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />}
               <Column header={t("grand_total", "الإجمالي")} field="grandTotal" body={(row) => <span className="font-bold whitespace-nowrap">{fmt(row.grandTotal)}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
               <Column header={t("order_status", "حالة الطلب")} field="orderStatus" body={(row) => <span className="whitespace-nowrap">{row.orderStatus}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
             </DataTable>

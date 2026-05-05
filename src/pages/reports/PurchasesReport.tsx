@@ -19,7 +19,6 @@ import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import type { Purchase } from '@/features/purchases/types/purchase.types';
-import { Input } from "@/components/ui/input";
 import { FinancialStatCard } from "@/components/FinancialStatCard";
 import {
   Select,
@@ -38,6 +37,7 @@ import {
   exportCustomPDF,
   exportToExcel
 } from "@/utils/customExportUtils";
+import { useSettingsStore } from '@/features/settings/store/settingsStore';
 
 const StatusBadge = ({ status }: { status: string }) => {
   const { t } = useLanguage();
@@ -50,6 +50,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export default function PurchasesReport() {
   const { t, direction, language } = useLanguage();
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -133,7 +135,7 @@ export default function PurchasesReport() {
     const summaryCards = [
       { title: t('total_purchases', 'إجمالي المشتريات'), value: `${fmt(summary.totalPurchases)} ${t('sar', 'ر.س')}`, icon: 'ShoppingBag' },
       { title: t('paid_amount', 'المبلغ المدفوع'), value: `${fmt(summary.paidAmount)} ${t('sar', 'ر.س')}`, icon: 'BarChart2' },
-      { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' }
+      ...(!isExempt ? [{ title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' }] : [])
     ];
 
     const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
@@ -159,7 +161,7 @@ export default function PurchasesReport() {
 
       const summaryCards = [
         { title: t('total_purchases', 'إجمالي المشتريات'), value: `${fmt(summary.totalPurchases)} ${t('sar', 'ر.س')}`, icon: 'ShoppingBag' },
-        { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' }
+        ...(!isExempt ? [{ title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' }] : [])
       ];
 
 
@@ -239,13 +241,15 @@ export default function PurchasesReport() {
               icon={BarChart2}
               color="teal"
             />
-            <FinancialStatCard
-              title={t('total_tax', 'إجمالي الضريبة')}
-              value={fmt(summary.totalTax)}
-              suffix="SAR"
-              icon={Receipt}
-              color="blue"
-            />
+            {!isExempt && (
+              <FinancialStatCard
+                title={t('total_tax', 'إجمالي الضريبة')}
+                value={fmt(summary.totalTax)}
+                suffix="SAR"
+                icon={Receipt}
+                color="blue"
+              />
+            )}
             <FinancialStatCard
               title={t('purchases_count', 'عدد عمليات الشراء')}
               value={String(summary.count)}
@@ -350,7 +354,7 @@ export default function PurchasesReport() {
             <Column header={t('date', 'التاريخ')} field="orderDate" sortable body={(r: Purchase) => new Date(r.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB')} />
             <Column header={t('supplier_name', 'اسم المورد')} field="supplierName" sortable />
             <Column header={t('total_amount', 'الإجمالي')} field="totalAmount" sortable body={(r: Purchase) => <span className="font-bold">{fmt(r.totalAmount)}</span>} />
-            <Column header={t('tax_amount', 'الضريبة')} field="taxAmount" sortable body={(r: Purchase) => fmt(r.taxAmount)} />
+            {!isExempt && <Column header={t('tax_amount', 'الضريبة')} field="taxAmount" sortable body={(r: Purchase) => fmt(r.taxAmount)} />}
             <Column header={t('paid_amount', 'المدفوع')} field="paidAmount" sortable body={(r: Purchase) => fmt(r.paidAmount)} />
             <Column header={t('status', 'الحالة')} body={(r: Purchase) => <StatusBadge status={r.orderStatus} />} />
           </DataTable>
