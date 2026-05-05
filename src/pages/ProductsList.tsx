@@ -235,7 +235,7 @@ export default function ProductsList() {
             dataKey="id"
           >
             <Column header={t("name")} sortable field="productNameAr" />
-            <Column field="description" sortable header={t("description")} />
+            <Column field="categoryName" sortable header={"التصنيف"} />
             <Column field="balance" sortable header={"الكمية"} />
             <Column field="barcode" sortable header={"الباركود"} />
             <Column field="costPrice" sortable header={"سعر الشراء"} />

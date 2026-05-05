@@ -2,6 +2,7 @@ import * as React from "react";
 import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, LogOut, BarChart, User, Truck, Landmark, Building, Store, RefreshCw, Share2, CornerUpLeft, List, PlusCircle, Plus, Monitor, Shield, DollarSign, Calculator, CreditCard, Percent, Coins, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, ArrowUpRight, ArrowLeftRight, HandCoins, SlidersHorizontal, Gift, LayoutGrid, Briefcase } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarProvider, SidebarRail, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { Link } from "react-router-dom";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -153,9 +154,16 @@ function NavItemSingle({ item, activePath, onNavigate }) {
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton isActive={isActive} tooltip={item.label} onClick={() => onNavigate(item.path)} className={isActive ? "bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white shadow-md shadow-emerald-500/25 font-medium" : "text-slate-300 hover:bg-slate-700/60 hover:text-white font-medium"}>
-        <item.icon className={isActive ? "text-white" : "text-slate-400"} />
-        <span>{item.label}</span>
+      <SidebarMenuButton 
+        asChild
+        isActive={isActive} 
+        tooltip={item.label} 
+        className={isActive ? "bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white shadow-md shadow-emerald-500/25 font-medium" : "text-slate-300 hover:bg-slate-700/60 hover:text-white font-medium"}
+      >
+        <Link to={item.path} onClick={() => onNavigate(item.path)}>
+          <item.icon className={isActive ? "text-white" : "text-slate-400"} />
+          <span>{item.label}</span>
+        </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
@@ -195,9 +203,15 @@ function NavItemCollapsible({ item, activePath, onNavigate }) {
               const childActive = activePath === child.path;
               return (
                 <SidebarMenuSubItem key={child.path}>
-                  <SidebarMenuSubButton isActive={childActive} onClick={() => onNavigate(child.path)} className={childActive ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20 cursor-pointer" : "text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 cursor-pointer"}>
-                    <child.icon className={`h-3.5 w-3.5 flex-shrink-0 ${childActive ? "text-emerald-400" : "text-slate-500"}`} />
-                    <span>{child.label}</span>
+                  <SidebarMenuSubButton 
+                    asChild
+                    isActive={childActive} 
+                    className={childActive ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20 cursor-pointer" : "text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 cursor-pointer"}
+                  >
+                    <Link to={child.path} onClick={() => onNavigate(child.path)}>
+                      <child.icon className={`h-3.5 w-3.5 flex-shrink-0 ${childActive ? "text-emerald-400" : "text-slate-500"}`} />
+                      <span>{child.label}</span>
+                    </Link>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
               );
