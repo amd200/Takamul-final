@@ -8,7 +8,9 @@ type AuthState = {
   userId: string | null;
   email: string | null;
   userName: string | null;
-  setAuth: (token: string, expiresAt: number, permissions: Permission[] | Permission, userId: string, email: string, userName: string) => void;
+  branchId: string | null;
+  role: string | null;
+  setAuth: (token: string, expiresAt: number, permissions: Permission[] | Permission, userId: string, email: string, userName: string, branchId: string, role: string) => void;
   clearAuth: () => void;
   isExpired: () => boolean;
   isInitialized: boolean;
@@ -34,8 +36,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userId: null,
   email: null,
   userName: null,
+  branchId: null,
+  role: null,
 
-  setAuth: (token, expiresAt, permissions, userId, email, userName) => {
+  setAuth: (token, expiresAt, permissions, userId, email, userName, branchId, role) => {
     set({
       accessToken: token,
       expiresAt,
@@ -43,6 +47,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       userId,
       email,
       userName,
+      branchId,
+      role,
       isInitialized: true,
     });
   },
@@ -55,6 +61,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       userId: null,
       email: null,
       userName: null,
+      branchId: null,
+      role: null,
       isInitialized: true,
     }),
 

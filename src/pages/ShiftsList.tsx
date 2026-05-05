@@ -19,6 +19,7 @@ import { useGetAllShifts, useOpenShift, useCloseShift, useGetEmployeesByBranch }
 import { Shift } from "@/features/shifts/types/shifts.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/authStore";
 
 export default function ShiftsList() {
   const { direction, t } = useLanguage();
@@ -52,26 +53,54 @@ export default function ShiftsList() {
   const branchEmployees = useMemo(() => branchEmployeesData?.data || [], [branchEmployeesData]);
   const devices = useMemo(() => devicesData?.data || [], [devicesData]);
 
-  // Set default values when data is loaded
+  const { branchId: userBranchId, userId, userName: authUserName, role } = useAuthStore();
+  const isAdmin = authUserName?.toLowerCase() === "admin" || authUserName?.toLowerCase() === "superadmin" || role?.toUpperCase() === "ADMIN" || role?.toUpperCase() === "SUPERADMIN";
+
+  // Handle initial pre-fill and reset when modal opens
   React.useEffect(() => {
-    if (branches.length > 0 && newShift.branchId === 0) {
+    if (isAddModalOpen) {
+      if (!isAdmin) {
+        // For normal users: pre-fill from token immediately
+        const bId = userBranchId ? parseInt(userBranchId) : 0;
+        const uId = userId ? parseInt(userId) : 0;
+        setNewShift({
+          openingBalance: 0,
+          branchId: !isNaN(bId) ? bId : 0,
+          employeeId: !isNaN(uId) ? uId : 0,
+          deviceId: 0
+        });
+      } else {
+        // For admins: reset to zeros and let the data-driven effects fill it
+        setNewShift({
+          openingBalance: 0,
+          branchId: 0,
+          employeeId: 0,
+          deviceId: 0
+        });
+      }
+    }
+  }, [isAddModalOpen, isAdmin, userBranchId, userId]);
+
+  // Fill branch for admins when branches load
+  React.useEffect(() => {
+    if (isAddModalOpen && isAdmin && branches.length > 0 && newShift.branchId === 0) {
       setNewShift(prev => ({ ...prev, branchId: branches[0].id }));
     }
-  }, [branches]);
+  }, [isAddModalOpen, isAdmin, branches, newShift.branchId]);
 
+  // Fill employee for admins when employees load or branch changes
   React.useEffect(() => {
-    if (branchEmployees.length > 0) {
+    if (isAddModalOpen && isAdmin && branchEmployees.length > 0 && (newShift.employeeId === 0 || !branchEmployees.some(e => e.id === newShift.employeeId))) {
       setNewShift(prev => ({ ...prev, employeeId: branchEmployees[0].id }));
-    } else {
-      setNewShift(prev => ({ ...prev, employeeId: 0 }));
     }
-  }, [branchEmployees]);
+  }, [isAddModalOpen, isAdmin, branchEmployees, newShift.branchId, newShift.employeeId]);
 
+  // Fill device for everyone when devices load
   React.useEffect(() => {
-    if (devices.length > 0 && newShift.deviceId === 0) {
+    if (isAddModalOpen && devices.length > 0 && newShift.deviceId === 0) {
       setNewShift(prev => ({ ...prev, deviceId: devices[0].id }));
     }
-  }, [devices]);
+  }, [isAddModalOpen, devices, newShift.deviceId]);
 
   const filteredData = useMemo(() => {
     const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
@@ -310,6 +339,7 @@ export default function ShiftsList() {
               <Select
                 value={newShift.branchId ? newShift.branchId.toString() : ""}
                 onValueChange={(val) => setNewShift({ ...newShift, branchId: parseInt(val) })}
+                disabled={!isAdmin}
               >
                 <SelectTrigger className="w-full h-9 text-xs">
                   <SelectValue placeholder="اختر الفرع" />
@@ -329,6 +359,7 @@ export default function ShiftsList() {
               <Select
                 value={newShift.employeeId ? newShift.employeeId.toString() : ""}
                 onValueChange={(val) => setNewShift({ ...newShift, employeeId: parseInt(val) })}
+                disabled={!isAdmin}
               >
                 <SelectTrigger className="w-full h-9 text-xs">
                   <SelectValue placeholder="اختر الموظف" />

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins, Calculator, Shield, Barcode, Mail, ShieldCheck } from "lucide-react";
+import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
+import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, Building, CreditCard, Store, Percent, Upload, Coins, Link as LinkIcon, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins, Calculator, Shield, Barcode, Mail, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,6 +27,7 @@ interface SidebarItemProps {
   isOpen?: boolean;
   isSidebarOpen?: boolean;
   onClick?: () => void;
+  path?: string;
 }
 
 interface SubmenuItemProps {
@@ -37,15 +38,43 @@ interface SubmenuItemProps {
   onClick?: () => void;
 }
 
-const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarOpen = true, onClick }: SidebarItemProps) => {
-  return (
-    <button onClick={onClick} className={cn("w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200", active ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md scale-[1.02]" : "text-[var(--text-main)] hover:bg-[var(--bg-main)] hover:text-[var(--primary)] hover:scale-[1.02]", !isSidebarOpen && "justify-center")} title={!isSidebarOpen ? label : undefined}>
+const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarOpen = true, onClick, path }: SidebarItemProps) => {
+  const content = (
+    <>
       <div className="flex items-center gap-4">
         <Icon size={24} />
         {isSidebarOpen && <span className="font-bold text-base tracking-wide">{label}</span>}
       </div>
 
       {hasSubmenu && isSidebarOpen && <ChevronLeft size={16} className={cn("transition-transform", isOpen && "-rotate-90")} />}
+    </>
+  );
+
+  const commonClasses = cn("w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200", active ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md scale-[1.02]" : "text-[var(--text-main)] hover:bg-[var(--bg-main)] hover:text-[var(--primary)] hover:scale-[1.02]", !isSidebarOpen && "justify-center");
+
+  if (path) {
+    return (
+      <Link 
+        to={path} 
+        onClick={(e) => {
+          if (hasSubmenu) {
+            e.preventDefault();
+            onClick?.();
+          } else {
+            onClick?.();
+          }
+        }} 
+        className={commonClasses} 
+        title={!isSidebarOpen ? label : undefined}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={commonClasses} title={!isSidebarOpen ? label : undefined}>
+      {content}
     </button>
   );
 };
@@ -70,6 +99,25 @@ export default function Layout() {
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith("/products")) setOpenSubmenu("products");
+    else if (path.startsWith("/sales") || path.startsWith("/return")) setOpenSubmenu("sales");
+    else if (path.startsWith("/quotes")) setOpenSubmenu("quotes");
+    else if (path.startsWith("/purchases")) setOpenSubmenu("purchases");
+    else if (path.startsWith("/users") || path === "/pos-devices" || path === "/certificatesPosDevices" || path === "/roles" || path === "/employyes") setOpenSubmenu("users");
+    else if (path.startsWith("/shifts")) setOpenSubmenu("shifts");
+    else if (path.startsWith("/customers")) setOpenSubmenu("customers");
+    else if (path.startsWith("/suppliers")) setOpenSubmenu("suppliers");
+    else if (path.startsWith("/treasurys") || path.startsWith("/treasury")) setOpenSubmenu("treasurys");
+    else if (path.startsWith("/branches")) setOpenSubmenu("branches");
+    else if (path.startsWith("/warehouses")) setOpenSubmenu("warehouses");
+    else if (path.startsWith("/expenses") || path.startsWith("/items")) setOpenSubmenu("revenues_and_expenses");
+    else if (path.startsWith("/reports")) setOpenSubmenu("reports");
+    else if (path.startsWith("/settings") || path === "/promotions") setOpenSubmenu("settings");
+    else setOpenSubmenu(null);
+  }, [location.pathname]);
 
   const headerRef = React.useRef<HTMLDivElement>(null);
 
@@ -127,22 +175,26 @@ export default function Layout() {
   const SubmenuItem = ({ label, icon: Icon, path, state, onClick }: SubmenuItemProps) => {
     const isActive = path ? location.pathname === path : false;
 
+    const content = (
+      <div className="flex items-center gap-2 w-full">
+        <Icon size={16} className={cn(isActive ? "text-[var(--primary-foreground)]" : "text-[var(--text-main)] group-hover:text-[var(--primary)]")} />
+        <span>{label}</span>
+      </div>
+    );
+
+    const commonClasses = cn("w-full flex items-center justify-between p-2 text-sm rounded-md transition-colors group", isActive ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]");
+
+    if (path) {
+      return (
+        <Link to={path} onClick={onClick} className={commonClasses}>
+          {content}
+        </Link>
+      );
+    }
+
     return (
-      <button
-        onClick={() => {
-          if (onClick) {
-            onClick();
-          } else if (path) {
-            navigate(path);
-          }
-          if (isMobile) setIsMobileMenuOpen(false);
-        }}
-        className={cn("w-full flex items-center justify-between p-2 text-sm rounded-md transition-colors group", isActive ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]")}
-      >
-        <div className="flex items-center gap-2 w-full">
-          <Icon size={16} className={cn(isActive ? "text-[var(--primary-foreground)]" : "text-[var(--text-main)] group-hover:text-[var(--primary)]")} />
-          <span>{label}</span>
-        </div>
+      <button onClick={onClick} className={commonClasses}>
+        {content}
       </button>
     );
   };
@@ -225,13 +277,13 @@ export default function Layout() {
             label={t("dashboard")}
             isSidebarOpen={showSidebarContent}
             active={location.pathname === "/dashboard"}
+            path="/dashboard"
             onClick={() => {
-              navigate("/dashboard");
               setOpenSubmenu(null);
               setOpenNestedSubmenu(null);
             }}
           />
-          {hasAnyPermission(Object.values(Permissions?.products)) && <SidebarItem icon={Package} label={t("products")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "products"} onClick={() => toggleSubmenu("products")} />}
+          {hasAnyPermission(Object.values(Permissions?.products)) && <SidebarItem icon={Package} label={t("products")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "products"} onClick={() => toggleSubmenu("products")} path="/products" />}
           <AnimatePresence>
             {openSubmenu === "products" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -245,7 +297,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission([...Object.values(Permissions?.salesOrders), ...Object.values(Permissions?.salesReturns), ...Object.values(Permissions?.giftCards)]) && <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />}
+          {hasAnyPermission([...Object.values(Permissions?.salesOrders), ...Object.values(Permissions?.salesReturns), ...Object.values(Permissions?.giftCards)]) && <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} path="/sales/a4-invoices" />}
           <AnimatePresence>
             {openSubmenu === "sales" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -257,7 +309,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.quotations)) && <SidebarItem icon={Share2} label={t("quotes")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "quotes"} onClick={() => toggleSubmenu("quotes")} />}
+          {hasAnyPermission(Object.values(Permissions?.quotations)) && <SidebarItem icon={Share2} label={t("quotes")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "quotes"} onClick={() => toggleSubmenu("quotes")} path="/quotes" />}
           <AnimatePresence>
             {openSubmenu === "quotes" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -266,7 +318,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.purchaseOrders)) && <SidebarItem icon={CornerUpLeft} label={t("purchases")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "purchases"} onClick={() => toggleSubmenu("purchases")} />}
+          {hasAnyPermission(Object.values(Permissions?.purchaseOrders)) && <SidebarItem icon={CornerUpLeft} label={t("purchases")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "purchases"} onClick={() => toggleSubmenu("purchases")} path="/purchases" />}
           <AnimatePresence>
             {openSubmenu === "purchases" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -275,7 +327,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission([...Object.values(Permissions?.users), ...Object.values(Permissions?.roles), ...Object.values(Permissions?.employees)]) && <SidebarItem icon={Users} label={t("users")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "users"} onClick={() => toggleSubmenu("users")} />}
+          {hasAnyPermission([...Object.values(Permissions?.users), ...Object.values(Permissions?.roles), ...Object.values(Permissions?.employees)]) && <SidebarItem icon={Users} label={t("users")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "users"} onClick={() => toggleSubmenu("users")} path="/users" />}
           <AnimatePresence>
             {openSubmenu === "users" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -288,7 +340,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.shifts)) && <SidebarItem icon={RefreshCw} label={t("shifts")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "shifts"} onClick={() => toggleSubmenu("shifts")} />}
+          {hasAnyPermission(Object.values(Permissions?.shifts)) && <SidebarItem icon={RefreshCw} label={t("shifts")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "shifts"} onClick={() => toggleSubmenu("shifts")} path="/shifts" />}
           <AnimatePresence>
             {openSubmenu === "shifts" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -296,7 +348,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission([...Object.values(Permissions?.customers), Object.values(Permissions?.customerTransactions)]) && <SidebarItem icon={User} label={t("customers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "customers"} onClick={() => toggleSubmenu("customers")} />}
+          {hasAnyPermission([...Object.values(Permissions?.customers), Object.values(Permissions?.customerTransactions)]) && <SidebarItem icon={User} label={t("customers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "customers"} onClick={() => toggleSubmenu("customers")} path="/customers" />}
           <AnimatePresence>
             {openSubmenu === "customers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -305,7 +357,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission([...Object.values(Permissions?.suppliers), Object.values(Permissions?.supplierTransactions)]) && <SidebarItem icon={Truck} label={t("suppliers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "suppliers"} onClick={() => toggleSubmenu("suppliers")} />}
+          {hasAnyPermission([...Object.values(Permissions?.suppliers), Object.values(Permissions?.supplierTransactions)]) && <SidebarItem icon={Truck} label={t("suppliers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "suppliers"} onClick={() => toggleSubmenu("suppliers")} path="/suppliers" />}
           <AnimatePresence>
             {openSubmenu === "suppliers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -314,7 +366,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.treasury)) && <SidebarItem icon={Landmark} label={t("treasuries")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "treasurys"} onClick={() => toggleSubmenu("treasurys")} />}
+          {hasAnyPermission(Object.values(Permissions?.treasury)) && <SidebarItem icon={Landmark} label={t("treasuries")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "treasurys"} onClick={() => toggleSubmenu("treasurys")} path="/treasurys" />}
           <AnimatePresence>
             {openSubmenu === "treasurys" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -324,7 +376,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object?.values(Permissions?.branches)) && <SidebarItem icon={Building} label={t("branches")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "branches"} onClick={() => toggleSubmenu("branches")} />}
+          {hasAnyPermission(Object?.values(Permissions?.branches)) && <SidebarItem icon={Building} label={t("branches")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "branches"} onClick={() => toggleSubmenu("branches")} path="/branches" />}
           <AnimatePresence>
             {openSubmenu === "branches" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -332,7 +384,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {userName == "superadmin" && <SidebarItem icon={Store} label={t("warehouses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "warehouses"} onClick={() => toggleSubmenu("warehouses")} />}
+          {userName == "superadmin" && <SidebarItem icon={Store} label={t("warehouses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "warehouses"} onClick={() => toggleSubmenu("warehouses")} path="/warehouses" />}
           <AnimatePresence>
             {openSubmenu === "warehouses" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -340,7 +392,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission([...Object.values(Permissions?.expenses), ...Object.values(Permissions?.items)]) && <SidebarItem icon={Banknote} label={t("expenses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "revenues_and_expenses"} onClick={() => toggleSubmenu("revenues_and_expenses")} />}
+          {hasAnyPermission([...Object.values(Permissions?.expenses), ...Object.values(Permissions?.items)]) && <SidebarItem icon={Banknote} label={t("expenses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "revenues_and_expenses"} onClick={() => toggleSubmenu("revenues_and_expenses")} path="/expenses" />}
           <AnimatePresence>
             {openSubmenu === "revenues_and_expenses" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -350,7 +402,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(allReportPermissions) && <SidebarItem icon={BarChart} label={t("reports")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "reports"} onClick={() => toggleSubmenu("reports")} />}
+          {hasAnyPermission(allReportPermissions) && <SidebarItem icon={BarChart} label={t("reports")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "reports"} onClick={() => toggleSubmenu("reports")} path="/reports/category/items" />}
           <AnimatePresence>
             {openSubmenu === "reports" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -368,7 +420,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {userName == "superadmin" && <SidebarItem icon={Settings} label={t("settings")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "settings"} onClick={() => toggleSubmenu("settings")} />}
+          {userName == "superadmin" && <SidebarItem icon={Settings} label={t("settings")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "settings"} onClick={() => toggleSubmenu("settings")} path="/settings/system" />}
           {userName == "superadmin" && (
             <AnimatePresence>
               {openSubmenu === "settings" && showSidebarContent && (
@@ -390,7 +442,7 @@ export default function Layout() {
                   }}
                 /> */}
                   {/* <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
-                <SubmenuItem label={t("customer_groups")} icon={Link} path="/settings/customer-groups" />
+                <SubmenuItem label={t("customer_groups")} icon={LinkIcon} path="/settings/customer-groups" />
                 <SubmenuItem label={t("pricing_groups")} icon={DollarSign} path="/settings/price-groups" />
                 <SubmenuItem label={t("basic_categories")} icon={Briefcase} path="/settings/basic-categories" />
                 <SubmenuItem label={t("expense_categories")} icon={Folder} path="/settings/expense-categories" />
@@ -434,31 +486,30 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2">
               {hasPermission(Permissions?.salesOrders?.addA4) && (
-                <button onClick={() => navigate("/sales/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                <Link to="/sales/create" className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                   <LayoutGrid size={16} />
                   <span>{t("sales_a4_quick")}</span>
-                </button>
+                </Link>
               )}
-              {hasPermission(Permissions?.salesOrders?.addpos) && (
-                <button 
-                  onClick={() => {
-                    const posSetting = systemSettings.location.postype;
-                    // Handle all variations: "POS2", "Pos2", or number 2
-                    const isPos2 = posSetting === "POS2" || posSetting === "Pos2" || String(posSetting) === "2";
-                    navigate(isPos2 ? "/pos2" : "/pos");
-                  }} 
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-                >
-                  <ShoppingCart size={16} />
-                  <span>{t("pos_quick")}</span>
-                </button>
-              )}
+              {hasPermission(Permissions?.salesOrders?.addpos) && (() => {
+                const posSetting = systemSettings.location.postype;
+                const isPos2 = posSetting === "POS2" || posSetting === "Pos2" || String(posSetting) === "2";
+                return (
+                  <Link 
+                    to={isPos2 ? "/pos2" : "/pos"}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+                  >
+                    <ShoppingCart size={16} />
+                    <span>{t("pos_quick")}</span>
+                  </Link>
+                );
+              })()}
 
               {hasAnyPermission([Permissions?.products?.addDirect, Permissions?.products?.addBranch, Permissions?.products?.addPrepared, Permissions?.products?.addRaw]) && (
-                <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                <Link to="/products/create" className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                   <Package size={16} />
                   <span>{t("add_product")}</span>
-                </button>
+                </Link>
               )}
             </div>
 
