@@ -55,9 +55,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   clearAuth: () => {
-    const state = get();
-    if (!state.accessToken) return;
-    authChannel.broadcast("logout");
     set({
       accessToken: null,
       expiresAt: null,

@@ -54,8 +54,8 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarO
 
   if (path) {
     return (
-      <Link 
-        to={path} 
+      <Link
+        to={path}
         onClick={(e) => {
           if (hasSubmenu) {
             e.preventDefault();
@@ -63,8 +63,8 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarO
           } else {
             onClick?.();
           }
-        }} 
-        className={commonClasses} 
+        }}
+        className={commonClasses}
         title={!isSidebarOpen ? label : undefined}
       >
         {content}
@@ -491,19 +491,17 @@ export default function Layout() {
                   <span>{t("sales_a4_quick")}</span>
                 </Link>
               )}
-              {hasPermission(Permissions?.salesOrders?.addpos) && (() => {
-                const posSetting = systemSettings.location.postype;
-                const isPos2 = posSetting === "POS2" || posSetting === "Pos2" || String(posSetting) === "2";
-                return (
-                  <Link 
-                    to={isPos2 ? "/pos2" : "/pos"}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-                  >
-                    <ShoppingCart size={16} />
-                    <span>{t("pos_quick")}</span>
-                  </Link>
-                );
-              })()}
+              {hasPermission(Permissions?.salesOrders?.addpos) &&
+                (() => {
+                  const posSetting = systemSettings.location.postype;
+                  const isPos2 = posSetting === "POS2" || posSetting === "Pos2" || String(posSetting) === "2";
+                  return (
+                    <Link to={isPos2 ? "/pos2" : "/pos"} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                      <ShoppingCart size={16} />
+                      <span>{t("pos_quick")}</span>
+                    </Link>
+                  );
+                })()}
 
               {hasAnyPermission([Permissions?.products?.addDirect, Permissions?.products?.addBranch, Permissions?.products?.addPrepared, Permissions?.products?.addRaw]) && (
                 <Link to="/products/create" className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
@@ -707,7 +705,6 @@ export default function Layout() {
                       type="button"
                       onClick={async () => {
                         await logout();
-                        navigate("/");
                         closeAllMenus();
                       }}
                       className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2 transition-colors"

@@ -15,9 +15,10 @@ export const useLogout = () => {
     mutationFn: () => logout(),
     onSuccess: (response) => {
       handleApiSuccess(response, notifySuccess);
+      new BroadcastChannel("auth").postMessage("logout");
       useAuthStore.getState().clearAuth();
       queryClient.clear();
-      window.location.href = "/";
+      window.location.href = "/login";
     },
     onError: (error) => handleApiError(error, notifyError),
   });

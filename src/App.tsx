@@ -279,14 +279,16 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => {
-    authChannel.listen((event) => {
-      if (event === "logout") {
+    const channel = new BroadcastChannel("auth");
+    channel.onmessage = (e) => {
+      if (e.data === "logout") {
         useAuthStore.getState().clearAuth();
+        window.location.href = "/login";
       }
-    });
-
-    return () => authChannel.close();
+    };
+    return () => channel.close();
   }, []);
+
   useGetAllSettings();
   return (
     <PrintProvider>

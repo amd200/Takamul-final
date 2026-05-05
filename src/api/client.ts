@@ -1,9 +1,10 @@
-// apiClient.ts
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 import { jwtDecode } from "jwt-decode";
 import { AppJwtPayload } from "@/types";
 import { LoginResponse } from "@/features/auth/types/auth.types";
+
+const authChannel = new BroadcastChannel("auth");
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -37,6 +38,7 @@ apiClient.interceptors.response.use(
     const originalRequest = err.config;
 
     if (originalRequest.url?.includes("/Auth/refresh-token")) {
+      authChannel.postMessage("logout");
       useAuthStore.getState().clearAuth();
       return Promise.reject(err);
     }
@@ -75,7 +77,8 @@ apiClient.interceptors.response.use(
             resolve(apiClient(originalRequest));
           })
           .catch((err) => {
-            processQueue(err, null);  
+            processQueue(err, null);
+            authChannel.postMessage("logout");
             useAuthStore.getState().clearAuth();
             reject(err);
           })
