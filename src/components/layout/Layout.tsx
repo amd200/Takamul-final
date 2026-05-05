@@ -276,8 +276,8 @@ export default function Layout() {
             icon={LayoutDashboard}
             label={t("dashboard")}
             isSidebarOpen={showSidebarContent}
-            active={location.pathname === "/dashboard"}
-            path="/dashboard"
+            active={location.pathname === "/"}
+            path="/"
             onClick={() => {
               setOpenSubmenu(null);
               setOpenNestedSubmenu(null);
@@ -719,8 +719,8 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className={cn("flex-1 bg-[var(--bg-main)] transition-colors duration-300", location.pathname === "/dashboard" ? "p-3 overflow-hidden" : "p-4 lg:p-8 overflow-y-auto")}>
-          {location.pathname === "/dashboard" && <WelcomeBanner />}
+        <main className={cn("flex-1 bg-[var(--bg-main)] transition-colors duration-300", location.pathname === "/" ? "p-3 overflow-hidden" : "p-4 lg:p-8 overflow-y-auto")}>
+          {location.pathname === "/" && <WelcomeBanner />}
           <Outlet />
         </main>
       </div>

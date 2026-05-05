@@ -158,6 +158,7 @@ export interface CreateDevicePOS {
   deviceTypeId: number;
   branchId: number;
 }
+
 export interface UpdateDevicePOS extends Omit<CreateDevicePOS, "serialNumber"> {
   isActive: boolean;
   allowOnlineInvoicing: boolean;

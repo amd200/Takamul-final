@@ -141,7 +141,6 @@ function AppRoutes() {
 
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
-
             {/* المنتجات */}
             <Route path="/products" element={<ProductsList />} />
             <Route path="/products/create" element={<AddProduct />} />
