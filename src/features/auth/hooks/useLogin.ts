@@ -36,7 +36,7 @@ export const useLogin = () => {
 
       const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
       const role = Array.isArray(roleClaim) ? roleClaim[0] : roleClaim || "";
-      setAuth(token, expiresAt, decoded?.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId, role);
+      setAuth(token, expiresAt, decoded?.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId, decoded?.ShiftId, role);
     },
 
     onError: (error) => handleApiError(error, notifyError),

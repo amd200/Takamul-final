@@ -220,6 +220,7 @@ export interface AppJwtPayload extends JwtPayload {
   UserId: string;
   username: string;
   BranchId: string;
+  ShiftId: string;
   IsActive: string;
   email: string;
   "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string | string[];

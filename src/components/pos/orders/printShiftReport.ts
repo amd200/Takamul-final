@@ -8,15 +8,9 @@ export interface ShiftItem {
   total: number;
 }
 
-export interface ShiftPayment {
-  cash: number;
-  network: number;
-  delivery: number;
-}
-
-export interface DeliveryCompany {
+export interface ShiftTreasurySales {
   name: string;
-  amount: number;
+  sales: number;
 }
 
 export interface ShiftReportData {
@@ -29,7 +23,7 @@ export interface ShiftReportData {
   totalBeforeTax: number;
   totalTax: number;
   grandTotal: number;
-  payment: ShiftPayment;
+  treasuries: ShiftTreasurySales[];
   totalPurchases: number;
   totalExpenses: number;
   deliveryCompanies: DeliveryCompany[];
@@ -60,6 +54,14 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
         <td class="dlv-num">${fmt(c.amount)}</td>
       </tr>`
     )
+    .join("");
+
+  const treasuryHeaders = data.treasuries
+    .map((t) => `<th>${t.name}</th>`)
+    .join("");
+
+  const treasuryCells = data.treasuries
+    .map((t) => `<td style="font-weight:700; font-size:9pt">${fmt(t.sales)}</td>`)
     .join("");
 
   const html = `<!DOCTYPE html>
@@ -150,7 +152,7 @@ html, body {
   margin-top: -1px;
 }
 
-/* ITEMS TABLE */
+/* TABLES */
 .tbl {
   width: 100%;
   border-collapse: collapse;
@@ -209,82 +211,6 @@ html, body {
   font-weight: 700;
 }
 
-/* PAYMENT TABLE */
-.pay-tbl {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 7.5pt;
-  font-weight: 500;
-  table-layout: fixed;
-}
-
-.pay-tbl th {
-  border-bottom: 1px solid #000;
-  border-left: 1px solid #000;
-  padding: 4px 3px;
-  text-align: center;
-  font-size: 7.5pt;
-  font-weight: 700;
-}
-.pay-tbl th:last-child { border-left: none; }
-
-.pay-tbl td {
-  border-left: 1px solid #000;
-  padding: 4px 3px;
-  text-align: center;
-  font-size: 8pt;
-  font-weight: 700;
-}
-.pay-tbl td:last-child { border-left: none; }
-
-/* TWO-COL TABLE */
-.two-tbl {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 7.5pt;
-  font-weight: 500;
-  table-layout: fixed;
-}
-
-.two-tbl th {
-  border-bottom: 1px solid #000;
-  border-left: 1px solid #000;
-  padding: 4px 3px;
-  text-align: center;
-  font-size: 7.5pt;
-  font-weight: 700;
-}
-.two-tbl th:last-child { border-left: none; }
-
-.two-tbl td {
-  border-left: 1px solid #000;
-  padding: 4px 3px;
-  text-align: center;
-  font-size: 8pt;
-  font-weight: 700;
-}
-.two-tbl td:last-child { border-left: none; }
-
-/* DELIVERY TABLE */
-.dlv-tbl {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 7.5pt;
-  font-weight: 500;
-  table-layout: fixed;
-}
-
-.dlv-tbl td {
-  border-bottom: 1px solid #ddd;
-  border-left: 1px solid #000;
-  padding: 4px 6px;
-  font-size: 8pt;
-  font-weight: 700;
-}
-.dlv-name { text-align: center; width: 50%; font-weight: 500; color: #444; border-left: 1px solid #000; }
-.dlv-num { text-align: center; width: 50%; border-left: none !important; }
-.dlv-tbl tr:last-child td { border-bottom: none; }
-
 @media print {
   html, body { margin: 0; }
 }
@@ -328,8 +254,8 @@ html, body {
       <table class="tbl">
         <thead>
           <tr>
-            <th class="td-num">م</th>
-            <th class="td-name">الصنف</th>
+            <th style="width:10%">م</th>
+            <th style="width:35%">الصنف</th>
             <th>السعر</th>
             <th>الكمية</th>
             <th>الاجمالي</th>
@@ -360,19 +286,15 @@ html, body {
   <div class="section">
     <div class="sec-header"><span>يومية الخزائن</span></div>
     <div class="sec-body">
-      <table class="pay-tbl">
+      <table class="tbl">
         <thead>
           <tr>
-            <th>كاش</th>
-            <th>شبكة</th>
-            <th>شركات توصيل</th>
+            ${treasuryHeaders}
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>${fmt(data.payment.cash)}</td>
-            <td>${fmt(data.payment.network)}</td>
-            <td>${fmt(data.payment.delivery)}</td>
+            ${treasuryCells}
           </tr>
         </tbody>
       </table>
@@ -385,17 +307,17 @@ html, body {
   <div class="section">
     <div class="sec-header"><span>المشتريات و المصروفات</span></div>
     <div class="sec-body">
-      <table class="two-tbl">
+      <table class="tbl">
         <thead>
           <tr>
-            <th>إجمالي المشتريات</th>
+            <th style="border-left:1px solid #000">إجمالي المشتريات</th>
             <th>اجمالي المصروفات</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>${fmt(data.totalPurchases)}</td>
-            <td>${fmt(data.totalExpenses)}</td>
+            <td style="border-left:1px solid #000; font-weight:700; font-size:9pt; color:#FF0000">${fmt(data.totalPurchases)}</td>
+            <td style="font-weight:700; font-size:9pt; color:#FF0000">${fmt(data.totalExpenses)}</td>
           </tr>
         </tbody>
       </table>
@@ -405,14 +327,23 @@ html, body {
   <div style="height:10px;"></div>
 
   <!-- شركات التوصيل -->
+  ${data.deliveryCompanies.length > 0 ? `
   <div class="section">
     <div class="sec-header"><span>شركات التوصيل</span></div>
     <div class="sec-body">
-      <table class="dlv-tbl">
-        <tbody>${deliveryRows}</tbody>
+      <table class="tbl">
+        <tbody>
+          ${data.deliveryCompanies.map(c => `
+            <tr>
+              <td class="border-l">${c.name}</td>
+              <td>${fmt(c.amount)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
       </table>
     </div>
   </div>
+  ` : ''}
 
 </div>
 </body>

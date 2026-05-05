@@ -10,7 +10,9 @@ type AuthState = {
   email: string | null;
   userName: string | null;
   branchId: string | null;
-  setAuth: (token: string, expiresAt: number, permissions: Permission[] | Permission, userId: string, email: string, userName: string, branchId: string) => void;
+  shiftId: string | null;
+  role: string | null;
+  setAuth: (token: string, expiresAt: number, permissions: Permission[] | Permission, userId: string, email: string, userName: string, branchId: string, shiftId: string, role: string) => void;
   clearAuth: () => void;
   isExpired: () => boolean;
   isInitialized: boolean;
@@ -37,9 +39,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   email: null,
   userName: null,
   branchId: null,
+  shiftId: null,
   role: null,
 
-  setAuth: (token, expiresAt, permissions, userId, email, userName, branchId) => {
+  setAuth: (token, expiresAt, permissions, userId, email, userName, branchId, shiftId, role) => {
     set({
       accessToken: token,
       expiresAt,
@@ -48,6 +51,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email,
       userName,
       branchId,
+      shiftId,
+      role,
       isInitialized: true,
     });
   },
@@ -61,6 +66,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email: null,
       userName: null,
       branchId: null,
+      shiftId: null,
+      role: null,
       isInitialized: true,
     });
   },
