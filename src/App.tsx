@@ -140,8 +140,7 @@ function AppRoutes() {
           <Route path="/pos" element={<AppLayout />} />
           <Route path="/pos2" element={<AppLayout2 />} />
 
-          <Route element={<ProtectedRoute />}>
-            <Route element={<Layout />}>
+          <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             {/* المنتجات */}
             <Route path="/products" element={<ProductsList />} />
@@ -271,7 +270,6 @@ function AppRoutes() {
             <Route path="/branches/edit/:id" element={<AddBranch />} />
             <Route path="/branches/:mode/:id" element={<AddBranch />} />
             <Route path="/warehouses" element={<WarehousesList />} />
-          </Route>
           </Route>
         </Routes>
       </div>
