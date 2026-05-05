@@ -695,6 +695,8 @@ export default function CartPanel2() {
     }
   };
 
+  const taxSetting = useSettingsStore((state) => state.settings.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
   return (
     <>
       <div className="flex-1  border border-gray-300 overflow-x-auto">
@@ -705,11 +707,10 @@ export default function CartPanel2() {
               <th className="px-2 py-2 whitespace-nowrap">#</th>
               <th className="whitespace-nowrap">كود الصنف</th>
               <th className="w-[300px] whitespace-nowrap">اسم الصنف</th>
-              <th className="whitespace-nowrap">السعر بدون ضريبة</th>
+              <th className="whitespace-nowrap">{isExempt ? "السعر" : "السعر بدون ضريبة"}</th>
               <th className="whitespace-nowrap">الكمية</th>
-              {/* <th className="whitespace-nowrap">قيمة الخصم</th> */}
-              <th className="whitespace-nowrap">الإجمالي قبل الضريبة</th>
-              <th className="whitespace-nowrap">ضريبة القيمة المضافة</th>
+              {!isExempt && <th className="whitespace-nowrap">الإجمالي قبل الضريبة</th>}
+              {!isExempt && <th className="whitespace-nowrap">ضريبة القيمة المضافة</th>}
               <th className="whitespace-nowrap">الإجمالي النهائي</th>
               <th className="whitespace-nowrap">ملاحظات</th>
               <th></th>
@@ -721,7 +722,6 @@ export default function CartPanel2() {
             <tr className="border-b border-gray-300 text-gray-400">
               <td className="px-2 py-2 whitespace-nowrap">{cart.length + 1}</td>
               <td className="whitespace-nowrap">--</td>
-
               <td className="w-[300px] whitespace-nowrap">
                 <ProductSearch
                   onSelect={(product) => {
@@ -741,11 +741,10 @@ export default function CartPanel2() {
                   }}
                 />
               </td>
-
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">--</td>
-              <td className="whitespace-nowrap">--</td>
-              {/* <td className="whitespace-nowrap">--</td> */}
+              {!isExempt && <td className="whitespace-nowrap">--</td>}
+              {!isExempt && <td className="whitespace-nowrap">--</td>}
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">-</td>
               <td></td>
@@ -756,8 +755,6 @@ export default function CartPanel2() {
               const base = itemBasePrice(item);
               const tax = calcItemTax(item);
               const rowTotal = base + tax;
-              const discVal = item.itemDiscount ? (item.itemDiscount.type === "pct" ? (itemBasePrice({ ...item, itemDiscount: null }) * item.itemDiscount.value) / 100 : item.itemDiscount.value) : 0;
-              const discPctVal = item.itemDiscount?.type === "pct" ? item.itemDiscount.value : 0;
 
               return (
                 <tr key={idx} className={`border-b ${idx % 2 === 0 ? "" : "bg-[#f6f9fc]"}`}>
@@ -781,63 +778,11 @@ export default function CartPanel2() {
                     </div>
                   </td>
 
-                  {/* <td className="whitespace-nowrap">
-                    <div className="flex items-center gap-1.5 justify-center">
-                      <div className="flex items-center gap-1 text-[10px] font-bold">
-                        <span className={`transition-colors ${(item.itemDiscount?.type ?? "flat") === "pct" ? "text-gray-400" : "text-[#000052]"}`}>ر.س</span>
-                        <Switch
-                          className="data-[state=unchecked]:bg-[#000052] data-[state=checked]:bg-[#000052]"
-                          checked={item.itemDiscount?.type === "pct"}
-                          onCheckedChange={(checked) =>
-                            setCart((prev) =>
-                              prev.map((it, i) =>
-                                i === idx
-                                  ? {
-                                      ...it,
-                                      itemDiscount: {
-                                        type: checked ? "pct" : "flat",
-                                        value: it.itemDiscount?.value ?? 0,
-                                      },
-                                    }
-                                  : it,
-                              ),
-                            )
-                          }
-                        />
-                        <span className={`transition-colors ${item.itemDiscount?.type === "pct" ? "text-[#000052]" : "text-gray-400"}`}>%</span>
-                      </div>
+                  {!isExempt && <td className="whitespace-nowrap font-semibold">{base.toFixed(2)}</td>}
+                  {!isExempt && <td className="whitespace-nowrap">{tax.toFixed(2)}</td>}
 
-                      <Input
-                        type="number"
-                        min={0}
-                        max={item.itemDiscount?.type === "pct" ? 100 : undefined}
-                        className="w-16 h-7 text-[11px] text-center px-1"
-                        placeholder="0"
-                        value={item.itemDiscount?.value ?? ""}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          const value = parseFloat(raw);
-                          const type = item.itemDiscount?.type ?? "flat";
-                          const capped = type === "pct" ? Math.min(value, 100) : value;
-                          setCart((prev) =>
-                            prev.map((it, i) =>
-                              i === idx
-                                ? {
-                                    ...it,
-                                    itemDiscount: raw === "" || isNaN(value) ? null : { type, value: capped },
-                                  }
-                                : it,
-                            ),
-                          );
-                        }}
-                      />
-                    </div>
-                  </td> */}
-                  <td className="whitespace-nowrap font-semibold">{base.toFixed(2)}</td>
-                  <td className="whitespace-nowrap">{tax.toFixed(2)}</td>
-                  <td className="whitespace-nowrap font-bold">{rowTotal.toFixed(2)}</td>
+                  <td className="whitespace-nowrap font-bold">{isExempt ? base.toFixed(2) : rowTotal.toFixed(2)}</td>
 
-                  {/* <td className="whitespace-nowrap">--</td> */}
                   <td>
                     {noteIndex === idx ? (
                       <Input
@@ -852,19 +797,20 @@ export default function CartPanel2() {
                         onBlur={() => setNoteIndex(null)}
                       />
                     ) : (
-                      <div className="flex items-center justify-center  h-full">
+                      <div className="flex items-center justify-center h-full">
                         {item.note ? (
                           <span onClick={() => setNoteIndex(idx)} className="text-[10px] text-gray-600 truncate max-w-[100px] cursor-pointer hover:text-[#000052]">
                             {item.note}
                           </span>
                         ) : (
-                          <Button variant="outline" size="icon-xs" onClick={() => setNoteIndex(idx)} className="border border-gray-200  text-gray-400 hover:text-[#000052] hover:border-[#000052] hover:bg-[#000052]/5 transition">
+                          <Button variant="outline" size="icon-xs" onClick={() => setNoteIndex(idx)} className="border border-gray-200 text-gray-400 hover:text-[#000052] hover:border-[#000052] hover:bg-[#000052]/5 transition">
                             <Plus size={12} />
                           </Button>
                         )}
                       </div>
                     )}
                   </td>
+
                   <td>
                     <button onClick={() => removeItem(idx)} className="size-8 rounded bg-gray-100 hover:bg-red-100 flex items-center justify-center mx-auto">
                       <Trash2 size={13} />
@@ -921,17 +867,21 @@ export default function CartPanel2() {
           </div>
 
           <div className="border-l border-gray-200 flex flex-col">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
-              <span className="text-gray-500 font-bold">الإجمالي قبل الضريبة</span>
-              <span className="font-medium text-gray-800">{subAfterDiscount.toFixed(2)}</span>
-            </div>
-            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
-              <span className="text-gray-500 font-bold">إجمالي الضريبة</span>
-              <div className="flex items-center gap-2">
-                {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
-                <span className="font-medium text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
+            {!isExempt && (
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
+                <span className="text-gray-500 font-bold">الإجمالي قبل الضريبة</span>
+                <span className="font-medium text-gray-800">{subAfterDiscount.toFixed(2)}</span>
               </div>
-            </div>
+            )}
+            {!isExempt && (
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
+                <span className="text-gray-500 font-bold">إجمالي الضريبة</span>
+                <div className="flex items-center gap-2">
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
+                  <span className="font-medium text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between px-3 py-2">
               <span className="text-gray-500 font-bold">الإجمالي النهائي</span>
               <div className="flex items-center gap-2">
@@ -1030,13 +980,15 @@ export default function CartPanel2() {
             </div>
           </div>
           <div className="grid grid-cols-2 divide-x divide-gray-300 border-b border-gray-300">
-            <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-gray-500">الضريبة</span>
-              <span className="font-medium text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
-            </div>
-            <div className="flex items-center justify-between px-3 py-2">
+            {!isExempt && (
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="text-gray-500">الضريبة</span>
+                <span className="font-medium text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className={`flex items-center justify-between px-3 py-2 ${isExempt ? "col-span-2" : ""}`}>
               <span className="text-gray-500">النهائي</span>
-              <span className="font-medium text-blue-700">{total.toFixed(2)}</span>
+              <span className="font-medium text-blue-700">{isExempt ? subAfterDiscount.toFixed(2) : total.toFixed(2)}</span>
             </div>
           </div>
 

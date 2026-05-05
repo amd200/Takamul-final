@@ -119,9 +119,12 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
       <td>${item.unitName || "قطعة"}</td>
       <td>${qty}</td>
       <td>${price.toFixed(2)}</td>
-      <td>${subTotal.toFixed(2)}</td>
-      <td>${taxAmt.toFixed(2)}</td>
-      <td>${netTotal.toFixed(2)}</td>
+      ${
+        !isExempt &&
+        ` <td>${subTotal.toFixed(2)}</td>
+       <td>${taxAmt.toFixed(2)}</td>`
+      }
+    <td>${netTotal.toFixed(2)}</td>
  
     </tr>`,
     )
@@ -588,18 +591,22 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     <td class="val-cell">${discount.toFixed(2)}</td>
     <td class="lbl-en">Discount</td>
   </tr>
-  ${!isExempt ? [
-    `<tr>
+  ${
+    !isExempt
+      ? [
+          `<tr>
       <td class="lbl-ar">${t("tot_before_vat", "اجمالي السعر قبل الضريبة")}</td>
       <td class="val-cell">${totBeforeVAT.toFixed(2)}</td>
       <td class="lbl-en">Tot Before VAT</td>
     </tr>`,
-    `<tr>
+          `<tr>
       <td class="lbl-ar">${t("total_vat", "ضريبة القيمة المضافة")}</td>
       <td class="val-cell">${totalVAT.toFixed(2)}</td>
       <td class="lbl-en">Total VAT %15</td>
-    </tr>`
-  ].join("") : ""}
+    </tr>`,
+        ].join("")
+      : ""
+  }
   <tr class="net-total-row">
     <td class="lbl-ar">${t("final_total", "الاجمالي النهائي")}</td>
     <td class="val-cell">${finalTotal.toFixed(2)}</td>

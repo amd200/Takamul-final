@@ -3,6 +3,7 @@ import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 import { Supplier } from "@/features/suppliers/types/suppliers.types";
 import QRCode from "qrcode/lib/browser.js";
 import { printInvoicePrinter } from "@/lib/qzService";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export interface InvoiceItem {
   productName: string;
@@ -15,7 +16,6 @@ export interface InvoiceItem {
 export interface InvoiceData {
   id?: number | string;
   branch: BranchInfo;
-  logoUrl?: string;
   invoiceNumber: string | number;
   customer: Customer;
   supplier?: Supplier;
@@ -35,6 +35,8 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
   const riyal = `ر.س`;
   const qrImageSrc = data?.qrCode ? await QRCode.toDataURL(data?.qrCode) : null;
+  const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
+  const isExempt = taxSetting === "Exempt";
 
   const itemRows = data.items
     .map(
@@ -43,7 +45,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
         <td class="td-name">${item.productName ?? ""}</td>
         <td>${item.quantity ?? 0}</td>
         <td>${fmt(item.unitPrice)}</td>
-        <td>${fmt(item.taxAmount)}</td>
+        ${!isExempt && `<td>${fmt(item.taxAmount)}</td> `}
         <td>${fmt(item.total)}</td>
       </tr>`,
     )
@@ -296,11 +298,7 @@ html, body {
     </div>
 
     <!-- VAT NO: AR | value | EN -->
-    <div class="hrow">
-      <span class="h-ar">الرقم الضريبي</span>
-      <span class="h-val">${data.branch?.taxNumber}</span>
-      <span class="h-en">VAT NO</span>
-    </div>
+ 
 
     <!-- Simplified Tax Invoice -->
     <div class="hrow">
@@ -348,7 +346,7 @@ html, body {
         <th><span class="th-ar">بيان الصنف</span><span class="th-en">Item Des</span></th>
         <th><span class="th-ar">الكمية</span><span class="th-en">QTY</span></th>
         <th><span class="th-ar">الإجمالي الفرعي</span><span class="th-en">Sub Total</span></th>
-        <th><span class="th-ar">الضريبة</span><span class="th-en">Tax 15%</span></th>
+        ${!isExempt && `<th><span class="th-ar">الضريبة</span><span class="th-en">VAT Amount</span></th>`}
         <th><span class="th-ar">الإجمالي النهائي</span><span class="th-en">Net Total</span></th>
       </tr>
     </thead>
@@ -367,7 +365,10 @@ html, body {
       <td class="t-val">${fmt(data.discountAmount)} ${riyal}</td>
       <td class="t-en">Total Discount</td>
     </tr>
-    <tr>
+   ${
+     !isExempt &&
+     `
+     <tr>
       <td class="t-ar">اجمالي السعر قبل الضريبة</td>
       <td class="t-val">${fmt(data.subTotal)} ${riyal}</td>
       <td class="t-en">Total Before Tax</td>
@@ -376,7 +377,8 @@ html, body {
       <td class="t-ar">اجمالي ضريبة القيمة المضافة</td>
       <td class="t-val">${fmt(data.taxAmount)} ${riyal}</td>
       <td class="t-en">Total VAT</td>
-    </tr>
+    </tr>`
+   }
     <tr>
       <td class="t-ar">الاجمالي النهائي</td>
       <td class="t-val">${fmt(data.grandTotal)} ${riyal}</td>

@@ -178,7 +178,7 @@ export default function Topbar2() {
                 {currentOpenShift ? "غلق الوردية" : "لا توجد وردية"}
               </Button>
               <Button asChild size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
-                <Link to={"/dashboard"}>
+                <Link to={"/"}>
                   تسجيل الخروج
                   <LogOut className="w-3 h-3" />
                 </Link>

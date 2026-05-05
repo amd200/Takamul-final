@@ -129,7 +129,6 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     return {
       paidAmount: total,
       branch: branch,
-      logoUrl: branch.imageUrl || "",
       invoiceNumber: String(ext.orderNumber || ext?.quotationNumber),
       invoiceDate: buildInvoiceDateStr(ext),
       customer: ext.customer!,

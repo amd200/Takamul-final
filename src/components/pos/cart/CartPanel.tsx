@@ -352,10 +352,7 @@ export default function CartPanel() {
   useEffect(() => {
     if (!salesSettings) return;
 
-    const isCurrentValid =
-      (orderType === "TakeAway" && salesSettings.isTekawuy) ||
-      (orderType === "InDine" && salesSettings.isTables) ||
-      (orderType === "Delivery" && salesSettings.isDelivary);
+    const isCurrentValid = (orderType === "TakeAway" && salesSettings.isTekawuy) || (orderType === "InDine" && salesSettings.isTables) || (orderType === "Delivery" && salesSettings.isDelivary);
 
     if (!isCurrentValid) {
       if (salesSettings.isTekawuy) setOrderType("TakeAway");
@@ -492,8 +489,9 @@ export default function CartPanel() {
     "high-contrast": t("high_contrast"),
   };
 
-  const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
-
+  const taxSetting = useSettingsStore((state) => state.settings.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
+  const GRID = isExempt ? "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_50px_85px] gap-2 px-2" : "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
     <>
       <div className="flex flex-col border-r border-border" style={{ width: 550, flexShrink: 0 }}>
@@ -665,16 +663,18 @@ export default function CartPanel() {
                 <span className="text-center">{t("quantity_label")}</span>
                 <span className="px-2 border-r border-border text-right flex items-center justify-end gap-1">
                   {t("price")}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info size={10} className="text-gray-300 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      {t("price_before_tax")}
-                    </TooltipContent>
-                  </Tooltip>
+                  {!isExempt && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info size={10} className="text-gray-300 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        {t("price_before_tax")}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </span>
-                <span className="text-right">{t("tax_column")}</span>
+                {!isExempt && <span className="text-right">{t("tax_column")}</span>}
                 <span className="text-right">{t("total_amount")}</span>
                 <span className="text-center">{t("actions")}</span>
               </div>
@@ -694,27 +694,35 @@ export default function CartPanel() {
                   >
                     {/* # */}
                     <span className="text-xs text-gray-400 font-medium">{idx + 1}</span>
+
                     {/* الاسم */}
                     <div className="min-w-0 overflow-hidden">
                       <div className="text-xs font-bold text-foreground">{item?.name}</div>
                       {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
                       {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-${item.itemDiscount!.value.toFixed(2)}`}</div>}
                     </div>
+
+                    {/* الكمية */}
                     <span className="text-xs text-gray-400 font-medium text-center">{item?.qty}</span>
 
-                    {/* السعر قبل الضريبة */}
+                    {/* السعر */}
                     <div className="text-right">
                       {hasDisc && <div className="text-[10px] text-gray-300 line-through">{origBasePrice.toFixed(2)}</div>}
                       <div className="text-xs font-semibold text-gray-700 flex items-center flex-row">{format(itemBasePrice(item))}</div>
                     </div>
+
                     {/* ض.ق.م */}
-                    <div className="text-right">
-                      <div className="text-xs text-gray-500">{calcItemTax(item).toFixed(2)}</div>
-                    </div>
+                    {!isExempt && (
+                      <div className="text-right">
+                        <div className="text-xs text-gray-500">{calcItemTax(item).toFixed(2)}</div>
+                      </div>
+                    )}
+
                     {/* الإجمالي */}
                     <div className="text-right">
-                      <div className="text-xs font-bold text-foreground">{(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>
+                      <div className="text-xs font-bold text-foreground">{isExempt ? itemBasePrice(item).toFixed(2) : (itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>
                     </div>
+
                     {/* عمليات */}
                     <div className="flex items-center justify-center gap-1">
                       <div
@@ -779,13 +787,15 @@ export default function CartPanel() {
                   <span className="font-semibold text-foreground">{format(subAfterDiscount)}</span>
                 </div>
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                <span>{t("tax_label")}</span>
-                <div className="flex items-center gap-1.5">
-                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{format(originalTax)}</span>}
-                  <span className="font-semibold text-foreground">{format(taxAfterDiscount)}</span>
+              {!isExempt && (
+                <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                  <span>{t("tax_label")}</span>
+                  <div className="flex items-center gap-1.5">
+                    {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{format(originalTax)}</span>}
+                    <span className="font-semibold text-foreground">{format(taxAfterDiscount)}</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex justify-between text-sm font-black text-foreground mt-2 pt-1 border-t border-border mb-3">
                 <span>{t("payable_amount")}</span>
