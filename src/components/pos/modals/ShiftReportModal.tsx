@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { useGetShiftReport } from "@/features/shifts/hooks/useShifts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 interface ShiftReportModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ interface ShiftReportModalProps {
 }
 
 export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCloseShift, showCloseButton = true }: ShiftReportModalProps) {
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
   const { data: report, isLoading } = useGetShiftReport(shiftId);
 
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "00.00");
@@ -155,14 +158,18 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
 
               {/* TOTALS */}
               <div className="border-[1.5px] border-black mb-3 p-3 bg-slate-50/30">
-                <div className="flex justify-between py-1.5 text-[8.5pt] font-medium">
-                  <span className="font-bold text-[9.5pt]">{fmt(report.salesSubTotal)}</span>
-                  <span className="text-gray-600">الاجمالي بدون الضريبة</span>
-                </div>
-                <div className="flex justify-between py-1.5 text-[8.5pt] font-medium">
-                  <span className="font-bold text-[9.5pt]">{fmt(report.salesTaxAmount)}</span>
-                  <span className="text-gray-600">إجمالي الضريبة</span>
-                </div>
+                {!isExempt && (
+                  <>
+                    <div className="flex justify-between py-1.5 text-[8.5pt] font-medium">
+                      <span className="font-bold text-[9.5pt]">{fmt(report.salesSubTotal)}</span>
+                      <span className="text-gray-600">الاجمالي بدون الضريبة</span>
+                    </div>
+                    <div className="flex justify-between py-1.5 text-[8.5pt] font-medium">
+                      <span className="font-bold text-[9.5pt]">{fmt(report.salesTaxAmount)}</span>
+                      <span className="text-gray-600">إجمالي الضريبة</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between pt-2 mt-2 border-t-[1.5px] border-black text-[10pt] font-bold">
                   <span className="text-[11pt]">{fmt(report.salesGrandTotal)}</span>
                   <span>الاجمالي النهائي</span>

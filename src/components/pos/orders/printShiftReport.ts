@@ -1,3 +1,5 @@
+import { DeliveryCompany } from "@/features/delivery-companies/types/delivery-companies.types";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { printInvoicePrinter } from "@/lib/qzService";
 
 export interface ShiftItem {
@@ -30,6 +32,9 @@ export interface ShiftReportData {
 }
 
 export async function printShiftReport(data: ShiftReportData): Promise<void> {
+  const taxSetting = useSettingsStore.getState().settings?.taxSetting?.taxSetting;
+  const isExempt = taxSetting === "Exempt";
+
   const fmt = (n: number | undefined | null) =>
     typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "00.00";
 
@@ -268,6 +273,7 @@ html, body {
 
   <!-- TOTALS -->
   <div class="totals-box">
+    ${!isExempt ? `
     <div class="t-row">
       <span class="t-num">${fmt(data.totalBeforeTax)}</span>
       <span>الاجمالي بدون الضريبة</span>
@@ -276,6 +282,7 @@ html, body {
       <span class="t-num">${fmt(data.totalTax)}</span>
       <span>إجمالي الضريبة</span>
     </div>
+    ` : ""}
     <div class="t-row grand">
       <span class="t-num">${fmt(data.grandTotal)}</span>
       <span>الاجمالي النهائي</span>
