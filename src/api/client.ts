@@ -29,6 +29,7 @@ const logout = () => {
   useAuthStore.getState().clearAuth();
 };
 
+// ─── Request ────────────────────────────────────────────────────────────────
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
   if (accessToken) {
@@ -37,19 +38,15 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// ─── Response ───────────────────────────────────────────────────────────────
 apiClient.interceptors.response.use(
   (response) => response,
   async (err) => {
     const originalRequest = err.config;
 
-    const isAuthRoute = originalRequest.url?.includes("/Auth/login") || originalRequest.url?.includes("/Auth/register");
+    const isAuthRoute = originalRequest.url?.includes("/Auth/login") || originalRequest.url?.includes("/Auth/register") || originalRequest.url?.includes("/Auth/refresh-token");
 
     if (isAuthRoute) return Promise.reject(err);
-
-    if (originalRequest._isRefreshRequest) {
-      logout();
-      return Promise.reject(err);
-    }
 
     if (err.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -64,9 +61,7 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshRequest = apiClient.post<LoginResponse>("/Auth/refresh-token", null, {
-        _isRefreshRequest: true,
-      } as object);
+      const refreshRequest = apiClient.post<LoginResponse>("/Auth/refresh-token");
 
       const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Token refresh timeout")), REFRESH_TIMEOUT));
 
@@ -81,7 +76,7 @@ apiClient.interceptors.response.use(
         })
         .catch((refreshErr) => {
           processQueue(refreshErr, null);
-          logout(); 
+          logout();
           return Promise.reject(refreshErr);
         })
         .finally(() => {
