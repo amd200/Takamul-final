@@ -12,7 +12,6 @@ import { useGetRoleById } from "@/features/roles/hooks/useGetRoleById";
 import { useUpdateRole } from "@/features/roles/hooks/useUpdateRole";
 import { Permissions } from "@/lib/permissions";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface SubPermission {
   id: string;
@@ -40,7 +39,6 @@ export interface Group {
   permissions?: Permission[];
 }
 
-// ─── Static Data ─────────────────────────────────────────────────────────────
 
 const GROUPS: Group[] = [
   {
@@ -506,7 +504,6 @@ const GROUPS: Group[] = [
   },
 ];
 
-// ─── State Helpers ────────────────────────────────────────────────────────────
 
 type CheckedMap = Record<string, boolean>;
 
@@ -618,7 +615,6 @@ export default function PermissionsTree() {
     const newChecked: CheckedMap = {};
 
     GROUPS.forEach((g, gi) => {
-      // الـ pages العادية
       g.pages.forEach((page, pi) => {
         page.permissions.forEach((perm, ri) => {
           if ((perm.subPermissions ?? []).length > 0) {
@@ -633,7 +629,6 @@ export default function PermissionsTree() {
         });
       });
 
-      // ← الـ direct permissions على الـ group
       (g.permissions ?? []).forEach((perm, ri) => {
         const key = leafKey(gi, -1, ri);
         newChecked[key] = permissionsSet.has(perm.value!);
@@ -708,11 +703,9 @@ export default function PermissionsTree() {
 
               return (
                 <div key={`g_${gi}`} className={cn(gi !== GROUPS.length - 1 && "border-b border-border")}>
-                  {/* Group Row */}
                   <div className={cn("flex items-center gap-2 px-3 py-2.5 hover:bg-muted/70 cursor-pointer select-none", gStatus === "some" ? "bg-primary/5" : "bg-muted/40")} onClick={() => setOpenGroups(toggle(openGroups, `g_${gi}`))}>
                     <div onClick={(e) => e.stopPropagation()}>
                       {" "}
-                      {/* ← هنا */}
                       <TreeCheckbox status={gStatus} onChange={() => setKeys(gKeys, gStatus !== "all")} />
                     </div>{" "}
                     <Folder className={cn("w-4 h-4 shrink-0", gStatus !== "none" ? "text-primary" : "text-amber-500")} />
@@ -721,7 +714,6 @@ export default function PermissionsTree() {
                     <ChevronLeft className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", gOpen && "-rotate-90")} />
                   </div>
 
-                  {/* Pages */}
                   {gOpen && (
                     <div>
                       {group.pages.map((page, pi) => {
@@ -748,7 +740,6 @@ export default function PermissionsTree() {
                               <ChevronLeft className={cn("w-3 h-3 text-muted-foreground transition-transform", pOpen && "-rotate-90")} />
                             </div>
 
-                            {/* Permissions */}
                             {pOpen && (
                               <div>
                                 {page.permissions.map((perm, ri) => {
@@ -761,7 +752,6 @@ export default function PermissionsTree() {
 
                                   return (
                                     <div key={permKey} className={cn(ri !== page.permissions.length - 1 && "border-b border-border")}>
-                                      {/* Permission Row */}
                                       <div className="flex items-center gap-2 px-3 py-2 pr-12 bg-muted/10 select-none">
                                         {hasSubs ? (
                                           <div onClick={(e) => e.stopPropagation()}>
@@ -777,7 +767,6 @@ export default function PermissionsTree() {
                                         {hasSubs && <ChevronLeft className={cn("w-3 h-3 text-muted-foreground transition-transform cursor-pointer", permOpen && "-rotate-90")} onClick={() => setOpenPerms(toggle(openPerms, permKey))} />}
                                       </div>
 
-                                      {/* Sub-permissions */}
                                       {permOpen && hasSubs && (
                                         <div className="bg-background">
                                           {perm.subPermissions!.map((sub, si) => {
