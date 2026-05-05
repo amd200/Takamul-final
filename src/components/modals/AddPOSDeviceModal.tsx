@@ -67,7 +67,7 @@ const statusToStep: Record<DeviceStatus, number> = {
 const schema = z.object({
   deviceName: z.string().min(2, "اسم الجهاز مطلوب"),
   serialNumber: z.string().min(3, "الرقم التسلسلي مطلوب"),
-  deviceTypeId: z.number().min(1, "نوع الجهاز مطلوب"),
+  InvoiceSequence: z.string().min(1, "تسلسل الفواتير مطلوب"),
   branchId: z.number().min(1, "الفرع مطلوب"),
   location: z.string().optional(),
   isActive: z.boolean().optional(),
@@ -76,7 +76,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const STEP_FIELDS: Record<number, (keyof FormValues)[]> = {
-  1: ["deviceName", "serialNumber", "deviceTypeId", "branchId"],
+  1: ["deviceName", "serialNumber", "InvoiceSequence", "branchId"],
 };
 
 const STEPS = [
@@ -96,7 +96,6 @@ function isStepComplete(step: number, clickedGeneratedCSR: boolean, ccsid: CCSID
     case 3:
       return !!ccsid;
     case 4:
-      // إذا كان status الجهاز CCSIDRegistered، الخطوة دي مكتملة بدون ccsid في الـ state
       return !!pcsid;
     case 5:
       return true;
@@ -284,7 +283,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
     defaultValues: {
       deviceName: "",
       serialNumber: "",
-      deviceTypeId: 0,
+      InvoiceSequence: "",
       branchId: 0,
     },
   });
@@ -307,7 +306,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
       form.reset({
         deviceName: device.deviceName,
         serialNumber: device.serialNumber,
-        deviceTypeId: device.deviceTypeId,
+        InvoiceSequence: device.InvoiceSequence,
         branchId: device.branchId,
         location: device.location,
         isActive: device.isActive,
@@ -338,7 +337,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
         id: device?.id!,
         data: {
           deviceName: data.deviceName,
-          deviceTypeId: data.deviceTypeId,
+          InvoiceSequence: data.InvoiceSequence,
           branchId: data.branchId,
           isActive: true,
           allowOnlineInvoicing: true,
@@ -361,7 +360,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
           const payload: CreateDevicePOS = {
             deviceName: data.deviceName,
             serialNumber: data.serialNumber,
-            deviceTypeId: data.deviceTypeId,
+            InvoiceSequence: data.InvoiceSequence,
             branchId: data.branchId,
           };
           await createDevice(payload);
@@ -384,7 +383,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
         const payload: CreateDevicePOS = {
           deviceName: data.deviceName,
           serialNumber: data.serialNumber,
-          deviceTypeId: data.deviceTypeId,
+          InvoiceSequence: data.InvoiceSequence,
           branchId: data.branchId,
         };
         const res = await createDevice(payload);
@@ -545,29 +544,15 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
                     </Field>
                   )}
                 />
-
                 <Controller
-                  name="deviceTypeId"
+                  name="InvoiceSequence"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>
-                        نوع الجهاز <span className="text-red-500">*</span>
+                        تسلسل رقم الفاتورة<span className="text-red-500">*</span>
                       </FieldLabel>
-                      <Select value={field.value ? String(field.value) : ""} onValueChange={(v) => field.onChange(Number(v))}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="اختر النوع" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {deviceTypes?.data?.map((d: DeviceType) => (
-                              <SelectItem key={d.value} value={String(d.value)}>
-                                {d.text}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                      <Input {...field} placeholder="ادخل تسلسل رقم الفاتورة" />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}

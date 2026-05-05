@@ -8,6 +8,7 @@ export const initAuth = async (): Promise<void> => {
   try {
     const { data } = await apiClient.post<LoginResponse>("/Auth/refresh-token");
     const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
+    console.log(data?.accessToken);
     useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId, decoded?.ShiftId);
   } catch {
     useAuthStore.getState().clearAuth();

@@ -6,6 +6,7 @@ export interface POSDevice {
   deviceName: string;
   commonName: string;
   serialNumber: string;
+  InvoiceSequence: string;
   status: "NotRegistered" | "PendingOTP" | "CCSIDRegistered" | "PCSIDRegistered";
   certificateType: string;
   currentICV: number;
@@ -155,7 +156,7 @@ export interface DeviceType {
 export interface CreateDevicePOS {
   deviceName: string;
   serialNumber: string;
-  deviceTypeId: number;
+  InvoiceSequence: string;
   branchId: number;
 }
 
