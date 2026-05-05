@@ -366,8 +366,8 @@ html, body {
       <td class="t-en">Total Discount</td>
     </tr>
    ${
-     !isExempt &&
-     `
+     !isExempt
+       ? `
      <tr>
       <td class="t-ar">اجمالي السعر قبل الضريبة</td>
       <td class="t-val">${fmt(data.subTotal)} ${riyal}</td>
@@ -378,6 +378,7 @@ html, body {
       <td class="t-val">${fmt(data.taxAmount)} ${riyal}</td>
       <td class="t-en">Total VAT</td>
     </tr>`
+       : ""
    }
     <tr>
       <td class="t-ar">الاجمالي النهائي</td>
@@ -414,11 +415,12 @@ html, body {
 
   <!-- QR -->
   ${
-    !isExempt &&
-    `
+    !isExempt
+      ? `
     <div class="qr-wrap">
       ${qrImageSrc && `<img src="${qrImageSrc}" alt="QR" width="90" height="90"/>`}
   </div>`
+      : ""
   }
 
 </div>

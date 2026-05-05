@@ -624,27 +624,31 @@ const CreatePurchaseInvoice: React.FC = () => {
               <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-5">{t("invoice_summary")}</h3>
 
               <div className="space-y-4">
-                <div className="flex justify-between items-center text-zinc-600 dark:text-zinc-300">
-                  <span className="text-sm font-medium">{t("total_before_tax")}</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white">
-                    {summary.beforeTaxTotal.toLocaleString("en-EG", {
-                      minimumFractionDigits: 2,
-                      maximumSignificantDigits: 2,
-                    })}
-                  </span>
-                </div>
+                {!isExempt && (
+                  <>
+                    <div className="flex justify-between items-center text-zinc-600 dark:text-zinc-300">
+                      <span className="text-sm font-medium">{t("total_before_tax")}</span>
+                      <span className="font-semibold text-zinc-900 dark:text-white">
+                        {summary.beforeTaxTotal.toLocaleString("en-EG", {
+                          minimumFractionDigits: 2,
+                          maximumSignificantDigits: 2,
+                        })}
+                      </span>
+                    </div>
 
-                <div className="flex justify-between items-center text-zinc-600 dark:text-zinc-300">
-                  <span className="text-sm font-medium">{t("vat")}</span>
-                  <span className="font-semibold text-orange-600">
-                    {summary.totalVat.toLocaleString("en-EG", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
+                    <div className="flex justify-between items-center text-zinc-600 dark:text-zinc-300">
+                      <span className="text-sm font-medium">{t("vat")}</span>
+                      <span className="font-semibold text-orange-600">
+                        {summary.totalVat.toLocaleString("en-EG", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <hr className="border-zinc-200 dark:border-zinc-800" />
+                  </>
+                )}
 
-                <hr className="border-zinc-200 dark:border-zinc-800" />
 
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-zinc-900 dark:text-white">{t("final_total")}</span>

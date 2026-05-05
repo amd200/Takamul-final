@@ -120,9 +120,10 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
       <td>${qty}</td>
       <td>${price.toFixed(2)}</td>
       ${
-        !isExempt &&
-        ` <td>${subTotal.toFixed(2)}</td>
+        !isExempt
+          ? ` <td>${subTotal.toFixed(2)}</td>
        <td>${taxAmt.toFixed(2)}</td>`
+          : ""
       }
     <td>${netTotal.toFixed(2)}</td>
  
@@ -576,13 +577,14 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
   <!-- ══ FOOTER SECTION ══ -->
   <div class="footer-section">
     ${
-      !isExempt &&
-      `
+      !isExempt
+        ? `
       <div class="qr-barcode-container">
     ${qrImageSrc ? `<img src="${qrImageSrc || ""}" onerror="this.style.display='none'" class="qr-code-final" alt="QR"/>` : `<div style="font-size: 8px; color: #555; text-align: center;">QR Code Unavailable</div>`}
       <div class="inv-no-small">${invoiceNo}</div>
     </div>
       `
+        : ""
     }
 
    <table class="totals-table">

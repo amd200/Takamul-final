@@ -21,6 +21,8 @@ import { useRegisterCCSID } from "@/features/ZatcaRegistration/hooks/useRegister
 import formatDate from "@/lib/formatDate";
 import { useUpgradeToPcsid } from "@/features/ZatcaRegistration/hooks/useUpgradeToPcsid";
 import { useUpdatePOSDevice } from "@/features/pos/hooks/useUpdatePOSDevice";
+import { useSettings } from "@/context/SettingsContext";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -272,6 +274,10 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
   const { data: deviceTypes } = useGetAllDeviceTypes();
   const { refetch } = useGenereateSerial();
 
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const isExempt = taxSetting === "Exempt";
+  const isFirstStage = taxSetting === "FirstStage";
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: "onChange",
@@ -346,6 +352,25 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
     if (fields) {
       const valid = await form.trigger(fields);
       if (!valid) return;
+    }
+
+    if (isFirstStage && step === 1) {
+      if (!createdDeviceId) {
+        try {
+          const data = form.getValues();
+          const payload: CreateDevicePOS = {
+            deviceName: data.deviceName,
+            serialNumber: data.serialNumber,
+            deviceTypeId: data.deviceTypeId,
+            branchId: data.branchId,
+          };
+          await createDevice(payload);
+        } catch {
+          return;
+        }
+      }
+      onOpenChange(false);
+      return;
     }
 
     const isCCSIDResumed = step === 4 && deviceStatus === "CCSIDRegistered" && !pcsid;
@@ -426,7 +451,6 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
 
   const anyLoading = isCreating || isUpdating || isGeneratingCSR || isRegisteringCCSID || isRegisteringPCSID;
 
-  // الـ next button disabled logic
   const isCCSIDResumedStep = step === 4 && deviceStatus === "CCSIDRegistered" && !pcsid;
   const nextDisabled = anyLoading || (!isCCSIDResumedStep && !isStepComplete(step, clickedGeneratedCSR, ccsid, pcsid, deviceStatus));
 
@@ -440,8 +464,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
             <DialogTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">{isCertificateMode ? "استكمال تسجيل نقطة البيع" : isEdit ? "تعديل بيانات جهاز" : "إضافة نقطة بيع جديدة"}</DialogTitle>
           </DialogHeader>
 
-          {!isEdit && <StepperHeader current={step} />}
-
+          {!isEdit && !isExempt && <StepperHeader current={step} />}
           <div className="max-h-[52vh] overflow-y-auto no-scrollbar pr-1">
             {step === 1 && (
               <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -745,8 +768,23 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
                   )}
                 </Button>
               </>
+            ) : isFirstStage ? (
+              <>
+                <Button size="2xl" type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={anyLoading}>
+                  إلغاء
+                </Button>
+                <Button size="2xl" type="button" onClick={handleNext} disabled={anyLoading} className="flex items-center gap-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white">
+                  {isCreating ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      جاري الحفظ...
+                    </>
+                  ) : (
+                    "إضافة الجهاز"
+                  )}
+                </Button>
+              </>
             ) : (
-              // وضع الإضافة: زرار السابق/إلغاء + التالي
               <>
                 <Button size="2xl" type="button" variant="outline" onClick={() => (step === 1 || step === 5 ? onOpenChange(false) : handleBack())} disabled={anyLoading || backHidden} className={`flex items-center gap-1.5 ${backHidden ? "invisible" : ""}`}>
                   {step === 5 ? (
