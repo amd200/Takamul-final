@@ -58,8 +58,8 @@ export default function AddShiftModal({ isOpen, onClose, isAdmin, defaultBranchI
   const { data: devices, isLoading: isDevicesLoading } = useGetAllPOSDevices();
 
   const now = new Date();
-  const currentDate = now.toLocaleDateString("ar-EG");
-  const currentTime = now.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
+  const currentDate = now.toLocaleDateString("en-EG");
+  const currentTime = now.toLocaleTimeString("en-EG", { hour: "2-digit", minute: "2-digit" });
 
   useEffect(() => {
     if (isOpen) {
@@ -89,7 +89,6 @@ export default function AddShiftModal({ isOpen, onClose, isAdmin, defaultBranchI
       console.error(error);
     }
   };
-
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
