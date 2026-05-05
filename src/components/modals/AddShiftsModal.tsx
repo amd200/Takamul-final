@@ -75,7 +75,7 @@ export default function AddShiftModal({ isOpen, onClose, isAdmin, defaultBranchI
   const onSubmit = async (data: ShiftFormData) => {
     try {
       const payload: OpenShiftRequest = {
-        shiftDate: new Date().toISOString(),
+        shiftDate: new Date().toISOString().split("T")[0],
         startTime: new Date().toISOString(),
         branchId: data.branchId,
         employeeId: data.employeeId,
