@@ -20,6 +20,7 @@ import { Shift } from "@/features/shifts/types/shifts.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
+import AddShiftModal from "@/components/modals/AddShiftsModal";
 
 export default function ShiftsList() {
   const { direction, t } = useLanguage();
@@ -27,25 +28,25 @@ export default function ShiftsList() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
-  
+
   const [newShift, setNewShift] = useState({
     openingBalance: 0,
     branchId: 0,
     employeeId: 0,
-    deviceId: 0
+    deviceId: 0,
   });
 
   // Current date and time for display
   const now = new Date();
-  const currentDate = now.toISOString().split('T')[0];
-  const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  const currentDate = now.toISOString().split("T")[0];
+  const currentTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
 
   const { data: shifts, isLoading: isShiftsLoading } = useGetAllShifts();
   const { data: branchesData, isLoading: isBranchesLoading } = useGetAllBranches();
   const { data: usersData, isLoading: isUsersLoading } = useGetAllUsers({ page: 1, limit: 100 });
   const { data: devicesData, isLoading: isDevicesLoading } = useGetAllPOSDevices();
   const { data: branchEmployeesData } = useGetEmployeesByBranch(newShift.branchId);
-  
+
   const { mutate: openShift, isPending: isOpening } = useOpenShift();
   const { mutate: closeShift, isPending: isClosing } = useCloseShift();
 
@@ -53,8 +54,8 @@ export default function ShiftsList() {
   const branchEmployees = useMemo(() => branchEmployeesData?.data || [], [branchEmployeesData]);
   const devices = useMemo(() => devicesData?.data || [], [devicesData]);
 
-  const { branchId: userBranchId, userId, userName: authUserName, role } = useAuthStore();
-  const isAdmin = authUserName?.toLowerCase() === "admin" || authUserName?.toLowerCase() === "superadmin" || role?.toUpperCase() === "ADMIN" || role?.toUpperCase() === "SUPERADMIN";
+  const { branchId: userBranchId, userId, userName: authUserName } = useAuthStore();
+  const isAdmin = authUserName?.toLowerCase() === "admin" || authUserName?.toLowerCase() === "superadmin";
 
   // Handle initial pre-fill and reset when modal opens
   React.useEffect(() => {
@@ -67,7 +68,7 @@ export default function ShiftsList() {
           openingBalance: 0,
           branchId: !isNaN(bId) ? bId : 0,
           employeeId: !isNaN(uId) ? uId : 0,
-          deviceId: 0
+          deviceId: 0,
         });
       } else {
         // For admins: reset to zeros and let the data-driven effects fill it
@@ -75,7 +76,7 @@ export default function ShiftsList() {
           openingBalance: 0,
           branchId: 0,
           employeeId: 0,
-          deviceId: 0
+          deviceId: 0,
         });
       }
     }
@@ -84,35 +85,30 @@ export default function ShiftsList() {
   // Fill branch for admins when branches load
   React.useEffect(() => {
     if (isAddModalOpen && isAdmin && branches.length > 0 && newShift.branchId === 0) {
-      setNewShift(prev => ({ ...prev, branchId: branches[0].id }));
+      setNewShift((prev) => ({ ...prev, branchId: branches[0].id }));
     }
   }, [isAddModalOpen, isAdmin, branches, newShift.branchId]);
 
   // Fill employee for admins when employees load or branch changes
   React.useEffect(() => {
-    if (isAddModalOpen && isAdmin && branchEmployees.length > 0 && (newShift.employeeId === 0 || !branchEmployees.some(e => e.id === newShift.employeeId))) {
-      setNewShift(prev => ({ ...prev, employeeId: branchEmployees[0].id }));
+    if (isAddModalOpen && isAdmin && branchEmployees.length > 0 && (newShift.employeeId === 0 || !branchEmployees.some((e) => e.id === newShift.employeeId))) {
+      setNewShift((prev) => ({ ...prev, employeeId: branchEmployees[0].id }));
     }
   }, [isAddModalOpen, isAdmin, branchEmployees, newShift.branchId, newShift.employeeId]);
 
   // Fill device for everyone when devices load
   React.useEffect(() => {
     if (isAddModalOpen && devices.length > 0 && newShift.deviceId === 0) {
-      setNewShift(prev => ({ ...prev, deviceId: devices[0].id }));
+      setNewShift((prev) => ({ ...prev, deviceId: devices[0].id }));
     }
   }, [isAddModalOpen, devices, newShift.deviceId]);
 
   const filteredData = useMemo(() => {
     const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
     if (!shiftsArray) return [];
-    
+
     const term = searchTerm.trim().toLowerCase();
-    return shiftsArray.filter(
-      (item: any) =>
-        item.id.toString().includes(term) ||
-        item.employeeName?.toLowerCase().includes(term) ||
-        item.branchName?.toLowerCase().includes(term)
-    );
+    return shiftsArray.filter((item: any) => item.id.toString().includes(term) || item.employeeName?.toLowerCase().includes(term) || item.branchName?.toLowerCase().includes(term));
   }, [shifts, searchTerm]);
 
   const handleOpenShift = () => {
@@ -122,31 +118,25 @@ export default function ShiftsList() {
 
     const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false }); // "HH:mm:ss"
 
-    openShift({
-      shiftDate: currentDate,
-      startTime: fullTime,
-      openingBalance: newShift.openingBalance,
-      branchId: newShift.branchId,
-      employeeId: newShift.employeeId,
-      deviceId: newShift.deviceId
-    }, {
-      onSuccess: () => setIsAddModalOpen(false)
-    });
+    openShift(
+      {
+        shiftDate: currentDate,
+        startTime: fullTime,
+        openingBalance: newShift.openingBalance,
+        branchId: newShift.branchId,
+        employeeId: newShift.employeeId,
+        deviceId: newShift.deviceId,
+      },
+      {
+        onSuccess: () => setIsAddModalOpen(false),
+      },
+    );
   };
 
   const header = (
     <div className="relative w-full md:w-80">
       <Search className={cn("absolute top-2.5 text-gray-400", direction === "rtl" ? "right-3" : "left-3")} size={18} />
-      <Input
-        type="text"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder={t("search_placeholder") || "ابحث..."}
-        className={cn(
-          "w-full border border-gray-200 rounded-lg py-2 outline-none focus:border-[var(--primary)] text-sm",
-          direction === "rtl" ? "pr-10 pl-4" : "pl-10 pr-4"
-        )}
-      />
+      <Input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t("search_placeholder") || "ابحث..."} className={cn("w-full border border-gray-200 rounded-lg py-2 outline-none focus:border-[var(--primary)] text-sm", direction === "rtl" ? "pr-10 pl-4" : "pl-10 pr-4")} />
     </div>
   );
 
@@ -160,14 +150,7 @@ export default function ShiftsList() {
 
   const statusTemplate = (rowData: Shift) => {
     const isOpen = rowData.status === "Open";
-    return (
-      <div className={cn(
-        "px-3 py-1 rounded-full text-xs font-bold inline-block",
-        isOpen ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
-      )}>
-        {isOpen ? (t("open") || "مفتوحة") : (t("closed") || "مغلقة")}
-      </div>
-    );
+    return <div className={cn("px-3 py-1 rounded-full text-xs font-bold inline-block", isOpen ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600")}>{isOpen ? t("open") || "مفتوحة" : t("closed") || "مغلقة"}</div>;
   };
 
   const actionsTemplate = (rowData: Shift) => {
@@ -203,11 +186,11 @@ export default function ShiftsList() {
       payment: {
         cash: selectedShift?.netTotal || 0,
         network: 0,
-        delivery: 0
+        delivery: 0,
       },
       totalPurchases: selectedShift?.totalPurchases || 0,
       totalExpenses: selectedShift?.totalExpenses || 0,
-      deliveryCompanies: []
+      deliveryCompanies: [],
     };
   }, [selectedShift]);
 
@@ -220,15 +203,10 @@ export default function ShiftsList() {
             {t("shifts") || "الورديات"}
           </CardTitle>
 
-          <CardDescription className="text-gray-500">
-            {t("shifts_list_desc") || "إضافة وعرض وإدارة ورديات الكاشير في مختلف الفروع"}
-          </CardDescription>
+          <CardDescription className="text-gray-500">{t("shifts_list_desc") || "إضافة وعرض وإدارة ورديات الكاشير في مختلف الفروع"}</CardDescription>
 
           <CardAction>
-            <Button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-[var(--primary)] hover:opacity-90 text-white gap-2 rounded-xl h-11 px-6 font-bold transition-all"
-            >
+            <Button onClick={() => setIsAddModalOpen(true)} className="bg-[var(--primary)] hover:opacity-90 text-white gap-2 rounded-xl h-11 px-6 font-bold transition-all">
               <Plus size={18} />
               {t("add_shift") || "إضافة وردية"}
             </Button>
@@ -242,185 +220,72 @@ export default function ShiftsList() {
               <Skeleton className="h-64 w-full" />
             </div>
           ) : (
-              <DataTable
-                value={filteredData}
-                paginator
-                rows={10}
-                header={header}
-                className="custom-green-table no-wrap-header text-xs"
-                tableStyle={{ minWidth: "100%" }}
-                responsiveLayout="scroll"
-                dir={direction}
-                rowHover
-                stripedRows
-                pt={{
-                  header: { className: "py-2 px-2" },
-                  bodyRow: { className: "text-xs" },
+            <DataTable
+              value={filteredData}
+              paginator
+              rows={10}
+              header={header}
+              className="custom-green-table no-wrap-header text-xs"
+              tableStyle={{ minWidth: "100%" }}
+              responsiveLayout="scroll"
+              dir={direction}
+              rowHover
+              stripedRows
+              pt={{
+                header: { className: "py-2 px-2" },
+                bodyRow: { className: "text-xs" },
+              }}
+            >
+              <Column field="id" header="رقم" sortable className="text-center whitespace-nowrap py-2 px-1 w-[50px] font-bold" />
+              <Column field="shiftDate" header="التاريخ" sortable body={(row) => <span className="whitespace-nowrap text-[13px] font-semibold">{row.shiftDate?.split("T")[0]}</span>} className="whitespace-nowrap py-2 px-1 w-[110px]" />
+              <Column
+                field="startTime"
+                header="الوقت"
+                sortable
+                className="whitespace-nowrap py-2 px-1 w-[90px]"
+                body={(row) => {
+                  if (!row.startTime) return "---";
+                  try {
+                    // Handle "HH:mm:ss" format
+                    const [hours, minutes] = row.startTime.split(":");
+                    const date = new Date();
+                    date.setHours(parseInt(hours), parseInt(minutes));
+                    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+                  } catch (e) {
+                    return row.startTime;
+                  }
                 }}
-              >
-                <Column field="id" header="رقم" sortable className="text-center whitespace-nowrap py-2 px-1 w-[50px] font-bold" />
-                <Column field="shiftDate" header="التاريخ" sortable body={(row) => <span className="whitespace-nowrap text-[13px] font-semibold">{row.shiftDate?.split('T')[0]}</span>} className="whitespace-nowrap py-2 px-1 w-[110px]" />
-                <Column 
-                  field="startTime" 
-                  header="الوقت" 
-                  sortable 
-                  className="whitespace-nowrap py-2 px-1 w-[90px]" 
-                  body={(row) => {
-                    if (!row.startTime) return "---";
-                    try {
-                      // Handle "HH:mm:ss" format
-                      const [hours, minutes] = row.startTime.split(':');
-                      const date = new Date();
-                      date.setHours(parseInt(hours), parseInt(minutes));
-                      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-                    } catch (e) {
-                      return row.startTime;
-                    }
-                  }}
-                />
-                <Column field="branchName" header="الفرع" sortable className="whitespace-nowrap py-2 px-2" />
-                <Column header="الجهاز" className="whitespace-nowrap py-2 px-1 w-[80px] text-center" body={(row) => row.deviceName || row.deviceId || "---"} />
-                <Column field="employeeName" header="المستخدم" sortable className="whitespace-nowrap py-2 px-2" body={(row) => row.employeeName || "المسؤول"} />
-                <Column field="status" header="الحالة" sortable body={statusTemplate} className="text-center whitespace-nowrap py-2 px-1 w-[80px]" />
-                <Column
-                  field="openingBalance"
-                  header="الرصيد"
-                  sortable
-                  body={balanceTemplate}
-                  className="text-center whitespace-nowrap py-2 px-1 w-[80px]"
-                />
-                <Column 
-                  header="العمليات" 
-                  body={actionsTemplate}
-                  className="text-center whitespace-nowrap py-2 px-1 w-[70px]"
-                />
-              </DataTable>
+              />
+              <Column field="branchName" header="الفرع" sortable className="whitespace-nowrap py-2 px-2" />
+              <Column header="الجهاز" className="whitespace-nowrap py-2 px-1 w-[80px] text-center" body={(row) => row.deviceName || row.deviceId || "---"} />
+              <Column field="employeeName" header="المستخدم" sortable className="whitespace-nowrap py-2 px-2" body={(row) => row.employeeName || "المسؤول"} />
+              <Column field="status" header="الحالة" sortable body={statusTemplate} className="text-center whitespace-nowrap py-2 px-1 w-[80px]" />
+              <Column field="openingBalance" header="الرصيد" sortable body={balanceTemplate} className="text-center whitespace-nowrap py-2 px-1 w-[80px]" />
+              <Column header="العمليات" body={actionsTemplate} className="text-center whitespace-nowrap py-2 px-1 w-[70px]" />
+            </DataTable>
           )}
         </CardContent>
       </Card>
-
-      <ResponsiveModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title={t("add_shift") || "إضافة وردية"}
-        headerActions={<History size={20} className="text-[var(--primary)]" />}
-        maxWidth="max-w-xl"
-        footer={(
-          <>
-            <Button onClick={() => setIsAddModalOpen(false)} variant="outline" className="w-fit px-6 border-gray-200 h-10 text-sm font-bold rounded-xl transition-all hover:bg-gray-100">
-              {t("cancel") || "إلغاء"}
-            </Button>
-            <Button 
-              onClick={handleOpenShift} 
-              disabled={isOpening}
-              className="bg-[var(--primary)] hover:opacity-90 text-white w-fit px-8 h-10 text-sm font-bold rounded-xl transition-all shadow-sm"
-            >
-              {isOpening ? (t("saving") || "جاري الحفظ...") : (t("save") || "حفظ")}
-            </Button>
-          </>
-        )}
-      >
-        <div className="px-5 py-2 space-y-2" dir={direction}>
-          <div className="grid grid-cols-1 gap-2">
-            <div className="grid grid-cols-2 gap-3">
-              <Field>
-                <FieldLabel className="mb-0.5 text-[11px] font-semibold">التاريخ</FieldLabel>
-                <Input value={currentDate} readOnly className="bg-gray-100 border-gray-200 h-9 text-xs rounded-lg" />
-              </Field>
-
-              <Field>
-                <FieldLabel className="mb-0.5 text-[11px] font-semibold">الوقت</FieldLabel>
-                <Input value={currentTime} readOnly className="bg-gray-100 border-gray-200 h-9 text-xs rounded-lg" />
-              </Field>
-            </div>
-
-            <Field>
-              <FieldLabel className="mb-0.5 text-[11px] font-semibold">الفرع</FieldLabel>
-              <Select
-                value={newShift.branchId ? newShift.branchId.toString() : ""}
-                onValueChange={(val) => setNewShift({ ...newShift, branchId: parseInt(val) })}
-                disabled={!isAdmin}
-              >
-                <SelectTrigger className="w-full h-9 text-xs">
-                  <SelectValue placeholder="اختر الفرع" />
-                </SelectTrigger>
-                <SelectContent className="z-[250]">
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id.toString()}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field>
-              <FieldLabel className="mb-0.5 text-[11px] font-semibold">الموظف</FieldLabel>
-              <Select
-                value={newShift.employeeId ? newShift.employeeId.toString() : ""}
-                onValueChange={(val) => setNewShift({ ...newShift, employeeId: parseInt(val) })}
-                disabled={!isAdmin}
-              >
-                <SelectTrigger className="w-full h-9 text-xs">
-                  <SelectValue placeholder="اختر الموظف" />
-                </SelectTrigger>
-                <SelectContent className="z-[250]">
-                  {branchEmployees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id.toString()}>
-                      {emp.firstName || "\u00A0"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field>
-              <FieldLabel className="mb-0.5 text-[11px] font-semibold">جهاز إصدار الفواتير</FieldLabel>
-              <Select
-                value={newShift.deviceId ? newShift.deviceId.toString() : ""}
-                onValueChange={(val) => setNewShift({ ...newShift, deviceId: parseInt(val) })}
-              >
-                <SelectTrigger className="w-full h-9 text-xs">
-                  <SelectValue placeholder="اختر الجهاز" />
-                </SelectTrigger>
-                <SelectContent className="z-[250]">
-                  {devices.map((device) => (
-                    <SelectItem key={device.id} value={device.id.toString()}>
-                      {device.deviceName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <Field>
-              <FieldLabel className="mb-0.5 text-[11px] font-semibold">الرصيد الافتتاحي</FieldLabel>
-              <Input 
-                type="number" 
-                placeholder="0.00" 
-                value={newShift.openingBalance}
-                onChange={(e) => setNewShift({ ...newShift, openingBalance: parseFloat(e.target.value) })}
-                className="border-gray-200 h-9 text-xs rounded-lg focus:border-[var(--primary)]" 
-              />
-            </Field>
-          </div>
-        </div>
-      </ResponsiveModal>
+      <AddShiftModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} isAdmin={isAdmin} defaultBranchId={isAdmin ? 0 : userBranchId ? parseInt(userBranchId) : 0} defaultEmployeeId={userId ? parseInt(userId) : 0} />
+   
 
       {isReportModalOpen && (
-        <ShiftReportModal 
-          isOpen={isReportModalOpen} 
-          onClose={() => setIsReportModalOpen(false)} 
+        <ShiftReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
           data={reportData}
           onConfirmCloseShift={() => {
             if (!selectedShift) return;
             const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false });
-            closeShift({ 
-              shiftId: selectedShift.id, 
-              endTime: fullTime 
-            }, {
-              onSuccess: () => setIsReportModalOpen(false)
-            });
+            closeShift(
+              {
+                shiftId: selectedShift.id,
+                endTime: fullTime,
+              },
+              {
+                onSuccess: () => setIsReportModalOpen(false),
+              },
+            );
           }}
         />
       )}

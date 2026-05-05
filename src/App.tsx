@@ -278,16 +278,16 @@ function AppRoutes() {
 }
 
 export default function App() {
-  useEffect(() => {
-    const channel = new BroadcastChannel("auth");
-    channel.onmessage = (e) => {
-      if (e.data === "logout") {
-        useAuthStore.getState().clearAuth();
-        window.location.href = "/login";
-      }
-    };
-    return () => channel.close();
-  }, []);
+  // useEffect(() => {
+  //   const channel = new BroadcastChannel("auth");
+  //   channel.onmessage = (e) => {
+  //     if (e.data === "logout") {
+  //       useAuthStore.getState().clearAuth();
+  //       window.location.href = "/login";
+  //     }
+  //   };
+  //   return () => channel.close();
+  // }, []);
 
   useGetAllSettings();
   return (

@@ -63,14 +63,7 @@ apiClient.interceptors.response.use(
           .post<LoginResponse>("/Auth/refresh-token")
           .then(({ data }) => {
             const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
-            useAuthStore.getState().setAuth(
-              data.accessToken,
-              new Date(data.accessTokenExpiration).getTime(),
-              decoded.Permission,
-              decoded?.UserId,
-              decoded?.email,
-              decoded?.username,
-            );
+            useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId);
             apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
             originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
             processQueue(null, data.accessToken);
