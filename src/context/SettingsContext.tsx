@@ -225,9 +225,9 @@ const defaultSystemSettings: SystemSettings = {
     expiryAlertDays: 100,
     showActualBalance: true,
     showCostGreaterMsg: true,
-    showItemCodeInSales: true,
-    showItemCodeInQuotes: true,
-    showItemCodeInPurchases: true,
+    showItemCodeInSales: false,
+    showItemCodeInQuotes: false,
+    showItemCodeInPurchases: false,
     defaultSalesScreen: "POS1",
   },
   items: {
@@ -332,6 +332,9 @@ const defaultSystemSettings: SystemSettings = {
     enableDotMatrix: false,
     purchaseOrderField: "رقم أمر الشراء",
     projectNameField: "اسم المشروع",
+  },
+  tobacco: {
+    tobaccoFees: 0,
   },
 };
 

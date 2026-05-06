@@ -4,8 +4,8 @@ export const baseDefaultValues: SiteSettingsFormValues = {
   defaultPaymentCompany: "",
   rowsPerPage: 10,
   showActualBalance: true,
-  showItemCodeInSales: true,
-  showItemCodeInPurchases: true,
-  showItemCodeInQuotes: true,
+  showItemCodeInSales: false,
+  showItemCodeInPurchases: false,
+  showItemCodeInQuotes: false,
   showCostGreaterThanPriceWarning: true,
 };

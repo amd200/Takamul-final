@@ -37,8 +37,8 @@ import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 
 import { DirectionProvider } from "@/components/ui/direction";
-import { ProductsProvider } from "./context/ProductsContext.tsx";
-import { PosProvider } from "./context/PosContext.tsx";
+// import { ProductsProvider } from "./context/ProductsContext.tsx";
+// import { PosProvider } from "./context/PosContext.tsx";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
 import { initAuth } from "./lib/initAuth.ts";
 
