@@ -17,7 +17,7 @@ export const getAllPurchases = (page: number, limit: number, searchTerm?: string
 // // ===================
 
 export const createPurchaseOrder = (data: CreatePurchaseOrder) =>
-  httpClient<{ message: string }>("/PurchaseOrder", {
+  httpClient<any>("/PurchaseOrder", {
     method: "POST",
     data,
   });

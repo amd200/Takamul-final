@@ -29,7 +29,7 @@ interface PurchaseState {
     payments?: { amount: number; treasuryId: number; notes: string }[];
     createPurchaseOrder: (p: CreatePurchaseOrder) => Promise<any>;
     warehouseId: number;
-  }) => Promise<void>;
+  }) => Promise<any>;
 }
 
 export const usePurchaseStore = create<PurchaseState>((set, get) => ({
@@ -111,8 +111,9 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
     };
 
     try {
-      await createPurchaseOrder(payload);
+      const res = await createPurchaseOrder(payload);
       resetCart();
+      return res;
     } catch (error) {
       console.error("Purchase error:", error);
       throw error;

@@ -10,8 +10,10 @@ import { Treasury } from "@/features/treasurys/types/treasurys.types";
 import { usePurchaseStore } from "@/features/pos/store/usePurchaseStore";
 import { useCreatePurchaseOrder } from "@/features/purchases/hooks/useCreatePurchaseOrder";
 import { calcTotals } from "@/constants/data";
+import { usePrint } from "@/context/PrintContext";
+import { getPurchaseOrderById } from "@/features/purchases/services/purchases";
 
-type SaveAction = "pdf" | "whatsapp" | "email" | "save_only";
+type SaveAction = "save_only" | "save_and_print";
 
 interface UnifiedPurchasePaymentDialogProps {
   open: boolean;
@@ -50,6 +52,7 @@ function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (
 
 export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: externalTotal, onCancel, warehouseId = 1 }: UnifiedPurchasePaymentDialogProps) {
   const { t } = useLanguage();
+  const { printInvoice } = usePrint();
   const { data: treasurys } = useGetAllTreasurys();
   const { selectedSupplier, cart, discount, setPaidAmount, setSelectedVaultId, handleConfirmPurchase } = usePurchaseStore();
   const { mutateAsync: createPurchaseOrder } = useCreatePurchaseOrder();
@@ -127,6 +130,34 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
     setPaidAmount(paid);
   }, [paid]);
 
+  const handleAction = async (action: SaveAction) => {
+    const payments = isSplit 
+      ? splits.map((s) => ({ amount: rawToFloat(s.raw), treasuryId: s.vaultId, notes: "" })) 
+      : [{ amount: singlePaid, treasuryId: activeVault!, notes: "" }];
+
+    try {
+      const response = await handleConfirmPurchase({
+        payments,
+        createPurchaseOrder,
+        warehouseId,
+      });
+
+      const purchaseId = response?.data?.id || response?.id;
+
+      if (action === "save_and_print" && purchaseId) {
+        try {
+          const fullData = await getPurchaseOrderById(purchaseId);
+          printInvoice(fullData, "purchase");
+        } catch (printErr) {
+          console.error("Print failed:", printErr);
+        }
+      }
+      onOpenChange(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="max-w-md p-0 gap-0 overflow-hidden">
@@ -174,28 +205,19 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
 
           <hr className="border-border" />
 
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button
-              onClick={async () => {
-                const payments = isSplit 
-                  ? splits.map((s) => ({ amount: rawToFloat(s.raw), treasuryId: s.vaultId, notes: "" })) 
-                  : [{ amount: singlePaid, treasuryId: activeVault!, notes: "" }];
-
-                try {
-                  await handleConfirmPurchase({
-                    payments,
-                    createPurchaseOrder,
-                    warehouseId,
-                  });
-                  onOpenChange(false);
-                } catch (err) {
-                  console.error(err);
-                }
-              }}
-              size="lg"
-              className="h-12 text-base gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
+              variant="outline"
+              onClick={() => handleAction("save_only")}
+              className="h-11 text-[13px] gap-1.5 border-[#000052] text-[#000052] hover:bg-blue-50"
             >
-              <Save size={16} /> حفظ المشتريات
+              <Save size={14} /> حفظ فقط
+            </Button>
+            <Button
+              onClick={() => handleAction("save_and_print")}
+              className="h-11 text-[13px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
+            >
+              <Printer size={14} /> حفظ وطباعة
             </Button>
           </div>
         </div>
