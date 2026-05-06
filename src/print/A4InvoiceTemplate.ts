@@ -8,7 +8,7 @@ import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: GenereateQRRequest) => Promise<GenereateQRResponse>, passedApiBase?: string): Promise<string> => {
   const branch: Partial<BranchInfo> = order.branchInfo || {};
-  const customer: Partial<Customer> = order.customerData || {};
+  const customer: Partial<Customer> = order.customer || {};
   const items: any[] = order.items || order.orderItems || [];
   const res = await generateQR({ invoiceId: order.id });
   const qrImageSrc = res?.qrCode ? await QRCode.toDataURL(res.qrCode) : null;
