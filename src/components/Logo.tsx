@@ -22,7 +22,7 @@ export default function Logo({ className = "", style, onClick }: LogoProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (onClick) onClick();
-    navigate("/dashboard");
+    navigate("/");
   };
 
   return (

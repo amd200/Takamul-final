@@ -71,7 +71,6 @@ export default function SystemSettings() {
   const setTobaccoStore = useSettingsStore((s) => s.setTobaccoFees);
   const generalStore = useSettingsStore((s) => s.settings.general);
   const setGeneralStore = useSettingsStore((s) => s.setGeneral);
-  useGetAllSettings(); // Ensure settings are fetched and store is populated
 
   const [activeSection, setActiveSection] = React.useState("points");
   const [headerImageFiles, setHeaderImageFiles] = React.useState<File[]>([]);

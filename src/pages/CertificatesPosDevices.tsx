@@ -133,7 +133,6 @@ export default function CertificatesPosDevices() {
         <CardHeader>
           <CardTitle>ملخص حالة الشهادات — جميع الأجهزة</CardTitle>
           <CardDescription>إدارة شهادات أجهزة نقاط البيع المسجلة</CardDescription>
-     
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -292,15 +291,6 @@ export default function CertificatesPosDevices() {
           </DataTable>
         </CardContent>
       </Card>
-
-      <AddPOSDeviceModal
-        device={selectedDevice}
-        isOpen={isAddModalOpen}
-        onOpenChange={(open) => {
-          setIsAddModalOpen(open);
-          if (!open) setSelectedDevice(null);
-        }}
-      />
     </>
   );
 }
