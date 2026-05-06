@@ -20,7 +20,13 @@ interface ShiftReportModalProps {
 export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCloseShift, showCloseButton = true }: ShiftReportModalProps) {
   const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
   const isExempt = taxSetting === "Exempt";
-  const { data: report, isLoading } = useGetShiftReport(shiftId);
+  const { data: report, isLoading, refetch } = useGetShiftReport(shiftId);
+  
+  React.useEffect(() => {
+    if (isOpen) {
+      refetch();
+    }
+  }, [isOpen, refetch]);
 
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "00.00");
 
