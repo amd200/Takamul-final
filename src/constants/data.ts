@@ -39,6 +39,8 @@ export interface CartItem {
   taxPercentage?: number;
   extras?: CartExtra[];
   isNew?: boolean;
+  taxId?: number;
+  unitId?: number;
 }
 
 export interface HeldCart {
@@ -58,9 +60,6 @@ export function itemUnitPriceRaw(item: Omit<CartItem, "name" | "op" | "productId
 // بترجع السعر قبل الضريبة
 export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
   const base = item.price * item.qty;
-  const taxValue = (item.taxamount ?? 0) * item.qty;
-  if (item.taxCalculation === 2 || item.taxCalculation === 3) return base - taxValue;
-
   return base;
 }
 
@@ -105,15 +104,11 @@ export function calcTotals(cart: CartItem[], discount: { type: "pct" | "flat"; v
   const subAfterDiscount = Math.max(0, sub - discountAmount);
   const discountRatio = sub > 0 ? discountAmount / sub : 0;
 
-  const tax = parseFloat(
-    cart
-      .reduce((s, item) => {
-        return s + (item.taxamount ?? 0) * item.qty * (1 - discountRatio);
-      }, 0)
-      .toFixed(2),
-  );
+  const tax = cart.reduce((s, item) => {
+    return s + (Number(item.taxamount) || 0) * item.qty * (1 - discountRatio);
+  }, 0);
 
-  const total = parseFloat((subAfterDiscount + tax).toFixed(2));
+  const total = Number((subAfterDiscount + tax).toFixed(2));
 
   return {
     sub,

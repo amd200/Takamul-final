@@ -405,8 +405,8 @@ export default function CartPanel() {
 
 
     // 1. Try to find an open shift for the current user
-    const openShiftForUser = shiftsArray.find((s: any) => 
-      s.status === "Open" && 
+    const openShiftForUser = shiftsArray.find((s: any) =>
+      s.status === "Open" &&
       s.employeeName?.toLowerCase().trim() === normalizedUserName
     );
     if (openShiftForUser) return openShiftForUser;
@@ -416,7 +416,7 @@ export default function CartPanel() {
     if (anyOpenShift) return anyOpenShift;
 
     // 3. Fallback: Find the latest shift for the current user even if not marked "Open"
-    const latestUserShift = shiftsArray.find((s: any) => 
+    const latestUserShift = shiftsArray.find((s: any) =>
       s.employeeName?.toLowerCase().trim() === normalizedUserName
     );
     return latestUserShift || null;
@@ -455,9 +455,9 @@ export default function CartPanel() {
       p.map((item, i) =>
         i === idx
           ? {
-              ...item,
-              itemDiscount: raw === "" || isNaN(value) ? null : { type, value: capped },
-            }
+            ...item,
+            itemDiscount: raw === "" || isNaN(value) ? null : { type, value: capped },
+          }
           : item,
       ),
     );
