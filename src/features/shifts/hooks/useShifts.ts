@@ -60,5 +60,7 @@ export const useGetShiftReport = (id: number) => {
     queryKey: [...shiftsKeys.all, "report", id],
     queryFn: () => getShiftReport(id),
     enabled: !!id,
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 };
