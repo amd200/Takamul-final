@@ -295,7 +295,7 @@ export function useAddProduct() {
         );
       }
 
-      if (taxSetting === "Exempt" || taxSetting === "FirstStage") {
+      if (taxSetting === "Exempt") {
         formData.append("TaxId", "2");
         formData.append("TaxCalculation", "1");
       } else {

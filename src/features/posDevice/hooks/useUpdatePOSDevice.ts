@@ -1,10 +1,10 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { posKeys } from "../keys/posDevice.keys";
-import { getAllPOSDevices, getAllTables, getOrderByTableId, updatePOSDevice } from "../services/pos";
 import { GetAllPOSDevicesResponse, UpdateDevicePOS } from "../types/posDevice.types";
 import useToast from "@/hooks/useToast";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
 import { handleApiError } from "@/lib/handleApiError";
+import { updatePOSDevice } from "../services/posDevice";
 
 export const useUpdatePOSDevice = () => {
   const queryClient = useQueryClient();

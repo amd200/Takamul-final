@@ -11,8 +11,8 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetEmployeesByBranch, useOpenShift } from "@/features/shifts/hooks/useShifts";
-import { useGetAllPOSDevices } from "@/features/pos/hooks/useGetAllPOSDevices";
 import { OpenShiftRequest } from "@/features/shifts/types/shifts.types";
+import { useGetAllPOSDevices } from "@/features/posDevice/hooks/useGetAllPOSDevices";
 
 const shiftSchema = z.object({
   branchId: z.number().min(1, "الفرع مطلوب"),
