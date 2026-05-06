@@ -299,7 +299,7 @@ const CreateSalesInvoice: React.FC = () => {
 
     await createSalesOrders(payload);
     form.reset();
-    navigate("/sales/all");
+    navigate("/sales/a4-invoices");
   };
 
   const allowPriceChangeOnSale = useSettingsStore((s) => s.settings?.items?.allowPriceChangeOnSale);
