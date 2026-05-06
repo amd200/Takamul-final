@@ -280,12 +280,23 @@ const CreateSalesInvoice: React.FC = () => {
         const price = item?.price || 0;
         const taxCalc = product?.taxCalculation ?? 0;
         const taxPercentage = product?.taxPercentage || 0;
-        const isExempt = taxSetting === "Exempt";
-        const beforeTax = taxCalc === 1 || isExempt ? price : price / (1 + taxPercentage / 100);
+
+        let unitPrice: number;
+
+        if (isExempt || taxCalc === 1) {
+          unitPrice = price;
+        } else if (taxCalc === 2) {
+          unitPrice = price / (1 + taxPercentage / 100);
+        } else if (taxCalc === 3) {
+          unitPrice = price;
+        } else {
+          unitPrice = price;
+        }
+
         return {
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: beforeTax,
+          unitPrice,
           discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
           discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
         };
@@ -306,6 +317,8 @@ const CreateSalesInvoice: React.FC = () => {
   const allowPriceChangeOnSale = useSettingsStore((s) => s.settings?.items?.allowPriceChangeOnSale);
 
   const isExempt = taxSetting === "Exempt";
+
+  const headerCols = showItemCode ? (showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1.3fr_1fr_0.6fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1.3fr_1fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : isExempt ? "md:grid-cols-[1.3fr_1fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1.3fr_1fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[0.9fr_1.5fr_0.8fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[0.9fr_1.5fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]") : isExempt ? "md:grid-cols-[0.9fr_1.5fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[0.9fr_1.5fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]";
 
   return (
     <>
@@ -443,9 +456,9 @@ const CreateSalesInvoice: React.FC = () => {
 
                   <div className="w-full overflow-x-auto pb-4">
                     <div>
-                      <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", showItemCode ? (showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : isExempt ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]") : isExempt ? "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]")}>
-                        {showItemCode && <div>{t("product_code")}</div>}
+                      <div className={cn("hidden md:grid gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center", headerCols)}>
                         <div>{t("product_name")}</div>
+                        {showItemCode && <div>{t("product_code")}</div>}
                         <div>{t("unit")}</div>
                         {showProductBalanceAtSale && <div>{t("balance")}</div>}
                         <div>{t("unit_price")}</div>
@@ -473,7 +486,6 @@ const CreateSalesInvoice: React.FC = () => {
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterDiscount = Math.max(0, gross - discount);
-                          const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
                           const vatAmount = taxCalc === 1 || isExempt ? 0 : afterDiscount * taxPercentage;
                           const beforeTax = afterDiscount - vatAmount;
                           const grandTotal = afterDiscount;
@@ -482,14 +494,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                           return (
                             <div key={item.id}>
-                              <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group", showItemCode ? (showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : isExempt ? "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_1fr_50px]" : "md:grid-cols-[1fr_1.3fr_0.6fr_0.7fr_0.6fr_0.8fr_0.7fr_0.7fr_0.8fr_50px]") : showProductBalanceAtSale ? (isExempt ? "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]") : isExempt ? "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_60px]" : "md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_0.7fr_1fr_1fr_0.9fr_60px]")}>
-                                {showItemCode && (
-                                  <Field>
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
-                                    <Input value={productCode} readOnly className="bg-gray-50 text-center" />
-                                  </Field>
-                                )}
-
+                              <div className={cn("grid grid-cols-1 gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group", headerCols)}>
                                 <Controller
                                   control={form.control}
                                   name={`items.${index}.productId`}
@@ -514,6 +519,12 @@ const CreateSalesInvoice: React.FC = () => {
                                     </Field>
                                   )}
                                 />
+                                {showItemCode && (
+                                  <Field>
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
+                                    <Input value={productCode} readOnly className="bg-gray-50 text-center" />
+                                  </Field>
+                                )}
 
                                 <Controller
                                   control={form.control}
