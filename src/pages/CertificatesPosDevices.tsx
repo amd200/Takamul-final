@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetAllPOSDevices } from "@/features/pos/hooks/useGetAllPOSDevices";
 import { POSDevice } from "@/features/pos/types/pos.types";
 import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 import { useDeleteDevicePOS } from "@/features/pos/hooks/useDeleteDevicePOS";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import formatDate from "@/lib/formatDate";
+import { useGetAllPOSDevices } from "@/features/posDevice/hooks/useGetAllPOSDevices";
 
 function DeleteDeviceButton({ device, onDelete, setHiddenIds }: { device: POSDevice; onDelete: (id: number) => Promise<unknown>; setHiddenIds: React.Dispatch<React.SetStateAction<Set<number>>> }) {
   return (
@@ -133,7 +133,6 @@ export default function CertificatesPosDevices() {
         <CardHeader>
           <CardTitle>ملخص حالة الشهادات — جميع الأجهزة</CardTitle>
           <CardDescription>إدارة شهادات أجهزة نقاط البيع المسجلة</CardDescription>
-     
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -292,15 +291,6 @@ export default function CertificatesPosDevices() {
           </DataTable>
         </CardContent>
       </Card>
-
-      <AddPOSDeviceModal
-        device={selectedDevice}
-        isOpen={isAddModalOpen}
-        onOpenChange={(open) => {
-          setIsAddModalOpen(open);
-          if (!open) setSelectedDevice(null);
-        }}
-      />
     </>
   );
 }

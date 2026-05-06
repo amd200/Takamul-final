@@ -126,6 +126,7 @@ import { useEffect } from "react";
 import { authChannel } from "./utils/authChannel";
 import { useAuthStore } from "./store/authStore";
 import { useAuthChannel } from "./hooks/useAuthChannel";
+import AppLayout3 from "./components/pos/layout/AppLayout3";
 
 function AppRoutes() {
   return (
@@ -139,6 +140,7 @@ function AppRoutes() {
           {/* <Route path="/pos" element={<POSPage />} /> */}
           <Route path="/pos" element={<AppLayout />} />
           <Route path="/pos2" element={<AppLayout2 />} />
+          <Route path="/pos3" element={<AppLayout3 />} />
 
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />

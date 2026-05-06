@@ -6,13 +6,13 @@ import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useGetAllPOSDevices } from "@/features/pos/hooks/useGetAllPOSDevices";
 import { POSDevice } from "@/features/pos/types/pos.types";
 import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 import { useDeleteDevicePOS } from "@/features/pos/hooks/useDeleteDevicePOS";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { set } from "zod";
+import { useGetAllPOSDevices } from "@/features/posDevice/hooks/useGetAllPOSDevices";
 // import { useGetPOSDeviceById } from "@/features/pos/hooks/useGetPOSDeviceById";
 // import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 

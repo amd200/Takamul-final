@@ -13,16 +13,16 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreateDevicePOS, DeviceType, POSDevice } from "@/features/pos/types/pos.types";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
-import { useGenereateSerial } from "@/features/pos/hooks/useGenereateSerial";
-import { useGetAllDeviceTypes } from "@/features/pos/hooks/useGetAllDeviceTypes";
 import { useCreateDevicePOS } from "@/features/pos/hooks/useCreateDevicePOS";
 import { useGenerateCSR } from "@/features/ZatcaRegistration/hooks/useGenerateCSR";
 import { useRegisterCCSID } from "@/features/ZatcaRegistration/hooks/useRegisterCCSID";
 import formatDate from "@/lib/formatDate";
 import { useUpgradeToPcsid } from "@/features/ZatcaRegistration/hooks/useUpgradeToPcsid";
-import { useUpdatePOSDevice } from "@/features/pos/hooks/useUpdatePOSDevice";
 import { useSettings } from "@/context/SettingsContext";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { useUpdatePOSDevice } from "@/features/posDevice/hooks/useUpdatePOSDevice";
+import { useGetAllDeviceTypes } from "@/features/posDevice/hooks/useGetAllDeviceTypes";
+import { useGenereateSerial } from "@/features/posDevice/hooks/useGenereateSerial";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -270,7 +270,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
   const { mutateAsync: registerCCSID, isPending: isRegisteringCCSID } = useRegisterCCSID();
   const { mutateAsync: registerPCSID, isPending: isRegisteringPCSID } = useUpgradeToPcsid();
   const { data: branches } = useGetAllBranches();
-  const { data: deviceTypes } = useGetAllDeviceTypes();
+  const { data: deviceTypes } = useGetAllDeviceTypes  ();
   const { refetch } = useGenereateSerial();
 
   const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);

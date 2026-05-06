@@ -27,7 +27,7 @@ export default function SiteSettings() {
       showItemCodeInSalesPrint: systemSettings.location.showItemCodeInSalesPrint,
       showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
       showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
-      postype: (systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2") ? "POS2" : "POS1",
+      postype: systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2" ? "POS2" : "POS1",
       defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
     },
   });
@@ -40,7 +40,7 @@ export default function SiteSettings() {
       showItemCodeInSalesPrint: systemSettings.location.showItemCodeInSalesPrint,
       showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
       showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
-      postype: (systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2") ? "POS2" : "POS1",
+      postype: systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2" ? "POS2" : "POS1",
       defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
     });
   }, [systemSettings.location, reset]);
@@ -73,12 +73,7 @@ export default function SiteSettings() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel>{t("rows_per_page")} *</FieldLabel>
-                  <Input 
-                    {...field} 
-                    type="number" 
-                    onChange={(e) => field.onChange(Number(e.target.value))} 
-                    className="w-full h-11"
-                  />
+                  <Input {...field} type="number" onChange={(e) => field.onChange(Number(e.target.value))} className="w-full h-11" />
                 </Field>
               )}
             />
@@ -197,6 +192,24 @@ export default function SiteSettings() {
                     <SelectContent>
                       <SelectItem value="POS1">POS1</SelectItem>
                       <SelectItem value="POS2">POS2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            />
+            <Controller
+              name="postype"
+              control={control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel>شاشة المشتريات*</FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="POS1">شاشة مشتريات 1</SelectItem>
+                      <SelectItem value="POS2">شاشة مشتريات 2</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>

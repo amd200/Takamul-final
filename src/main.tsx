@@ -49,10 +49,8 @@ initAuth().then(() => {
         <QueryProvider>
           <BrowserRouter>
             <ThemeProvider>
-              <LanguageProvider>
-                <SettingsProvider>
-                  {/* <ProductsProvider>
-                    <PosProvider> */}
+              <SettingsProvider>
+                <LanguageProvider>
                   <AdjustmentsProvider>
                     <ExpensesProvider>
                       <SalesProvider>
@@ -102,10 +100,8 @@ initAuth().then(() => {
                       </SalesProvider>
                     </ExpensesProvider>
                   </AdjustmentsProvider>
-                  {/* </PosProvider>
-                  </ProductsProvider>                */}
-                </SettingsProvider>
-              </LanguageProvider>
+                </LanguageProvider>
+              </SettingsProvider>
             </ThemeProvider>
           </BrowserRouter>
         </QueryProvider>

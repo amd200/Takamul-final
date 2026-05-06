@@ -3,9 +3,9 @@ import { posKeys } from "../keys/pos.keys";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
-import { createDeliveryOrder, CreateDevice, DeleteDevicePOS } from "../services/pos";
 import { CreateDeliveryOrder, CreateDevicePOS } from "../types/pos.types";
 import { salesKeys } from "@/features/sales/keys/sales.keys";
+import { DeleteDevicePOS } from "@/features/posDevice/services/posDevice";
 
 export function useDeleteDevicePOS() {
   const queryClient = useQueryClient();
