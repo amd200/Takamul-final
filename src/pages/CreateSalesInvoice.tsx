@@ -120,9 +120,9 @@ const CreateSalesInvoice: React.FC = () => {
     const base = products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared") || [];
     return base.map((p) => ({
       ...p,
-      displayName: showItemCode ? `[${p.productCode || p.id}] ${p.productNameAr}` : p.productNameAr,
+      displayName: p.productNameAr,
     }));
-  }, [products?.items, showItemCode]);
+  }, [products?.items]);
   const { mutateAsync: createSalesOrders } = useCreateSalesOrders();
   const { data: employees } = useGetAllEmployees({ page: 1, limit: 10000 });
 

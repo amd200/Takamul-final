@@ -115,9 +115,9 @@ const CreatePurchaseInvoice: React.FC = () => {
     const base = products?.items?.filter((pro) => pro.productType == "Direct" || pro?.productType == "RawMatrial") || [];
     return base.map((p) => ({
       ...p,
-      displayName: showItemCode ? `[${p.productCode || p.id}] ${p.productNameAr}` : p.productNameAr,
+      displayName: p.productNameAr,
     }));
-  }, [products?.items, showItemCode]);
+  }, [products?.items]);
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { data: taxes } = useGetAllTaxes();

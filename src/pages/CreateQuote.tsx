@@ -321,9 +321,9 @@ const CreateQuote: React.FC = () => {
     const base = products?.items.filter((item) => item.productType !== "Branched") || [];
     return base.map((p) => ({
       ...p,
-      displayName: showItemCode ? `[${p.productCode || p.id}] ${p.productNameAr}` : p.productNameAr,
+      displayName: p.productNameAr,
     }));
-  }, [products?.items, showItemCode]);
+  }, [products?.items]);
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { mutateAsync: createQuotations, isPending } = useCreateQuotation();

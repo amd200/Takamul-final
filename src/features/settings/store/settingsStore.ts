@@ -104,9 +104,9 @@ const defaultSettings: Settings = {
     defaultPaymentCompany: 1,
     showActualBalance: true,
     showCostGreaterThanSalePriceMessage: true,
-    showItemCodeInSalesPrint: true,
-    showItemCodeInQuotations: true,
-    showItemCodeInPurchases: true,
+    showItemCodeInSalesPrint: false,
+    showItemCodeInQuotations: false,
+    showItemCodeInPurchases: false,
     postype: 1,
   },
   items: {
