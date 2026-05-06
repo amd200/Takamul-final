@@ -280,7 +280,7 @@ const CreateSalesInvoice: React.FC = () => {
         const price = item?.price || 0;
         const taxCalc = product?.taxCalculation ?? 0;
         const taxPercentage = product?.taxPercentage || 0;
-        const unitPrice = taxCalc === 1 || (isExempt && taxCalc === 3) ? price : price / (1 + taxPercentage / 100);
+        const unitPrice = taxCalc === 1 ? price : isExempt && taxCalc === 3 ? price / (1 + taxPercentage / 100) : price / (1 + taxPercentage / 100);
         return {
           productId: item.productId,
           quantity: item.quantity,
