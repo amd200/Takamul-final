@@ -11,7 +11,7 @@ import { Treasury } from "@/features/treasurys/types/treasurys.types";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { KeyboardReact as Keyboard } from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
@@ -25,9 +25,12 @@ import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { useGetAllShifts, useCloseShift } from "@/features/shifts/hooks/useShifts";
 import { useMemo } from "react";
 import { useAuthStore } from "@/store/authStore";
+import useToast from "@/hooks/useToast";
 
 
 export default function Topbar2() {
+  const navigate = useNavigate();
+  const { notifySuccess } = useToast();
   const [deliveryDate, setDeliveryDate] = useState("");
   const [employee, setEmployee] = useState("");
   const { data: customers } = useGetAllCustomers({ page: 1, limit: 10000 });
@@ -43,7 +46,7 @@ export default function Topbar2() {
   const [shiftReportOpen, setShiftReportOpen] = useState(false);
   const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
 
-  const { userName, shiftId: authShiftId } = useAuthStore();
+  const { userName, shiftId: authShiftId, clearAuth } = useAuthStore();
   const { data: shifts } = useGetAllShifts();
   const { mutate: closeShift } = useCloseShift();
   const currentOpenShift = useMemo(() => {
@@ -263,7 +266,14 @@ export default function Topbar2() {
           closeShift(
             { shiftId: targetShiftId, endTime: fullTime },
             {
-              onSuccess: () => setShiftReportOpen(false),
+              onSuccess: () => {
+                setShiftReportOpen(false);
+                notifySuccess("تم غلق الوردية بنجاح");
+                setTimeout(() => {
+                  clearAuth();
+                  navigate("/login");
+                }, 1500);
+              },
             }
           );
         }}

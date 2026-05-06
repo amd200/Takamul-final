@@ -387,7 +387,7 @@ export default function CartPanel() {
 
   const navigate = useNavigate();
   const [shiftReportOpen, setShiftReportOpen] = useState(false);
-  const { userName, shiftId: authShiftId } = useAuthStore();
+  const { userName, shiftId: authShiftId, clearAuth } = useAuthStore();
   const { data: shifts } = useGetAllShifts();
   const { mutate: closeShift } = useCloseShift();
 
@@ -980,7 +980,14 @@ export default function CartPanel() {
             closeShift(
               { shiftId: targetId, endTime: fullTime },
               {
-                onSuccess: () => setShiftReportOpen(false),
+                onSuccess: () => {
+                  setShiftReportOpen(false);
+                  notifySuccess("تم غلق الوردية بنجاح");
+                  setTimeout(() => {
+                    clearAuth();
+                    navigate("/login");
+                  }, 1500);
+                },
               }
             );
           }}
