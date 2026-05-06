@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { posKeys } from "../keys/pos.keys";
-import { getAllDevicesTypes, getAllPOSDevices, getAllTables, getOrderByTableId } from "../services/pos";
-import { GetAllDeviceTypesResponse } from "../types/pos.types";
+import { posKeys } from "../keys/posDevice.keys";
+import { GetAllDeviceTypesResponse } from "../types/posDevice.types";
+import { getAllDevicesTypes } from "../services/posDevice";
 
 export const useGetAllDeviceTypes = () =>
   useQuery<GetAllDeviceTypesResponse>({

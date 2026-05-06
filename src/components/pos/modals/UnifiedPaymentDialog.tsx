@@ -275,7 +275,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
                   checkoutDineInOrder,
                   releaseHolding,
                   customers,
-                  generateQR,
+                generateQR,
                 });
                 onOpenChange(false);
               }}

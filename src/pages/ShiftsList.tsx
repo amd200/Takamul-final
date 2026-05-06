@@ -10,13 +10,13 @@ import { cn } from "@/lib/utils";
 import ShiftReportModal from "@/components/pos/modals/ShiftReportModal";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetAllUsers } from "@/features/users/hooks/useGetAllUsers";
-import { useGetAllPOSDevices } from "@/features/pos/hooks/useGetAllPOSDevices";
 import { useGetAllShifts, useOpenShift, useCloseShift, useGetEmployeesByBranch } from "@/features/shifts/hooks/useShifts";
 import { Shift } from "@/features/shifts/types/shifts.types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/authStore";
 import AddShiftModal from "@/components/modals/AddShiftsModal";
 import { Permissions } from "@/lib/permissions";
+import { useGetAllPOSDevices } from "@/features/posDevice/hooks/useGetAllPOSDevices";
 
 export default function ShiftsList() {
   const { direction, t } = useLanguage();
