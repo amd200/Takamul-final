@@ -11,6 +11,11 @@ export type GenereateQRResponse = {
   steps: any[];
   qrCode: string;
 };
+export type GetInvoiceStatisticsToday = {
+  totalinvoiceValid: number;
+  totalinvoiceRejected: number;
+  totalinvoiceNotSent: number;
+};
 
 export type CSRBase = {
   success: boolean;
@@ -29,3 +34,4 @@ export type UpgradePcsidData = CSRBase & {
 };
 export type GenerateCSRResponse = ApiResponse<GenerateCSRData>;
 export type UpgradePcsidResponse = ApiResponse<GenerateCSRData>;
+export type GetInvoiceStatisticsTodayResponse = ApiResponse<GetInvoiceStatisticsToday>;

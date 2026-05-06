@@ -1,6 +1,6 @@
 import { httpClient } from "@/api/httpClient";
 import { GetAllTablesResponse } from "@/features/tables/types/tables.types";
-import { GenereateQRRequest, GenereateQRResponse } from "../types/zarchaInvoices.types";
+import { GenereateQRRequest, GenereateQRResponse, GetInvoiceStatisticsTodayResponse } from "../types/zarchaInvoices.types";
 
 // ===================
 // GET
@@ -8,6 +8,15 @@ import { GenereateQRRequest, GenereateQRResponse } from "../types/zarchaInvoices
 
 export const generateQR = (data: GenereateQRRequest) =>
   httpClient<GenereateQRResponse>(`/zatca-invoices/generate-qr`, {
+    method: "POST",
+    data,
+  });
+export const getInvoiceStatisticsToday = () =>
+  httpClient<GetInvoiceStatisticsTodayResponse>(`/zatca-invoices/invoice-statistics-today/summary`, {
+    method: "GET",
+  });
+export const sendInoviceSell = (data: { invoiceId: number }) =>
+  httpClient<void>(`/zatca-invoices/sell`, {
     method: "POST",
     data,
   });

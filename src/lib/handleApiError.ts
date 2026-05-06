@@ -7,9 +7,9 @@ export function handleApiError(error: unknown, notifyError: (msg: string) => voi
   const err = error as {
     errors?: Record<string, string[]> | string[];
     message?: string;
+    errorMessage?: string;
   };
 
-  // ✅ لو errors فيها قيم فعلية
   if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
     err.errors.forEach((message) => notifyError(message));
     return;
@@ -23,9 +23,13 @@ export function handleApiError(error: unknown, notifyError: (msg: string) => voi
     }
   }
 
-  // ✅ fallback على message
   if (err?.message) {
     notifyError(err.message);
+    return;
+  }
+
+  if (err?.errorMessage) {
+    notifyError(err.errorMessage);
     return;
   }
 

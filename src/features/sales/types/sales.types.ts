@@ -48,6 +48,7 @@ export interface SalesOrder {
   grandTotal: number;
   orderStatus: "Confirmed" | "UnConfirmed" | "InProgress" | "Cancelled";
   paymentStatus: string;
+zatcaStatus: "InProgress" | "Submitted" | "Valid" | "Invalid" | "Rejected" | "Cancelled" | "Unknown";
   notes: string;
   items: OrderItem[];
   payments: OrderPayment[];

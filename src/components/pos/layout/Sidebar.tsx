@@ -19,7 +19,7 @@ import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerByI
 import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierById";
 import { useBranchStore } from "@/store/employeeStore";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
-import { generateQR } from "@/features/zatcaInvoice/services/zatcha";
+import { generateQR } from "@/features/zatcaInvoice/services/zatchaInvoice";
 
 interface OrdersDialogProps {
   open: boolean;

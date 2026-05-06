@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog } from "lucide-react";
+import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
@@ -19,6 +19,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import { format } from "@/constants/data";
 import formatDate from "@/lib/formatDate";
+import { useSendInvoiceSell } from "@/features/zatcaInvoice/hooks/useSendInvoiceSell";
 
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
@@ -29,6 +30,7 @@ export default function A4Sales() {
   const [currentPage, setCurrentPage] = useState(1);
   const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage, OrderType: "A4" });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const { mutateAsync: sendInvoiceSell } = useSendInvoiceSell();
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setGlobalFilterValue(value);
@@ -46,6 +48,45 @@ export default function A4Sales() {
       </div>
     );
   };
+  const zatcaStatusBodyTemplate = useCallback(
+    (rowData: SalesOrder) => {
+      const statusMap: Record<SalesOrder["zatcaStatus"], { label: string; className: string }> = {
+        InProgress: {
+          label: "قيد التنفيذ",
+          className: "text-[#b07d00] bg-[#facc151a]",
+        },
+        Submitted: {
+          label: "تم الإرسال",
+          className: "text-[#1d6fa4] bg-[#3b82f61a]",
+        },
+        Valid: {
+          label: "صالح",
+          className: "text-[#09ad95] bg-[#00e6821a]",
+        },
+        Invalid: {
+          label: "غير صالح",
+          className: "text-[#b40b09] bg-[#f50b0b1a]",
+        },
+        Rejected: {
+          label: "مرفوض",
+          className: "text-[#b40b09] bg-[#f50b0b1a]",
+        },
+        Cancelled: {
+          label: "ملغي",
+          className: "text-[#6b7280] bg-[#6b72801a]",
+        },
+        Unknown: {
+          label: "غير معروف",
+          className: "text-[#6b7280] bg-[#6b72801a]",
+        },
+      };
+      const status = rowData?.zatcaStatus ?? "Unknown";
+      const { label, className } = statusMap[status] ?? statusMap.Unknown;
+
+      return <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${className}`}>{label}</span>;
+    },
+    [language, t],
+  );
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
   const statusBodyTemplate = useCallback(
     (rowData: SalesOrder) => {
@@ -92,7 +133,7 @@ export default function A4Sales() {
             <Column header={t("date")} sortable field="orderDate" body={(row) => formatDate(row.orderDate)} />
             <Column header={t("customer_name")} sortable field="customerName" />
             <Column header={t("cashier")} sortable field="createdBy" />
-            <Column header={"حالة إرسال المرحلة التانية"} sortable body={(rawData) => statusBodyTemplate(rawData)} field="orderStatus" />
+            <Column header={"حالة إرسال المرحلة التانية"} sortable body={(rawData) => zatcaStatusBodyTemplate(rawData)} field="zatcaStatus" />
             <Column header={t("invoice_status")} sortable body={(rawData) => statusBodyTemplate(rawData)} field="orderStatus" />
             <Column header={t("total_amount")} sortable field="grandTotal" body={(row: SalesOrder) => format(row.grandTotal)} />
             <Column header={t("paid_amount")} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />
@@ -160,6 +201,11 @@ export default function A4Sales() {
                     <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
                       <MessageCircle size={14} />
                       {t("send_whatsapp")}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={async() => {await sendInvoiceSell({ invoiceId: row.id })}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                      <RefreshCw size={14} />
+                     إعادة الإرسال للهيئة
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

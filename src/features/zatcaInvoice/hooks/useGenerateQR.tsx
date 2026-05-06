@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
-import { generateQR } from "../services/zatcha";
+import { generateQR } from "../services/zatchaInvoice";
 import { GenereateQRRequest } from "../types/zarchaInvoices.types";
 
 export function useGenerateQR() {

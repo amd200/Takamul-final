@@ -11,33 +11,27 @@ import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import { useTodaySales, useTodayPurchases, useTodayExpenses, useTodayProfit } from "@/features/statistics/hooks/useStatistics";
 import { Monitor, ShieldCheck, ShieldAlert, Clock, AlertTriangle } from "lucide-react";
-import { useGetAllSummary } from "@/features/PosCertificates/hooks/useGetAllSummary";
-
-const devicesData = {
-  totalDevices: 11,
-  activeCertificates: 0,
-  expiredCertificates: 0,
-  expiringIn30Days: 0,
-  expiringIn7Days: 0,
-};
 
 import { CheckCircle2, XCircle } from "lucide-react";
+import { getInvoiceStatisticsToday } from "@/features/zatcaInvoice/services/zatchaInvoice";
+import { useGetInvoiceStatisticsToday } from "@/features/zatcaInvoice/hooks/useGetInvoiceStatisticsToday";
 
 export function OperationsStats() {
   const { t, direction } = useLanguage();
+  const { data: statistics } = useGetInvoiceStatisticsToday();
   const stats = [
     {
       title: "عمليات ناجحة",
-      value: 5,
+      value: statistics?.data?.totalinvoiceValid || 0,
       icon: CheckCircle2,
-      accentLine: "bg-emerald-500", // أخضر للنجاح
+      accentLine: "bg-emerald-500",
       iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
       iconColor: "text-emerald-600 dark:text-emerald-400",
     },
 
     {
       title: "عمليات غير مرسلة",
-      value: 1,
+      value: statistics?.data?.totalinvoiceNotSent || 0,
       icon: Clock,
       accentLine: "bg-amber-500",
       iconBg: "bg-amber-50 dark:bg-amber-500/10",
@@ -45,7 +39,7 @@ export function OperationsStats() {
     },
     {
       title: "عمليات خاطئة",
-      value: 3,
+      value: statistics?.data?.totalinvoiceRejected || 0,
       icon: XCircle,
       accentLine: "bg-rose-500",
       iconBg: "bg-rose-50 dark:bg-rose-500/10",
@@ -61,7 +55,6 @@ export function OperationsStats() {
         <h3 className="text-lg font-bold text-[var(--text-main)]">حالة العمليات المرحلة التانية (اخر 24 ساعة)</h3>
       </div>
 
-     
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xl:gap-6">
         {stats.map((stat, index) => (
           <motion.div key={index} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + index * 0.1 }} className="relative bg-white dark:bg-[#1e293b] rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-gray-100 dark:border-gray-800 overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
