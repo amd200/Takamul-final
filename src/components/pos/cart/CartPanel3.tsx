@@ -926,6 +926,10 @@ export default function CartPanel3() {
             <div className="border-l border-gray-200 flex flex-col items-stretch justify-center p-2 gap-2">
               <button
                 onClick={() => {
+                  if (cart.length === 0) {
+                    toast.error("قم بإضافة أصناف للفاتورة");
+                    return;
+                  }
                   const hasMissingTax = cart.some((item) => !item.taxId);
                   if (hasMissingTax) {
                     setShowTaxErrors(true);
