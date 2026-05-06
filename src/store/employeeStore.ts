@@ -34,7 +34,7 @@ interface BranchStore {
   loading: boolean;
   error: string | null;
 
-  fetchBranch: () => Promise<void>;
+  // fetchBranch: () => Promise<void>;
   setBranch: (branch: BranchInfo) => void;
 }
 
@@ -45,22 +45,22 @@ export const useBranchStore = create<BranchStore>((set) => ({
 
   setBranch: (branch) => set({ branch }),
 
-  fetchBranch: async () => {
-    try {
-      set({ loading: true, error: null });
+  // fetchBranch: async () => {
+  //   try {
+  //     set({ loading: true, error: null });
 
-      const response = await apiClient.get("/Branch/Employeebranch");
-      const branchData = response.data?.data || response.data;
+  //     const response = await apiClient.get("/Branch/Employeebranch");
+  //     const branchData = response.data?.data || response.data;
 
-      set({
-        branch: branchData,
-        loading: false,
-      });
-    } catch (err: any) {
-      set({
-        error: err.message || "Failed to fetch branch",
-        loading: false,
-      });
-    }
-  },
+  //     set({
+  //       branch: branchData,
+  //       loading: false,
+  //     });
+  //   } catch (err: any) {
+  //     set({
+  //       error: err.message || "Failed to fetch branch",
+  //       loading: false,
+  //     });
+  //   }
+  // },
 }));

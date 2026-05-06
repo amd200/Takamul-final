@@ -29,7 +29,6 @@ const logout = () => {
   useAuthStore.getState().clearAuth();
 };
 
-// ─── Request ────────────────────────────────────────────────────────────────
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
   if (accessToken) {
@@ -38,7 +37,6 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// ─── Response ───────────────────────────────────────────────────────────────
 apiClient.interceptors.response.use(
   (response) => response,
   async (err) => {

@@ -123,10 +123,10 @@ import POSDevicesList from "./pages/POSDevicesList";
 import ShiftsList from "./pages/ShiftsList";
 import CertificatesPosDevices from "./pages/CertificatesPosDevices";
 import { useEffect } from "react";
-import { authChannel } from "./utils/authChannel";
 import { useAuthStore } from "./store/authStore";
 import { useAuthChannel } from "./hooks/useAuthChannel";
 import AppLayout3 from "./components/pos/layout/AppLayout3";
+import { useBranch } from "./features/EmployeeBranches/hooks/useBranch";
 
 function AppRoutes() {
   return (
@@ -280,19 +280,10 @@ function AppRoutes() {
 }
 
 export default function App() {
-  // useEffect(() => {
-  //   const channel = new BroadcastChannel("auth");
-  //   channel.onmessage = (e) => {
-  //     if (e.data === "logout") {
-  //       useAuthStore.getState().clearAuth();
-  //       window.location.href = "/login";
-  //     }
-  //   };
-  //   return () => channel.close();
-  // }, []);
-
+  const { data } = useBranch();
   useGetAllSettings();
   useAuthChannel();
+
   return (
     <PrintProvider>
       <AppRoutes />

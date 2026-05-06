@@ -31,10 +31,6 @@ import CartPanel3 from "../cart/CartPanel3";
 import Topbar3 from "./Topbar3";
 
 export default function AppLayout3() {
-  const { fetchBranch } = useBranchStore();
-  useEffect(() => {
-    fetchBranch();
-  }, []);
   useEffect(() => {
     const init = async () => {
       try {

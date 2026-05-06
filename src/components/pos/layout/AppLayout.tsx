@@ -39,10 +39,6 @@ function PageContent() {
 export default function AppLayout() {
   const { setScreen, resetCart } = usePosStore();
   const { data: customers } = useGetAllCustomers();
-  const { fetchBranch } = useBranchStore();
-  useEffect(() => {
-    fetchBranch();
-  }, []);
 
   useEffect(() => {
     setScreen("home");
