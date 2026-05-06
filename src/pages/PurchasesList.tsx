@@ -11,11 +11,33 @@ import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllPurchase
 import type { Purchase } from "@/features/purchases/types/purchase.types";
 import { useLanguage } from "@/context/LanguageContext";
 import formatDate from "@/lib/formatDate";
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useDeletePurchaseOrder } from "@/features/purchases/hooks/useDeletePurchaseOrder";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
+
+function DeletePurchaseButton({ purchase, onDelete }: { purchase: Purchase; onDelete: (id: number) => void }) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <button className="btn-minimal-action btn-delete" title="حذف">
+          <Trash2 size={16} />
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent size="default" className="shadow-none">
+        <AlertDialogTitle className="text-base font-bold text-red-500 text-right">حذف الفاتورة {purchase.purchaseOrderNumber}</AlertDialogTitle>
+        <AlertDialogDescription className="text-sm text-right mt-1 mb-6">هل أنت متأكد من حذف هذه الفاتورة؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+        <div className="flex items-center gap-2 justify-end">
+          <AlertDialogCancel className="bg-transparent hover:bg-[var(--table-row-hover)] px-5 py-5 text-sm font-medium transition-colors">إلغاء</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" className="px-5 py-5 text-sm font-medium transition-colors" onClick={() => onDelete(purchase.id)}>
+            تأكيد الحذف
+          </AlertDialogAction>
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 export default function PurchasesList() {
   const { t, direction } = useLanguage();
@@ -108,11 +130,7 @@ export default function PurchasesList() {
                     <Edit2 size={16} />
                   </Link>
                 )}
-                {hasPermission(Permissions?.purchaseOrders?.cancel) && (
-                  <button onClick={() => deletePurchaseOrder(purchase?.id)} className="btn-minimal-action btn-delete">
-                    <Trash2 size={16} />
-                  </button>
-                )}
+                {hasPermission(Permissions?.purchaseOrders?.cancel) && <DeletePurchaseButton purchase={purchase} onDelete={deletePurchaseOrder} />}
               </div>
             )}
           />
