@@ -316,7 +316,7 @@ const CreateSalesInvoice: React.FC = () => {
 
           <CardAction>
             <Button size="xl" variant="outline" asChild>
-              <Link to="/sales/all">
+              <Link to="/sales/a4-invoices">
                 {t("back_to_sales_list")}
                 <ArrowLeft size={16} />
               </Link>
