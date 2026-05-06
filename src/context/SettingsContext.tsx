@@ -467,7 +467,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [apiSettings]);
 
   useEffect(() => {
-    // Only load POS settings from localStorage as they aren't in the API yet
     const savedPOS = localStorage.getItem("posSettings");
     if (savedPOS) setPOSSettings(JSON.parse(savedPOS));
   }, []);

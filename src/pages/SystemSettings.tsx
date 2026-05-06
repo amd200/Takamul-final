@@ -58,15 +58,14 @@ const SettingSection: React.FC<SettingSectionProps> = ({ id, title, children, on
 export default function SystemSettings() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
-  const { systemSettings, updateSystemSettings, saveSettings } = useSettings();
   const { mutate: updateTobaccoFees } = useUpdateTobaccoFees();
   const { mutate: updateGeneral } = useUpdateGeneralSettings();
   const { mutate: updateItems } = useUpdateItemsSettings();
   const { mutate: updateTax } = useUpdateTaxSettings();
   const itemsStore = useSettingsStore(selectItems);
   const setItemsStore = useSettingsStore((s) => s.setItems);
-  const pointsStore = useSettingsStore((s) => s.settings.points);
-  const setPointsStore = useSettingsStore((s) => s.setPoints);
+  // const pointsStore = useSettingsStore((s) => s.settings.points);
+  // const setPointsStore = useSettingsStore((s) => s.setPoints);
   const tobaccoStore = useSettingsStore((s) => s.settings.tobaccoFees);
   const setTobaccoStore = useSettingsStore((s) => s.setTobaccoFees);
   const generalStore = useSettingsStore((s) => s.settings.general);
@@ -74,15 +73,6 @@ export default function SystemSettings() {
 
   const [activeSection, setActiveSection] = React.useState("points");
   const [headerImageFiles, setHeaderImageFiles] = React.useState<File[]>([]);
-
-  const handleUpdate = (section: keyof SystemSettings, field: string, value: any) => {
-    updateSystemSettings({
-      [section]: {
-        ...(systemSettings[section] as any),
-        [field]: value,
-      },
-    });
-  };
 
   const sections = [
     { id: "points", title: t("loyalty_points", "نقاط الولاء"), icon: Star },
@@ -98,12 +88,7 @@ export default function SystemSettings() {
     { id: "tax_system", title: t("tax_system", "نظام الضرائب"), icon: Percent },
   ];
 
-  const handleSave = () => {
-    saveSettings();
-  };
-
   const section = sections?.find((section) => section?.id == activeSection);
-  const SectionIcon = section?.icon;
 
   return (
     <Card dir={direction}>
@@ -140,21 +125,21 @@ export default function SystemSettings() {
           {/* Main Content */}
           <div className="flex-1 w-full min-w-0">
             {activeSection === "points" && (
-              <SettingSection id="points" title={t("loyalty_points", "نقاط الولاء")} onSave={handleSave}>
+              <SettingSection id="points" title={t("loyalty_points", "نقاط الولاء")} >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <h3 className="font-bold text-[var(--text-main)]">جائزة العملاء نقاط</h3>
                     <div className="flex flex-col xl:flex-row items-center gap-4">
                       <div className="flex-1 w-full">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">كل مصروف يساوي</label>
-                        <Input type="number" value={pointsStore?.customerPointsPerSpend} onChange={(e) => setPointsStore({ customerPointsPerSpend: parseFloat(e.target.value) })} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={""}  className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                       <div className="hidden xl:block pt-6">
                         <Save size={20} className="text-[var(--primary)]" />
                       </div>
                       <div className="flex-1 w-full">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">اجمالي النقاط المكتسبة</label>
-                        <Input type="number" value={pointsStore?.totalCustomerPoints} onChange={(e) => setPointsStore({ totalCustomerPoints: parseFloat(e.target.value) })} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={""}  className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                     </div>
                   </div>
@@ -163,14 +148,14 @@ export default function SystemSettings() {
                     <div className="flex flex-col xl:flex-row items-center gap-4">
                       <div className="flex-1 w-full">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">كل بيع يعادل</label>
-                        <Input type="number" value={pointsStore?.staffPointsPerSale} onChange={(e) => setPointsStore({ staffPointsPerSale: parseFloat(e.target.value) })} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={""}  className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                       <div className="hidden xl:block pt-6">
                         <Save size={20} className="text-[var(--primary)]" />
                       </div>
                       <div className="flex-1 w-full">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">اجمالي النقاط المكتسبة</label>
-                        <Input type="number" value={pointsStore?.totalStaffPoints} onChange={(e) => setPointsStore({ totalStaffPoints: parseFloat(e.target.value) })} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={""}  className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                     </div>
                   </div>
@@ -266,7 +251,6 @@ export default function SystemSettings() {
                                   className="size-7"
                                   onClick={() => {
                                     setHeaderImageFiles([]);
-                                    handleUpdate("reports", "headerImage", "");
                                   }}
                                 >
                                   <X />

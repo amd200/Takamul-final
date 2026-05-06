@@ -1,4 +1,4 @@
-export type SettingsResponse = {
+export type Settings = {
   tobaccoFees: {
     tobaccoFees: number;
   };

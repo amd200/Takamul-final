@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { Settings } from "../types/settings.types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,20 +75,6 @@ interface PointsSettings {
   totalStaffPoints: number;
 }
 
-export interface Settings {
-  tobaccoFees: TobaccoFeesSettings;
-  general: GeneralSettings;
-  location: LocationSettings;
-  items: ItemsSettings;
-  sales: SalesSettings;
-  barcodeScale: BarcodeScaleSettings;
-  money: MoneySettings;
-  points: PointsSettings;
-  taxSetting: {
-    taxSetting: "FirstStage" | "SecondStage" | "Exempt";
-  };
-}
-
 // ─── Default Values ───────────────────────────────────────────────────────────
 
 const defaultSettings: Settings = {
@@ -97,7 +84,7 @@ const defaultSettings: Settings = {
   general: {
     topDataStatus: true,
     image: "",
-    language: "ar",
+    // language: "ar",
   },
   location: {
     rowsPerPage: 10,
@@ -126,8 +113,6 @@ const defaultSettings: Settings = {
     isTekawuy: false,
     isTables: false,
     isDelivary: false,
-    enableCursorOnAddProduct: true,
-    enableGlasses: false,
   },
   barcodeScale: {
     barcodeType: 1,
@@ -139,24 +124,10 @@ const defaultSettings: Settings = {
     barcodeWeightCharactersCount: 5,
     barcodeDivideWeightBy: 1000,
   },
-  money: {
-    decimals: 2,
-    quantityDecimals: 2,
-    southAsiaFormat: false,
-    decimalSeparator: ".",
-    thousandSeparator: ",",
-    showCurrencySymbol: true,
-    currencySymbol: "ر.س",
-    a4InvoiceDecimals: 4,
-  },
-  points: {
-    customerPointsPerSpend: 1,
-    totalCustomerPoints: 0,
-    staffPointsPerSale: 1,
-    totalStaffPoints: 0,
-  },
+
   taxSetting: {
     taxSetting: "FirstStage",
+    itemTax: false,
   },
 };
 
@@ -173,7 +144,7 @@ interface SettingsStore {
   setItems: (data: Partial<ItemsSettings>) => void;
   setSales: (data: Partial<SalesSettings>) => void;
   setBarcodeScale: (data: Partial<BarcodeScaleSettings>) => void;
-  setPoints: (data: Partial<PointsSettings>) => void;
+  // setPoints: (data: Partial<PointsSettings>) => void;
 
   // Granular field setters — useful for single-field optimistic updates
   setRowsPerPage: (value: number) => void;
@@ -196,8 +167,13 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
   //       money: settings.money || state.settings.money,
   //     },
   //   })),
-  setSettings: (settings) => set((state) => ({ settings })),
-
+  setSettings: (settings) =>
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        ...settings,
+      },
+    })),
   // ── Section-level setters ────────────────────────────────────────────────────
   setTobaccoFees: (data) =>
     set((state) => ({
@@ -247,13 +223,13 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
       },
     })),
 
-  setPoints: (data) =>
-    set((state) => ({
-      settings: {
-        ...state.settings,
-        points: { ...state.settings.points, ...data },
-      },
-    })),
+  // setPoints: (data) =>
+  //   set((state) => ({
+  //     settings: {
+  //       ...state.settings,
+  //       points: { ...state.settings.points, ...data },
+  //     },
+  //   })),
 
   // ── Granular setters ─────────────────────────────────────────────────────────
   setRowsPerPage: (value) =>
@@ -299,7 +275,7 @@ export const selectLocation = (s: SettingsStore) => s.settings.location;
 export const selectItems = (s: SettingsStore) => s.settings.items;
 export const selectSales = (s: SettingsStore) => s.settings.sales;
 export const selectBarcodeScale = (s: SettingsStore) => s.settings.barcodeScale;
-export const selectPoints = (s: SettingsStore) => s.settings.points;
+// export const selectPoints = (s: SettingsStore) => s.settings.points;
 
 export const selectRowsPerPage = (s: SettingsStore) => s.settings.location.rowsPerPage;
 export const selectAllowSaleWithZeroStock = (s: SettingsStore) => s.settings.sales.allowSaleWithZeroStock;

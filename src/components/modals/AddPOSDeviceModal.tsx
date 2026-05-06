@@ -270,10 +270,11 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
   const { mutateAsync: registerCCSID, isPending: isRegisteringCCSID } = useRegisterCCSID();
   const { mutateAsync: registerPCSID, isPending: isRegisteringPCSID } = useUpgradeToPcsid();
   const { data: branches } = useGetAllBranches();
-  const { data: deviceTypes } = useGetAllDeviceTypes  ();
+  const { data: deviceTypes } = useGetAllDeviceTypes();
   const { refetch } = useGenereateSerial();
 
   const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  console.log(taxSetting);
   const isExempt = taxSetting === "Exempt";
   const isFirstStage = taxSetting === "FirstStage";
 
@@ -462,8 +463,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
           <DialogHeader className="mb-4">
             <DialogTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">{isCertificateMode ? "استكمال تسجيل نقطة البيع" : isEdit ? "تعديل بيانات جهاز" : "إضافة نقطة بيع جديدة"}</DialogTitle>
           </DialogHeader>
-
-          {!isEdit && !isExempt && <StepperHeader current={step} />}
+          {!isEdit  && !isFirstStage && <StepperHeader current={step} />}{" "}
           <div className="max-h-[52vh] overflow-y-auto no-scrollbar pr-1">
             {step === 1 && (
               <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -735,7 +735,6 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
               </div>
             )}
           </div>
-
           <div className="flex justify-between items-center mt-5 pt-4 border-t border-gray-100">
             {isEdit ? (
               <>
