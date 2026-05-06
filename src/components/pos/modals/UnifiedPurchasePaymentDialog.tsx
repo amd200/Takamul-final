@@ -13,7 +13,7 @@ import { calcTotals } from "@/constants/data";
 import { usePrint } from "@/context/PrintContext";
 import { getPurchaseOrderById } from "@/features/purchases/services/purchases";
 
-type SaveAction = "save_only" | "save_and_print";
+type SaveAction = "pdf" | "whatsapp" | "email" | "save_only" | "save_and_print";
 
 interface UnifiedPurchasePaymentDialogProps {
   open: boolean;
@@ -122,9 +122,23 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
     if (justActivated) setJustActivated(false);
   };
 
+  const toggleSplit = () => {
+    setIsSplit((v) => {
+      if (!v) {
+        const splitList = (treasurys ?? []).slice(0, 3).map((t, i) => ({ id: `s${i}`, vaultId: t.id, raw: "0" }));
+        setSplits(splitList);
+        setActiveId(splitList[0].id);
+      } else {
+        setSingleRaw(String(Math.round(total * 100)));
+      }
+      return !v;
+    });
+  };
+
   const singlePaid = rawToFloat(singleRaw);
   const splitPaid = splits.reduce((sum, s) => sum + rawToFloat(s.raw), 0);
   const paid = isSplit ? splitPaid : singlePaid;
+  const change = parseFloat((paid - total).toFixed(2));
 
   useEffect(() => {
     setPaidAmount(paid);
@@ -144,7 +158,7 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
 
       const purchaseId = response?.data?.id || response?.id;
 
-      if (action === "save_and_print" && purchaseId) {
+      if ((action === "save_and_print" || action === "pdf") && purchaseId) {
         try {
           const fullData = await getPurchaseOrderById(purchaseId);
           printInvoice(fullData, "purchase");
@@ -157,6 +171,13 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
       console.error(err);
     }
   };
+
+  const DiffCard = ({ change, large }: { change: number; large?: boolean }) => (
+    <div className={cn("rounded-xl border px-4 py-3 flex flex-col gap-0.5", change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50")}>
+      <span className={cn("text-[10px] font-semibold", change >= 0 ? "text-green-500" : "text-red-400")}>{change >= 0 ? t("change") : t("remaining")}</span>
+      <span className={cn("font-black", large ? "text-xl" : "text-lg", change >= 0 ? "text-green-600" : "text-red-500")}>{fmtFloat(Math.abs(change))}</span>
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -181,6 +202,9 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="text-[11px] font-semibold text-muted-foreground">{isSplit ? t("split_between_vaults") : t("destination_vault")}</label>
+              <button onClick={toggleSplit} className={cn("text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors", isSplit ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground hover:border-primary/50 hover:text-primary")}>
+                {isSplit ? t("split_on") : t("split_payment")}
+              </button>
             </div>
             {!isSplit && (
               <VaultChips
@@ -194,30 +218,65 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
             )}
           </div>
 
+          {isSplit && (
+            <div className="flex flex-col gap-3">
+              <div className={cn("grid gap-2", splits.length === 1 && "grid-cols-1", splits.length === 2 && "grid-cols-2", splits.length >= 3 && "grid-cols-3")}>
+                {splits.map((sp, idx) => {
+                  const isActive = activeId === sp.id;
+                  const vault = treasurys?.find((t) => t.id === sp.vaultId);
+                  return (
+                    <div key={sp.id} onClick={() => setActiveId(sp.id)} className={cn("rounded-xl border-2 p-3 cursor-pointer transition-all flex flex-col gap-2", isActive ? "border-primary bg-primary/5" : "border-border bg-card hover:border-border/80")}>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className={cn("text-[10px] font-semibold truncate", isActive ? "text-primary" : "text-muted-foreground")}>{vault?.name ?? `${t("vault")} ${idx + 1}`}</span>
+                        <span className={cn("w-2 h-2 rounded-full flex-shrink-0", isActive ? "bg-primary" : "bg-muted")} />
+                      </div>
+                      <div className={cn("rounded-lg px-2 py-2 text-center font-black text-base tracking-tight", isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}>{rawToFloat(sp.raw).toFixed(2)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl bg-muted/50 border border-border px-4 py-3 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-muted-foreground font-semibold">{t("total_entered")}</span>
+                  <span className="text-lg font-black text-foreground">{fmtFloat(splitPaid)}</span>
+                </div>
+                <DiffCard change={change} />
+              </div>
+            </div>
+          )}
+
           <Numpad onKey={pushKey} />
 
-          <div className="grid grid-cols-1 gap-2">
-            <div className="rounded-xl border border-border bg-muted/50 px-4 py-3 flex flex-col gap-0.5 text-center">
-              <span className="text-[10px] text-muted-foreground font-semibold">المبلغ المدفوع</span>
-              <span className="text-xl font-black text-foreground">{fmtFloat(paid)}</span>
+          {!isSplit && (
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-border bg-muted/50 px-4 py-3 flex flex-col gap-0.5">
+                <span className="text-[10px] text-muted-foreground font-semibold">المدفوع</span>
+                <span className="text-xl font-black text-foreground">{fmtFloat(singlePaid)}</span>
+              </div>
+              <DiffCard change={change} large />
             </div>
-          </div>
+          )}
 
           <hr className="border-border" />
 
           <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              onClick={() => handleAction("save_only")}
-              className="h-11 text-[13px] gap-1.5 border-[#000052] text-[#000052] hover:bg-blue-50"
-            >
-              <Save size={14} /> حفظ فقط
-            </Button>
+            {[
+              { action: "pdf", label: t("print_pdf"), Icon: FileText },
+              { action: "whatsapp", label: t("send_whatsapp"), Icon: MessageCircle },
+              { action: "email", label: t("send_email"), Icon: Mail },
+              { action: "save_only", label: t("save_only"), Icon: Save },
+            ].map(({ action, label, Icon }) => (
+              <Button key={action} variant="outline" size="sm" onClick={() => handleAction(action as SaveAction)} className="h-10 text-[12px] gap-1.5">
+                <Icon size={13} /> {label}
+              </Button>
+            ))}
+
             <Button
               onClick={() => handleAction("save_and_print")}
-              className="h-11 text-[13px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
+              size="sm"
+              className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
             >
-              <Printer size={14} /> حفظ وطباعة
+              <Printer size={13} /> حفظ وطباعة فاتورة
             </Button>
           </div>
         </div>
