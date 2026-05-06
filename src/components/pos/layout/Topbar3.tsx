@@ -177,7 +177,7 @@ export default function Topbar3() {
             {showActualBalance && (
               <div className="flex flex-col gap-1">
                 <Label className="text-[10px] text-[#871d46] dark:text-muted-foreground">رصيد المورد</Label>
-                <Input value={balanceSelectedCustomer} readOnly={true} className="text-center cursor-not-allowed text-[11px] bg-white border-[#871d46] text-[#871d46] dark:bg-background dark:border-border dark:text-foreground" />
+                <Input value={balanceSelectedCustomer ?? ""} readOnly={true} className="text-center cursor-not-allowed text-[11px] bg-white border-[#871d46] text-[#871d46] dark:bg-background dark:border-border dark:text-foreground" />
               </div>
             )}
 

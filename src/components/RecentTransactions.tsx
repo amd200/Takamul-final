@@ -8,7 +8,7 @@ import { Column } from "primereact/column";
 
 // Hooks
 import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
-import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllSales";
+import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllPurchases";
 import { useGetAllQuotations } from "@/features/quotation/hooks/useGetAllQuotations";
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";

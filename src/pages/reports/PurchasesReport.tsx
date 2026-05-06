@@ -1,51 +1,26 @@
-import React, { useState, useMemo } from 'react';
-import {
-  FileText,
-  FileSpreadsheet,
-  Search,
-  ShoppingBag,
-  BarChart2,
-  Printer,
-  RotateCcw,
-  Calendar as CalendarIcon,
-  Receipt
-} from 'lucide-react';
-import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useLanguage } from '@/context/LanguageContext';
-import { useGetAllPurchases } from '@/features/purchases/hooks/useGetAllSales';
+import React, { useState, useMemo } from "react";
+import { FileText, FileSpreadsheet, Search, ShoppingBag, BarChart2, Printer, RotateCcw, Calendar as CalendarIcon, Receipt } from "lucide-react";
+import { DataTable, type DataTablePageEvent } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useLanguage } from "@/context/LanguageContext";
+import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllPurchases";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
-import type { Purchase } from '@/features/purchases/types/purchase.types';
+import type { Purchase } from "@/features/purchases/types/purchase.types";
 import { FinancialStatCard } from "@/components/FinancialStatCard";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import {
-  generateReportHTML,
-  printCustomHTML,
-  exportCustomPDF,
-  exportToExcel
-} from "@/utils/customExportUtils";
-import { useSettingsStore } from '@/features/settings/store/settingsStore';
+import { generateReportHTML, printCustomHTML, exportCustomPDF, exportToExcel } from "@/utils/customExportUtils";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 const StatusBadge = ({ status }: { status: string }) => {
   const { t } = useLanguage();
-  return (
-    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-700">
-      {status || t('received', 'مستلم')}
-    </span>
-  );
+  return <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-700">{status || t("received", "مستلم")}</span>;
 };
 
 export default function PurchasesReport() {
@@ -68,7 +43,7 @@ export default function PurchasesReport() {
   const { data: purchasesData, isLoading } = useGetAllPurchases({
     page: currentPage,
     limit: entriesPerPage,
-    searchTerm: filters.branchId.trim() ? filters.branchId : undefined
+    searchTerm: filters.branchId.trim() ? filters.branchId : undefined,
   });
 
   const items = purchasesData?.items ?? [];
@@ -86,7 +61,7 @@ export default function PurchasesReport() {
       totalPurchases,
       totalTax,
       paidAmount,
-      count: totalCount
+      count: totalCount,
     };
   }, [items, totalCount]);
 
@@ -108,35 +83,31 @@ export default function PurchasesReport() {
     setCurrentPage(1);
   };
 
-  const reportTitle = t('purchases_report', 'تقرير المشتريات');
+  const reportTitle = t("purchases_report", "تقرير المشتريات");
 
   const getFiltersInfo = () => {
-    const branchName = branches.find(b => String(b.id) === searchParams.branchId.trim())?.name || t('all', 'الكل');
-    return `${t('branch', 'الفرع')}: ${branchName} | ${t('from', 'من')}: ${searchParams.from} | ${t('to', 'إلى')}: ${searchParams.to}`;
+    const branchName = branches.find((b) => String(b.id) === searchParams.branchId.trim())?.name || t("all", "الكل");
+    return `${t("branch", "الفرع")}: ${branchName} | ${t("from", "من")}: ${searchParams.from} | ${t("to", "إلى")}: ${searchParams.to}`;
   };
 
   const handlePrint = () => {
     const columns = [
       { header: t("serial", "م"), field: "serial" },
-      { header: t('invoice_number', 'رقم الفاتورة'), field: 'purchaseOrderNumber' },
-      { header: t('date', 'التاريخ'), field: 'orderDate' },
-      { header: t('supplier_name', 'اسم المورد'), field: 'supplierName' },
-      { header: t('total_amount', 'الإجمالي'), field: 'totalAmount' },
-      { header: t('status', 'الحالة'), field: 'orderStatus' }
+      { header: t("invoice_number", "رقم الفاتورة"), field: "purchaseOrderNumber" },
+      { header: t("date", "التاريخ"), field: "orderDate" },
+      { header: t("supplier_name", "اسم المورد"), field: "supplierName" },
+      { header: t("total_amount", "الإجمالي"), field: "totalAmount" },
+      { header: t("status", "الحالة"), field: "orderStatus" },
     ];
 
-    const data = items.map(o => ({
+    const data = items.map((o) => ({
       ...o,
-      orderDate: new Date(o.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB'),
+      orderDate: new Date(o.orderDate).toLocaleDateString(language === "ar" ? "ar-EG" : "en-GB"),
       totalAmount: fmt(o.totalAmount),
-      orderStatus: o.orderStatus || t('received')
+      orderStatus: o.orderStatus || t("received"),
     }));
 
-    const summaryCards = [
-      { title: t('total_purchases', 'إجمالي المشتريات'), value: `${fmt(summary.totalPurchases)} ${t('sar', 'ر.س')}`, icon: 'ShoppingBag' },
-      { title: t('paid_amount', 'المبلغ المدفوع'), value: `${fmt(summary.paidAmount)} ${t('sar', 'ر.س')}`, icon: 'BarChart2' },
-      ...(!isExempt ? [{ title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' }] : [])
-    ];
+    const summaryCards = [{ title: t("total_purchases", "إجمالي المشتريات"), value: `${fmt(summary.totalPurchases)} ${t("sar", "ر.س")}`, icon: "ShoppingBag" }, { title: t("paid_amount", "المبلغ المدفوع"), value: `${fmt(summary.paidAmount)} ${t("sar", "ر.س")}`, icon: "BarChart2" }, ...(!isExempt ? [{ title: t("total_tax", "إجمالي الضريبة"), value: `${fmt(summary.totalTax)} ${t("sar", "ر.س")}`, icon: "Receipt" }] : [])];
 
     const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
     printCustomHTML(reportTitle, html);
@@ -147,23 +118,19 @@ export default function PurchasesReport() {
     try {
       const columns = [
         { header: t("serial", "م"), field: "serial" },
-        { header: t('invoice_number', 'رقم الفاتورة'), field: 'purchaseOrderNumber' },
-        { header: t('date', 'التاريخ'), field: 'orderDate' },
-        { header: t('supplier_name', 'اسم المورد'), field: 'supplierName' },
-        { header: t('total_amount', 'الإجمالي'), field: 'totalAmount' }
+        { header: t("invoice_number", "رقم الفاتورة"), field: "purchaseOrderNumber" },
+        { header: t("date", "التاريخ"), field: "orderDate" },
+        { header: t("supplier_name", "اسم المورد"), field: "supplierName" },
+        { header: t("total_amount", "الإجمالي"), field: "totalAmount" },
       ];
 
-      const data = items.map(o => ({
+      const data = items.map((o) => ({
         ...o,
-        orderDate: new Date(o.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB'),
-        totalAmount: fmt(o.totalAmount)
+        orderDate: new Date(o.orderDate).toLocaleDateString(language === "ar" ? "ar-EG" : "en-GB"),
+        totalAmount: fmt(o.totalAmount),
       }));
 
-      const summaryCards = [
-        { title: t('total_purchases', 'إجمالي المشتريات'), value: `${fmt(summary.totalPurchases)} ${t('sar', 'ر.س')}`, icon: 'ShoppingBag' },
-        ...(!isExempt ? [{ title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' }] : [])
-      ];
-
+      const summaryCards = [{ title: t("total_purchases", "إجمالي المشتريات"), value: `${fmt(summary.totalPurchases)} ${t("sar", "ر.س")}`, icon: "ShoppingBag" }, ...(!isExempt ? [{ title: t("total_tax", "إجمالي الضريبة"), value: `${fmt(summary.totalTax)} ${t("sar", "ر.س")}`, icon: "Receipt" }] : [])];
 
       const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
       await exportCustomPDF(reportTitle, html);
@@ -175,11 +142,11 @@ export default function PurchasesReport() {
   const handleExportExcel = () => {
     const columns = [
       { header: t("serial", "م"), field: "serial" },
-      { header: t('invoice_number'), field: 'purchaseOrderNumber' },
-      { header: t('date'), field: 'orderDate', body: (o: any) => new Date(o.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB') },
-      { header: t('supplier_name'), field: 'supplierName' },
-      { header: t('total_amount'), field: 'totalAmount' },
-      { header: t('status'), field: 'orderStatus' }
+      { header: t("invoice_number"), field: "purchaseOrderNumber" },
+      { header: t("date"), field: "orderDate", body: (o: any) => new Date(o.orderDate).toLocaleDateString(language === "ar" ? "ar-EG" : "en-GB") },
+      { header: t("supplier_name"), field: "supplierName" },
+      { header: t("total_amount"), field: "totalAmount" },
+      { header: t("status"), field: "orderStatus" },
     ];
     exportToExcel(items, columns, reportTitle);
   };
@@ -193,31 +160,19 @@ export default function PurchasesReport() {
               <ShoppingBag className="w-5 h-5 text-[var(--primary)]" />
               {reportTitle}
             </CardTitle>
-            <CardDescription className="mt-1">
-              {t('customize_report_below', 'تخصيص التقرير أدناه')}
-            </CardDescription>
+            <CardDescription className="mt-1">{t("customize_report_below", "تخصيص التقرير أدناه")}</CardDescription>
           </div>
 
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
-            >
+            <button onClick={handlePrint} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <Printer size={16} />
               <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button
-              onClick={handleExportPDF}
-              disabled={pdfLoading}
-              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
-            >
+            <button onClick={handleExportPDF} disabled={pdfLoading} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50">
               <FileText size={16} />
-              <span className="hidden sm:inline">{pdfLoading ? t('loading', 'جاري التحميل...') : 'PDF'}</span>
+              <span className="hidden sm:inline">{pdfLoading ? t("loading", "جاري التحميل...") : "PDF"}</span>
             </button>
-            <button
-              onClick={handleExportExcel}
-              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
-            >
+            <button onClick={handleExportExcel} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <FileSpreadsheet size={16} />
               <span className="hidden sm:inline">Excel</span>
             </button>
@@ -227,35 +182,10 @@ export default function PurchasesReport() {
         <CardContent className="pt-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <FinancialStatCard
-              title={t('total_purchases', 'إجمالي المشتريات')}
-              value={fmt(summary.totalPurchases)}
-              suffix="SAR"
-              icon={ShoppingBag}
-              color="orange"
-            />
-            <FinancialStatCard
-              title={t('paid_amount', 'المبلغ المدفوع')}
-              value={fmt(summary.paidAmount)}
-              suffix="SAR"
-              icon={BarChart2}
-              color="teal"
-            />
-            {!isExempt && (
-              <FinancialStatCard
-                title={t('total_tax', 'إجمالي الضريبة')}
-                value={fmt(summary.totalTax)}
-                suffix="SAR"
-                icon={Receipt}
-                color="blue"
-              />
-            )}
-            <FinancialStatCard
-              title={t('purchases_count', 'عدد عمليات الشراء')}
-              value={String(summary.count)}
-              icon={FileText}
-              color="purple"
-            />
+            <FinancialStatCard title={t("total_purchases", "إجمالي المشتريات")} value={fmt(summary.totalPurchases)} suffix="SAR" icon={ShoppingBag} color="orange" />
+            <FinancialStatCard title={t("paid_amount", "المبلغ المدفوع")} value={fmt(summary.paidAmount)} suffix="SAR" icon={BarChart2} color="teal" />
+            {!isExempt && <FinancialStatCard title={t("total_tax", "إجمالي الضريبة")} value={fmt(summary.totalTax)} suffix="SAR" icon={Receipt} color="blue" />}
+            <FinancialStatCard title={t("purchases_count", "عدد عمليات الشراء")} value={String(summary.count)} icon={FileText} color="purple" />
           </div>
 
           {/* Filters */}
@@ -264,14 +194,16 @@ export default function PurchasesReport() {
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t("branch", "الفرع")}</Label>
-                  <Select value={filters.branchId} onValueChange={(val) => setFilters(p => ({ ...p, branchId: val }))}>
+                  <Select value={filters.branchId} onValueChange={(val) => setFilters((p) => ({ ...p, branchId: val }))}>
                     <SelectTrigger className="h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
                       <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
                       {branches.map((b) => (
-                        <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          {b.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -283,7 +215,7 @@ export default function PurchasesReport() {
                 <div className="relative">
                   <DatePicker
                     selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) => setFilters(p => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-11 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-sm">
@@ -300,7 +232,7 @@ export default function PurchasesReport() {
                 <div className="relative">
                   <DatePicker
                     selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) => setFilters(p => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-11 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-sm">
@@ -313,17 +245,11 @@ export default function PurchasesReport() {
               </div>
 
               <div className="flex gap-2">
-                <button
-                  onClick={handleSearch}
-                  className="h-11 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 flex-1 rounded-xl shadow-md shadow-emerald-200 dark:shadow-none font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
-                >
+                <button onClick={handleSearch} className="h-11 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 flex-1 rounded-xl shadow-md shadow-emerald-200 dark:shadow-none font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center">
                   <Search size={18} />
                   {t("search", "بحث")}
                 </button>
-                <button
-                  onClick={handleClear}
-                  className="h-11 px-4 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all rounded-xl shadow-sm"
-                >
+                <button onClick={handleClear} className="h-11 px-4 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all rounded-xl shadow-sm">
                   <RotateCcw size={18} className="text-slate-500" />
                 </button>
               </div>
@@ -331,32 +257,33 @@ export default function PurchasesReport() {
           </div>
 
           <DataTable
-            value={items} totalRecords={totalCount} loading={isLoading}
-            lazy paginator 
+            value={items}
+            totalRecords={totalCount}
+            loading={isLoading}
+            lazy
+            paginator
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-            rows={entriesPerPage} 
+            rows={entriesPerPage}
             first={(currentPage - 1) * entriesPerPage}
             onPage={(e: DataTablePageEvent) => {
               if (e.page === undefined) return;
               setCurrentPage(e.page + 1);
               setEntriesPerPage(e.rows ?? entriesPerPage);
             }}
-            className="custom-standard-table" dataKey="id"
-            emptyMessage={t('no_data', 'لا توجد بيانات')}
-            scrollable scrollHeight="600px"
+            className="custom-standard-table"
+            dataKey="id"
+            emptyMessage={t("no_data", "لا توجد بيانات")}
+            scrollable
+            scrollHeight="600px"
           >
-            <Column
-              header={t("serial", "م")}
-              body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>}
-              className="w-16"
-            />
-            <Column header={t('invoice_number', 'رقم الفاتورة')} field="purchaseOrderNumber" sortable body={(r: Purchase) => <span className="font-bold text-[var(--primary)]">{r.purchaseOrderNumber}</span>} />
-            <Column header={t('date', 'التاريخ')} field="orderDate" sortable body={(r: Purchase) => new Date(r.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB')} />
-            <Column header={t('supplier_name', 'اسم المورد')} field="supplierName" sortable />
-            <Column header={t('total_amount', 'الإجمالي')} field="totalAmount" sortable body={(r: Purchase) => <span className="font-bold">{fmt(r.totalAmount)}</span>} />
-            {!isExempt && <Column header={t('tax_amount', 'الضريبة')} field="taxAmount" sortable body={(r: Purchase) => fmt(r.taxAmount)} />}
-            <Column header={t('paid_amount', 'المدفوع')} field="paidAmount" sortable body={(r: Purchase) => fmt(r.paidAmount)} />
-            <Column header={t('status', 'الحالة')} body={(r: Purchase) => <StatusBadge status={r.orderStatus} />} />
+            <Column header={t("serial", "م")} body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>} className="w-16" />
+            <Column header={t("invoice_number", "رقم الفاتورة")} field="purchaseOrderNumber" sortable body={(r: Purchase) => <span className="font-bold text-[var(--primary)]">{r.purchaseOrderNumber}</span>} />
+            <Column header={t("date", "التاريخ")} field="orderDate" sortable body={(r: Purchase) => new Date(r.orderDate).toLocaleDateString(language === "ar" ? "ar-EG" : "en-GB")} />
+            <Column header={t("supplier_name", "اسم المورد")} field="supplierName" sortable />
+            <Column header={t("total_amount", "الإجمالي")} field="totalAmount" sortable body={(r: Purchase) => <span className="font-bold">{fmt(r.totalAmount)}</span>} />
+            {!isExempt && <Column header={t("tax_amount", "الضريبة")} field="taxAmount" sortable body={(r: Purchase) => fmt(r.taxAmount)} />}
+            <Column header={t("paid_amount", "المدفوع")} field="paidAmount" sortable body={(r: Purchase) => fmt(r.paidAmount)} />
+            <Column header={t("status", "الحالة")} body={(r: Purchase) => <StatusBadge status={r.orderStatus} />} />
           </DataTable>
         </CardContent>
       </Card>

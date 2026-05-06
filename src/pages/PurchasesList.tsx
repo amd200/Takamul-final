@@ -7,7 +7,7 @@ import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllSales";
+import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllPurchases";
 import type { Purchase } from "@/features/purchases/types/purchase.types";
 import { useLanguage } from "@/context/LanguageContext";
 import formatDate from "@/lib/formatDate";
@@ -60,7 +60,6 @@ export default function PurchasesList() {
       <CardHeader>
         <CardTitle>{t("purchases_management")}</CardTitle>
         <CardDescription>{t("purchases_management_desc")}</CardDescription>
-      
       </CardHeader>
 
       <CardContent>
