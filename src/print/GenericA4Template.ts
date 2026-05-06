@@ -9,7 +9,7 @@ type PrintType = "sale" | "quotation" | "purchase";
 
 export const getA4PrintHTML = (data: ExtendedData, type: PrintType, t: any, passedApiBase?: string): string => {
   const branch = data?.branchInfo as BranchInfo;
-  const partner = data?.customer as Customer;
+  const partner =  data?.supplier as Supplier;
   const items = data?.items || [];
   const apiBase = passedApiBase || "";
 
@@ -44,12 +44,12 @@ export const getA4PrintHTML = (data: ExtendedData, type: PrintType, t: any, pass
   const partyNameLabel = t("name", "الاسم");
 
   // ── Party Fields ─────────────────────────────────────────────────────────────
-  const partyName = partner?.customerName || "-";
+  const partyName = partner?.supplierName || "-";
   const partyPhone = partner?.phone || "-";
   const partyTaxNo = partner?.taxNumber || "-";
   const partyCommercial = partner?.commercialRegister || "-";
 
-  const country = partner?.countryName || "";
+  // const country = partner?.countryName || "";
   const city = partner?.cityName || "";
   const state = partner?.stateName || "";
   const district = partner?.district || "";
