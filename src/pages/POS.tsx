@@ -1,5 +1,6 @@
 // src/pages/POS.tsx
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
 import { useWarehouses } from '../context/WarehousesContext';
@@ -32,6 +33,7 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import ShiftReportModal from '@/components/pos/modals/ShiftReportModal';
 import { useCloseShift, useGetAllShifts } from '@/features/shifts/hooks/useShifts';
+import useToast from '@/hooks/useToast';
 
 interface CartItem extends Product {
   cartQuantity: number;
@@ -40,6 +42,8 @@ interface CartItem extends Product {
 type ProductId = Product['id'];
 
 export default function POS() {
+  const navigate = useNavigate();
+  const { notifySuccess } = useToast();
   const { direction, t } = useLanguage();
   const { products, loading: productsLoading } = useProducts();
   const { posSettings, systemSettings } = useSettings();
@@ -57,7 +61,7 @@ export default function POS() {
   const [isCartCollapsed, setIsCartCollapsed] = useState(false);
 
   const [currentTime, setCurrentTime] = useState(new Date());
-  const { shiftId: storeShiftId, userName } = useAuthStore();
+  const { shiftId: storeShiftId, userName, clearAuth } = useAuthStore();
   const [isShiftReportOpen, setIsShiftReportOpen] = useState(false);
   const { mutate: closeShiftMutate } = useCloseShift();
   const { data: shifts } = useGetAllShifts();
@@ -1552,6 +1556,11 @@ export default function POS() {
               {
                 onSuccess: () => {
                   setIsShiftReportOpen(false);
+                  notifySuccess("تم غلق الوردية بنجاح");
+                  setTimeout(() => {
+                    clearAuth();
+                    navigate('/login');
+                  }, 1500);
                 },
               },
             );
