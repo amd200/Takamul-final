@@ -405,8 +405,15 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
   const handleGenerateCSR = async () => {
     if (!createdDeviceId) return;
     try {
-      await generateCSR({ deviceId: createdDeviceId });
+      const res = await generateCSR({ deviceId: createdDeviceId });
       setClickedGeneratedCSR(true);
+      setCsr({
+        secret: res?.data?.secretKey,
+        token: res?.data?.token,
+        status: res?.data?.newStatus,
+        isExpired: res?.data?.expiresAt ? new Date(res.data.expiresAt) <= new Date() : false,
+        expiresAt: res?.data?.expiresAt,
+      });
     } catch {}
   };
 
@@ -463,7 +470,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
           <DialogHeader className="mb-4">
             <DialogTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">{isCertificateMode ? "استكمال تسجيل نقطة البيع" : isEdit ? "تعديل بيانات جهاز" : "إضافة نقطة بيع جديدة"}</DialogTitle>
           </DialogHeader>
-          {!isEdit  && !isFirstStage && <StepperHeader current={step} />}{" "}
+          {!isEdit && !isFirstStage && <StepperHeader current={step} />}{" "}
           <div className="max-h-[52vh] overflow-y-auto no-scrollbar pr-1">
             {step === 1 && (
               <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -567,7 +574,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
                   <p className="text-sm text-blue-700 leading-relaxed">سيتم توليد مفتاح خاص وCSR تلقائياً — يُخزَّن المفتاح مشفّراً ولن يُعرض مجدداً</p>
                 </div>
 
-                {!ccsid ? (
+                {!csr ? (
                   <div className="flex flex-col items-center justify-center py-8 gap-4">
                     <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
                       <KeySquare size={28} className="text-gray-400" />
@@ -590,8 +597,8 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
                         إعادة التوليد
                       </Button>
                     </div>
-                    <CodeBlock label="ملف CSR" value={ccsid?.token} />
-                    <SecretBlock label="المفتاح الخاص (Private Key)" value={ccsid?.secret} />
+                    <CodeBlock label="ملف CSR" value={csr?.token} />
+                    <CodeBlock label="المفتاح الخاص (Private Key)" secret={true} value={csr?.secret} />
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
                       شيله في مكان كويس عشان مش هتشوفه تاني
