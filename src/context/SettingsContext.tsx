@@ -45,6 +45,7 @@ export interface SystemSettings {
     enableSecondLangName: boolean;
     enableThirdLangName: boolean;
     showProductBalanceAtSale: boolean;
+    allowPriceChangeOnSale: boolean;
     taxPhase: string;
   };
   sales: {
@@ -246,6 +247,7 @@ const defaultSystemSettings: SystemSettings = {
     enableSecondLangName: false,
     enableThirdLangName: false,
     showProductBalanceAtSale: true,
+    allowPriceChangeOnSale: false,
     taxPhase: "FirstStage",
   },
   sales: {
@@ -431,6 +433,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           showWarehouseItems: apiSettings.items?.showWarehouseItems ? "إظهار جميع الأصناف حتى لو رصيدها صفر" : "عدم إظهار جميع الأصناف حتى لو رصيدها صفر",
           enableSecondLangName: apiSettings.items?.enableSecondLanguageItemName ?? prev.items.enableSecondLangName,
           showProductBalanceAtSale: apiSettings.items?.showProductBalanceAtSale ?? prev.items.showProductBalanceAtSale,
+          allowPriceChangeOnSale: apiSettings.items?.allowPriceChangeOnSale ?? prev.items.allowPriceChangeOnSale,
           taxPhase: apiSettings.items?.taxPhase ?? prev.items.taxPhase,
         },
         sales: {

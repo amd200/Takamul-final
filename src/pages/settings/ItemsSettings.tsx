@@ -62,6 +62,19 @@ export default function ItemsSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
 
             <Field>
+              <FieldLabel className="gap-x-0">{t("allow_price_change_on_sale") || "إمكانية تغيير سعر المنتج أثناء عملية البيع"} <span className="text-red-500">*</span></FieldLabel>
+              <Select value={itemsStore.allowPriceChangeOnSale ? enableStr : disableStr} onValueChange={(val) => handleUpdate("allowPriceChangeOnSale", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field>
               <FieldLabel className="gap-x-0">{t("show_warehouse_items_setting") || "إظهار أصناف المخزن  "} <span className="text-red-500">*</span></FieldLabel>
               <Select value={itemsStore.showWarehouseItems ? enableStr : disableStr} onValueChange={(val) => handleUpdate("showWarehouseItems", val === enableStr)}>
                 <SelectTrigger className="w-full">
@@ -73,8 +86,6 @@ export default function ItemsSettings() {
                 </SelectContent>
               </Select>
             </Field>
-
-
 
             <Field>
               <FieldLabel className="gap-x-0">{t("show_product_balance_at_sale") || "إظهار رصيد المنتج عند البيع"} <span className="text-red-500">*</span></FieldLabel>
@@ -88,7 +99,7 @@ export default function ItemsSettings() {
                 </SelectContent>
               </Select>
             </Field>
-            
+
           </div>
 
           <div className="flex flex-col-reverse lg:flex-row justify-between py-4 border px-3 gap-3 rounded border-gray-100 mt-8">

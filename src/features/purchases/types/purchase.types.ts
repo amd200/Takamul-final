@@ -40,6 +40,9 @@ export type CreatePurchaseOrder = {
     quantity: number;
     discountPercentage: number;
     discountValue: number;
+    unitPrice: number;
+    taxId: number;
+    unitId: number;
   }[];
   payments: {
     amount: number;

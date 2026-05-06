@@ -9,30 +9,33 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
 import { Product } from "@/features/products/types/products.types";
-import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
+import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Numpad } from "../cashier/CashierPanel";
 import formatDate from "@/lib/formatDate";
-import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
-import { SalesOrder } from "@/features/sales/types/sales.types";
+import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllPurchases";
+import { Purchase } from "@/features/purchases/types/purchase.types";
 import { useGetAllQuotations } from "@/features/quotation/hooks/useGetAllQuotations";
 import { Quotation } from "@/features/quotation/types/quotations.types";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { Treasury } from "@/features/treasurys/types/treasurys.types";
-import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
+import { UnifiedPurchasePaymentDialog } from "../modals/UnifiedPurchasePaymentDialog";
 import { Switch } from "@/components/ui/switch";
 import { InvoiceData, printInvoice } from "../orders/printInvoice";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
-import { AddToCartProduct, usePosStore } from "@/features/pos/store/usePosStore";
-import { useCreateTakwayOrder } from "@/features/pos/hooks/useCreateTakeawayOrder";
-import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
+import { AddToCartProduct } from "@/features/pos/store/usePosStore";
+import { useCreatePurchaseOrder } from "@/features/purchases/hooks/useCreatePurchaseOrder";
+import { usePurchaseStore } from "@/features/pos/store/usePurchaseStore";
 import useToast from "@/hooks/useToast";
-import { Customer } from "@/features/customers/types/customers.types";
+import { Supplier } from "@/features/suppliers/types/suppliers.types";
 import { useBranchStore } from "@/store/employeeStore";
-import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
+import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierById";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHouses";
+import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
+import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
@@ -77,7 +80,7 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
                     <div className="font-semibold text-gray-800 text-xs truncate">{product.productNameAr}</div>
                     {product.barcode && <div className="text-[10px] text-gray-400">{product.barcode}</div>}
                   </div>
-                  <span className="text-xs font-bold text-[#000052] shrink-0 mr-2">{product.sellingPrice} ر.س</span>
+                  <span className="text-xs font-bold text-[#000052] shrink-0 mr-2">{product.costPrice} ر.س</span>
                 </button>
               ))
             )}
@@ -89,6 +92,14 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
 }
 
 export type SaveAction = "pdf" | "whatsapp" | "email" | "save_only" | "save_print";
+interface PurchasesDialogProps {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSelect?: (invoice: Purchase) => void;
+  suppliers: { items: Supplier[] };
+}
+
+export type PurchaseType = "الكل" | "المشتريات" | "المشتريات المعلقة";
 
 interface InvoicesDialogProps {
   open: boolean;
@@ -96,56 +107,40 @@ interface InvoicesDialogProps {
   onSelect?: (invoice: SalesOrder) => void;
 }
 
-export type InvoiceType = "الكل" | "الفواتير" | "الفواتير المعلقة";
-
-interface InvoicesDialogProps {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  onSelect?: (invoice: SalesOrder) => void;
-}
-
-const TYPE_TABS: { key: InvoiceType; label: string }[] = [
+const TYPE_TABS: { key: PurchaseType; label: string }[] = [
   { key: "الكل", label: "الكل" },
-  { key: "الفواتير", label: "الفواتير" },
-  { key: "الفواتير المعلقة", label: "الفواتير المعلقة" },
+  { key: "المشتريات", label: "المشتريات" },
+  { key: "المشتريات المعلقة", label: "المشتريات المعلقة" },
 ];
 
-const TYPE_MAP: Record<InvoiceType, SalesOrder["orderStatus"] | null> = {
+const TYPE_MAP: Record<PurchaseType, Purchase["orderStatus"] | null> = {
   الكل: null,
-  الفواتير: "Confirmed",
-  "الفواتير المعلقة": "UnConfirmed",
+  المشتريات: "Confirmed",
+  "المشتريات المعلقة": "UnConfirmed",
 };
 
-interface InvoicesDialogProps {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  onSelect?: (invoice: SalesOrder) => void;
-  customers: { items: Customer[] };
-}
-
-export function InvoicesDialog({ open, onOpenChange, onSelect, customers }: InvoicesDialogProps) {
-  const { selectedCustomer, addToCart, setCart, setDineInMode, setOrderType, setSelectedOrderId, setHoldingOrderId, setSelectedTable, setScreen, resetCart, setOriginalItems, setDiscount } = usePosStore();
-  const [activeType, setActiveType] = useState<InvoiceType>("الكل");
-  const [selectedCustomerId, setSelectCustomerId] = useState<number | null>(null);
-  const { data: customer } = useGetCustomerById(selectedCustomerId);
+export function PurchasesDialog({ open, onOpenChange, onSelect, suppliers }: PurchasesDialogProps) {
+  const { addToCart, setCart, resetCart, setDiscount } = usePurchaseStore();
+  const [activeType, setActiveType] = useState<PurchaseType>("الكل");
+  const [selectedSupplierId, setSelectSupplierId] = useState<number | null>(null);
+  const { data: supplier } = useGetSupplierById(selectedSupplierId);
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const { data: invoices } = useGetAllSales({
+  const { data: purchases } = useGetAllPurchases({
     page: 1,
     limit: 10,
-    OrderType: "POS",
   });
   const { t } = useLanguage();
   const fallbackBadge = { label: "", cls: "bg-sky-100 text-sky-600" };
 
   const filtered = useMemo(() => {
-    return (invoices?.items || []).filter((inv) => {
-      const matchType = TYPE_MAP[activeType] == null || inv.orderStatus === TYPE_MAP[activeType];
+    return (purchases?.items || []).filter((pur) => {
+      const matchType = TYPE_MAP[activeType] == null || pur.orderStatus === TYPE_MAP[activeType];
       const q = search.trim().toLowerCase();
-      const matchSearch = !q || inv.orderNumber?.toLowerCase().includes(q) || inv.customerName?.toLowerCase().includes(q) || inv.orderStatus?.toLowerCase().includes(q);
+      const matchSearch = !q || pur.purchaseOrderNumber?.toLowerCase().includes(q) || pur.supplierName?.toLowerCase().includes(q) || pur.orderStatus?.toLowerCase().includes(q);
       return matchType && matchSearch;
     });
-  }, [invoices, search, activeType]);
+  }, [purchases, search, activeType]);
 
   const selectedOrder = filtered.find((o) => o.id === Number(openMenuId));
 
@@ -175,7 +170,7 @@ export function InvoicesDialog({ open, onOpenChange, onSelect, customers }: Invo
         {/* ===== Search ===== */}
         <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b border-gray-100 bg-white">
           <div className="flex-1 relative">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث برقم الفاتورة / العميل / الحالة" className="w-full h-8 text-[11px] border border-gray-200 rounded-lg pr-3 pl-3 outline-none focus:border-blue-400 bg-gray-50 placeholder:text-gray-300" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث برقم الفاتورة / المورد / الحالة" className="w-full h-8 text-[11px] border border-gray-200 rounded-lg pr-3 pl-3 outline-none focus:border-blue-400 bg-gray-50 placeholder:text-gray-300" />
           </div>
           <button className="h-8 w-8 flex items-center justify-center bg-[#000052] rounded-lg text-white hover:bg-blue-900 transition-colors">
             <Search size={13} />
@@ -192,14 +187,14 @@ export function InvoicesDialog({ open, onOpenChange, onSelect, customers }: Invo
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
               <FileText size={32} className="opacity-30" />
-              <p className="text-sm">لا توجد فواتير</p>
+              <p className="text-sm">لا توجد مشتريات</p>
             </div>
           ) : (
             <div className="flex flex-col divide-y divide-gray-100">
-              {filtered.map((order: SalesOrder) => {
+              {filtered.map((order: Purchase) => {
                 const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600" : fallbackBadge.cls;
 
-                const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
+                const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus;
 
                 return (
                   <div
@@ -220,12 +215,12 @@ export function InvoicesDialog({ open, onOpenChange, onSelect, customers }: Invo
                       <div className="flex items-center gap-2">
                         <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                           <User size={10} />
-                          {order.customerName ?? "—"}
+                          {order.supplierName ?? "—"}
                         </span>
                         {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeCls}`}>{translatedStatus}</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-muted-foreground/60 font-mono">{order.orderNumber ?? "—"}</span>
+                        <span className="text-[10px] text-muted-foreground/60 font-mono">{order.purchaseOrderNumber ?? "—"}</span>
                         <span className="text-muted-foreground/30 text-[10px]">·</span>
                         <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                           <Clock size={9} />
@@ -441,7 +436,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
   const [search, setSearch] = useState("");
   const { data: quotations } = useGetAllQuotations();
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
-  const { setCart } = usePosStore();
+  const { setCart } = usePurchaseStore();
 
   const found = search.trim() ? quotations?.find((q) => q.quotationNumber === search.trim()) : null;
 
@@ -454,13 +449,15 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
         return {
           productId: item.productId,
           name: item.productName,
-          price: product.sellingPrice,
+          price: product?.costPrice,
           qty: item.quantity,
           note: "",
           op: null,
-          taxamount: product?.taxAmount,
+          taxamount: 0,
           taxCalculation: product?.taxCalculation ?? 0,
           itemDiscount: item.discountPercentage > 0 ? { type: "pct" as const, value: item.discountPercentage } : item.discountAmount > 0 ? { type: "flat" as const, value: item.discountAmount } : null,
+          taxId: undefined,
+          unitId: product?.baseUnitId || product?.unitId,
         };
       }),
     );
@@ -504,12 +501,12 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
                 <>
                   <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2.5 text-[12px]">
                     <div className="flex gap-1">
-                      <span className="text-gray-500">العميل:</span>
-                      <span className="font-semibold text-gray-800">{found.customerName}</span>
+                      <span className="text-gray-500">المورد:</span>
+                      <span className="font-semibold text-gray-800">{found.supplierName}</span>
                     </div>
                     <div className="flex gap-1">
                       <span className="text-gray-500">التاريخ:</span>
-                      <span className="font-semibold text-gray-800">{formatDate(found.quotationDate)}</span>
+                      <span className="font-semibold text-gray-800">{formatDate(found.orderDate)}</span>
                     </div>
                   </div>
 
@@ -589,11 +586,16 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
 
 export default function CartPanel3() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, handleConfirmPayment, addToCart, resetCart } = usePosStore();
+  const toast = useToast();
+  const { cart, setCart, discount, setDiscount, handleConfirmPurchase, addToCart, resetCart, selectedSupplier } = usePurchaseStore();
   const [quotationOpen, setQuotationOpen] = useState(false);
-  const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
-  const { data: customers } = useGetAllCustomers();
-  const { mutateAsync: releaseHolding } = useReleaseHolding();
+  const { mutateAsync: createPurchaseOrder } = useCreatePurchaseOrder();
+  const { data: suppliers } = useGetAllSuppliers();
+  const { data: wareHouses } = useGetAllWareHouses();
+  const { data: taxes } = useGetAllTaxes();
+  const [showTaxErrors, setShowTaxErrors] = useState(false);
+  const { data: units } = useGetAllUnits({});
+  const selectedWarehouseId = Number(wareHouses?.[0]?.id ?? 1);
   const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const subRaw = useMemo(() => cart.reduce((s, item) => s + itemBasePriceRaw(item), 0), [cart]);
   const [noteIndex, setNoteIndex] = useState<number | null>(null);
@@ -629,13 +631,15 @@ export default function CartPanel3() {
             name: product.productNameAr,
             productNameEn: product.productNameEn,
             productNameUr: product.productNameUr,
-            price: product.sellingPrice,
+            price: product.costPrice,
             qty: 1,
             note: "",
             op: null,
-            taxamount: product.taxAmount,
+            taxamount: 0,
             productId: product.id,
             taxCalculation: product.taxCalculation,
+            taxId: undefined,
+            unitId: product.baseUnitId || product.unitId,
           },
         ];
       });
@@ -705,16 +709,18 @@ export default function CartPanel3() {
           {/* Header */}
           <thead className="sticky top-0 z-10">
             <tr className="text-white text-[10px] font-bold text-center" style={{ backgroundColor: "#871d46" }}>
-              <th className="px-2 py-2 whitespace-nowrap">#</th>
-              <th className="whitespace-nowrap">كود الصنف</th>
-              <th className="w-[300px] whitespace-nowrap">اسم الصنف</th>
-              <th className="whitespace-nowrap">{isExempt ? "السعر" : "السعر بدون ضريبة"}</th>
-              <th className="whitespace-nowrap">الكمية</th>
-              {!isExempt && <th className="whitespace-nowrap">الإجمالي قبل الضريبة</th>}
-              {!isExempt && <th className="whitespace-nowrap">ضريبة القيمة المضافة</th>}
-              <th className="whitespace-nowrap">الإجمالي النهائي</th>
-              <th className="whitespace-nowrap">ملاحظات</th>
-              <th></th>
+              <th className="px-2 py-2 whitespace-nowrap text-center">#</th>
+              <th className="whitespace-nowrap text-center">كود الصنف</th>
+              <th className="w-[300px] whitespace-nowrap text-center">اسم المنتج</th>
+              <th className="whitespace-nowrap text-center">الوحدة</th>
+              <th className="whitespace-nowrap text-center">تكلفة الوحدة</th>
+              <th className="whitespace-nowrap text-center">الكمية</th>
+              <th className="whitespace-nowrap text-center">الإجمالي قبل الضريبة</th>
+              {!isExempt && <th className="whitespace-nowrap text-center">نسبة الضريبة</th>}
+              {!isExempt && <th className="whitespace-nowrap text-center">ضريبة القيمة المضافة</th>}
+              <th className="whitespace-nowrap text-center">الإجمالي النهائي</th>
+              <th className="whitespace-nowrap text-center">ملاحظات</th>
+              <th className="text-center"></th>
             </tr>
           </thead>
 
@@ -724,24 +730,30 @@ export default function CartPanel3() {
               <td className="px-2 py-2 whitespace-nowrap">{cart.length + 1}</td>
               <td className="whitespace-nowrap">--</td>
               <td className="w-[300px] whitespace-nowrap">
-                <ProductSearch
-                  onSelect={(product) => {
-                    const mapped: CartItem = {
-                      price: product?.sellingPrice,
-                      qty: 1,
-                      taxamount: product?.taxAmount,
-                      taxCalculation: product?.taxCalculation,
-                      taxPercentage: product?.taxPercentage,
-                      isNew: true,
-                      productId: product?.id,
-                      name: product?.productNameAr,
-                      productNameEn: product?.productNameEn,
-                      productNameUr: product?.productNameEn,
-                    };
-                    addToCart(mapped);
-                  }}
-                />
+                    <ProductSearch
+                      onSelect={(product) => {
+                        const mapped: CartItem = {
+                          price: product?.costPrice,
+                          qty: 1,
+                          taxamount: product?.taxAmount,
+                          taxCalculation: product?.taxCalculation,
+                          taxPercentage: product?.taxPercentage,
+                          isNew: true,
+                          productId: product?.id,
+                          name: product?.productNameAr,
+                          productNameEn: product?.productNameEn,
+                          productNameUr: product?.productNameEn,
+                          taxId: undefined,
+                          taxamount: 0,
+                          unitId: product?.baseUnitId || product?.unitId,
+                        };
+                        addToCart(mapped);
+                      }}
+                    />
               </td>
+              <td className="whitespace-nowrap">--</td>
+              <td className="whitespace-nowrap">--</td>
+              <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">--</td>
               {!isExempt && <td className="whitespace-nowrap">--</td>}
@@ -759,30 +771,71 @@ export default function CartPanel3() {
 
               return (
                 <tr key={idx} className={`border-b ${idx % 2 === 0 ? "" : "bg-[#f6f9fc]"}`}>
-                  <td className="whitespace-nowrap">{idx + 1}</td>
+              <td className="whitespace-nowrap text-center">{idx + 1}</td>
 
-                  <td className="whitespace-nowrap">{item.productId ?? "--"}</td>
+                  <td className="whitespace-nowrap text-center">{item.productId ?? "--"}</td>
 
-                  <td className="text-start px-2 w-[300px] whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</td>
+                  <td className="text-center px-2 w-[300px] whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</td>
 
-                  <td className="whitespace-nowrap">{format(itemUnitPriceRaw(item))}</td>
-
-                  <td>
-                    <div className="flex items-center justify-center border border-gray-200 rounded-lg bg-white w-fit mx-auto">
-                      <button onClick={() => changeQty(idx, -1)} className="px-1.5 py-0.5">
-                        −
-                      </button>
-                      <span className="px-2">{item.qty}</span>
-                      <button onClick={() => changeQty(idx, 1)} className="px-1.5 py-0.5">
-                        +
-                      </button>
-                    </div>
+                  <td className="px-1 text-center whitespace-nowrap text-[11px]">
+                    {units?.items?.find((u) => u.id === (item.unitId || units?.items?.[0]?.id))?.name || "--"}
                   </td>
 
-                  {!isExempt && <td className="whitespace-nowrap font-semibold">{base.toFixed(2)}</td>}
-                  {!isExempt && <td className="whitespace-nowrap">{tax.toFixed(2)}</td>}
+                  <td className="px-1 text-center">
+                    <Input
+                      type="number"
+                      className="h-7 text-[11px] w-20 text-center mx-auto"
+                      value={item.price}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setCart((prev) => prev.map((it, i) => (i === idx ? { ...it, price: val } : it)));
+                      }}
+                    />
+                  </td>
 
-                  <td className="whitespace-nowrap font-bold">{isExempt ? base.toFixed(2) : rowTotal.toFixed(2)}</td>
+                  <td className="px-1 text-center">
+                    <Input
+                      type="number"
+                      className="h-7 text-[11px] w-16 text-center mx-auto"
+                      value={item.qty}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setCart((prev) => prev.map((it, i) => (i === idx ? { ...it, qty: Math.max(1, val) } : it)));
+                      }}
+                    />
+                  </td>
+
+                  <td className="whitespace-nowrap font-semibold text-center">{(item.price * item.qty).toFixed(2)}</td>
+
+                  {!isExempt && (
+                    <td className="px-1 text-center">
+                      <div className="flex justify-center flex-col items-center">
+                        <Select
+                          value={String(item.taxId || "")}
+                          onValueChange={(v) => {
+                            const tax = taxes?.find((t) => t.id === Number(v));
+                            setCart((prev) => prev.map((it, i) => (i === idx ? { ...it, taxId: Number(v), taxamount: (it.price * (tax?.amount || 0)) / 100, taxPercentage: tax?.amount } : it)));
+                          }}
+                        >
+                          <SelectTrigger className={`h-7 text-[11px] w-24 text-center ${showTaxErrors && !item.taxId ? "border-red-500" : ""}`}>
+                            <SelectValue placeholder="الضريبة" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {taxes?.map((t) => (
+                              <SelectItem key={t.id} value={String(t.id)} className="text-center">
+                                {t.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {showTaxErrors && !item.taxId && <p className="text-[9px] text-red-500 mt-0.5 leading-tight font-bold">يرجى اختيار الضريبة</p>}
+                      </div>
+                    </td>
+                  )}
+
+                  {!isExempt && <td className="whitespace-nowrap text-orange-600 text-center">{(item.taxamount * item.qty).toFixed(2)}</td>}
+
+                  <td className="whitespace-nowrap font-bold text-green-600 text-center">{(item.price * item.qty + (item.taxamount || 0) * item.qty).toFixed(2)}</td>
 
                   <td>
                     {noteIndex === idx ? (
@@ -834,7 +887,7 @@ export default function CartPanel3() {
             )}
             {!isExempt && (
               <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
-                <span className="text-gray-500 font-bold">إجمالي الضريبة</span>
+                <span className="text-gray-500 font-bold">ضريبة القيمة المضافة</span>
                 <div className="flex items-center gap-2">
                   {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
                   <span className="font-medium text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
@@ -866,12 +919,24 @@ export default function CartPanel3() {
             }}
           >
             <div className="flex items-center justify-center border-l border-gray-300 p-2">
-              <button onClick={() => resetCart(customers)} className="bg-[#871d46] hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md h-full w-full">
+              <button onClick={() => resetCart()} className="bg-[#871d46] hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md h-full w-full">
                 حذف
               </button>
             </div>
             <div className="border-l border-gray-200 flex flex-col items-stretch justify-center p-2 gap-2">
-              <button onClick={() => setPaymentOpen(true)} className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-base font-semibold transition-colors">
+              <button
+                onClick={() => {
+                  const hasMissingTax = cart.some((item) => !item.taxId);
+                  if (hasMissingTax) {
+                    setShowTaxErrors(true);
+                    toast.error("يرجى اختيار الضريبة لكل الأصناف أولاً");
+                    return;
+                  }
+                  setShowTaxErrors(false);
+                  setPaymentOpen(true);
+                }}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-base font-semibold transition-colors"
+              >
                 الدفع
               </button>
             </div>
@@ -883,7 +948,7 @@ export default function CartPanel3() {
             <button className="bg-violet-700 text-white text-[10px] rounded-md py-1.5">عرض أسعار</button>
             <button
               onClick={() => {
-                handleConfirmPayment({ isHolding: true });
+                // handleConfirmPurchase({ isHolding: true });
               }}
               className="bg-cyan-600 text-white text-[10px] rounded-md py-1.5"
             >
@@ -934,25 +999,18 @@ export default function CartPanel3() {
           </div>
         </div>
       </div>
-      <UnifiedPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} mode="payment" total={total} />
-      {/* <PaymentDialog
-        open={paymentOpen}
-        onOpenChange={setPaymentOpen}
-        total={total}
-        // onSave={({ vault, action }) => {
-        //   if (action === "save_print")
-        //   if (action === "save_only")
-        //   if (action === "pdf")
-        //   if (action === "whatsapp")
-        //   if (action === "email")
-        // }}
-      />{" "} */}
-      <InvoicesDialog
-        customers={customers}
+      <UnifiedPurchasePaymentDialog 
+        open={paymentOpen} 
+        onOpenChange={setPaymentOpen} 
+        total={total} 
+        warehouseId={selectedWarehouseId}
+      />
+      <PurchasesDialog
+        suppliers={suppliers ?? { items: [] }}
         open={invoicesOpen}
         onOpenChange={setInvoicesOpen}
-        onSelect={(invoice) => {
-          console.log(invoice);
+        onSelect={(purchase) => {
+          console.log(purchase);
         }}
       />
       <QuotationDialog open={quotationOpen} onOpenChange={setQuotationOpen} />

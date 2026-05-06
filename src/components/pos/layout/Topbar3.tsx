@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Home, LogOut, Pause, Bug, Maximize, Plus, Keyboard as KeyboardIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
+import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { Treasury } from "@/features/treasurys/types/treasurys.types";
 import ComboboxField from "@/components/ui/ComboboxField";
@@ -19,7 +19,7 @@ import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHou
 import { Warehouse } from "@/features/Warehouses/types/Warehouses.types";
 import { WareHouse } from "@/features/wareHouse/types/wareHouse.types";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
-import { usePosStore } from "@/features/pos/store/usePosStore";
+import { usePurchaseStore } from "@/features/pos/store/usePurchaseStore";
 import ShiftReportModal from "../modals/ShiftReportModal";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { useGetAllShifts, useCloseShift } from "@/features/shifts/hooks/useShifts";
@@ -29,10 +29,10 @@ import { useAuthStore } from "@/store/authStore";
 export default function Topbar3() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [employee, setEmployee] = useState("");
-  const { data: customers } = useGetAllCustomers({ page: 1, limit: 10000 });
-  const { selectedCustomer, setSelectedCustomer, setOrderNote, orderNote } = usePosStore();
+  const { data: suppliers } = useGetAllSuppliers();
+  const { selectedSupplier, setSelectedSupplier, setOrderNote, orderNote } = usePurchaseStore();
   const [openDialog, setOpenDialog] = useState(false);
-  const [balanceSelectedCustomer, setBalanceSelectedCustomer] = useState<number | null>(null);
+  const [balanceSelectedSupplier, setBalanceSelectedSupplier] = useState<number | null>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const { data: wareHouses } = useGetAllWareHouses();
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(String(wareHouses?.[0]?.id ?? ""));
@@ -67,11 +67,11 @@ export default function Topbar3() {
   }, [shifts, userName, authShiftId]);
 
   useEffect(() => {
-    if (customers) {
-      setSelectedCustomer(customers?.items[0]);
-      setBalanceSelectedCustomer(customers?.items[0].balance);
+    if (suppliers) {
+      setSelectedSupplier(suppliers?.items[0]);
+      setBalanceSelectedSupplier(suppliers?.items[0].balance);
     }
-  }, [customers]);
+  }, [suppliers]);
 
   useEffect(() => {
     if (wareHouses && wareHouses?.length > 0) {
@@ -160,15 +160,15 @@ export default function Topbar3() {
                 <Label className="text-[10px] text-[#871d46] dark:text-muted-foreground">اختر المورد</Label>
                 <ComboboxField
                   className="border-[#871d46] text-[#871d46] dark:border-border dark:text-foreground text-[11px]"
-                  value={selectedCustomer ? String(selectedCustomer.id) : ""}
+                  value={selectedSupplier ? String(selectedSupplier.id) : ""}
                   onChange={(val) => {
-                    const c = customers?.items?.find((c) => String(c.id) === String(val));
-                    if (c) setSelectedCustomer(c);
-                    setBalanceSelectedCustomer(c?.balance);
+                    const s = suppliers?.items?.find((s) => String(s.id) === String(val));
+                    if (s) setSelectedSupplier(s);
+                    setBalanceSelectedSupplier(s?.balance ?? 0);
                   }}
-                  items={customers?.items}
+                  items={suppliers?.items}
                   valueKey="id"
-                  labelKey="customerName"
+                  labelKey="supplierName"
                   placeholder={t("choose_supplier")}
                 />
               </div>
@@ -177,7 +177,7 @@ export default function Topbar3() {
             {showActualBalance && (
               <div className="flex flex-col gap-1">
                 <Label className="text-[10px] text-[#871d46] dark:text-muted-foreground">رصيد المورد</Label>
-                <Input value={balanceSelectedCustomer ?? ""} readOnly={true} className="text-center cursor-not-allowed text-[11px] bg-white border-[#871d46] text-[#871d46] dark:bg-background dark:border-border dark:text-foreground" />
+                <Input value={balanceSelectedSupplier ?? ""} readOnly={true} className="text-center cursor-not-allowed text-[11px] bg-white border-[#871d46] text-[#871d46] dark:bg-background dark:border-border dark:text-foreground" />
               </div>
             )}
 
