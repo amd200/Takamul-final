@@ -293,8 +293,8 @@ html, body {
 
     <!-- Institution: AR right | EN left -->
     <div class="hrow inst-row">
-      <span class="h-ar">${data.branch?.name}</span>
-      <span class="h-en">${data.branch?.nameEn ?? ""}</span>
+      <span class="h-ar">${data?.branch?.name}</span>
+      <span class="h-en">${data?.branch?.nameEn ?? ""}</span>
     </div>
 
     <!-- VAT NO: AR | value | EN -->
