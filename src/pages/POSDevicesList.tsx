@@ -94,8 +94,6 @@ function CertificateBadge({ certificateType, isCertificateExpired }: { certifica
   );
 }
 
-
-
 export default function POSDevicesList() {
   const { t, direction } = useLanguage();
 
@@ -153,7 +151,6 @@ export default function POSDevicesList() {
         <CardContent className="space-y-3">
           <DataTable
             value={visibleDevices || []}
-            lazy
             paginator
             rows={entriesPerPage}
             first={(currentPage - 1) * entriesPerPage}
