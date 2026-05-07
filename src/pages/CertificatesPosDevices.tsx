@@ -65,8 +65,21 @@ function handleDeleteWithUndo(certificate: Certificate, onDelete: (id: number) =
   });
 }
 
-function CertificateBadge({ status, isCertificateExpired, type }: { status: Certificate["currentCertificateType"]; isCertificateExpired: boolean; type: "CCSID" | "PCSID" }) {
-  const isRegistered = type === "PCSID" ? status === "PCSID" : status === "CCSID" || status === "PCSID";
+function CertificateBadge({
+  status,
+  isCertificateExpired,
+  type,
+}: {
+  status: Certificate["currentCertificateType"];
+  isCertificateExpired: boolean;
+  type: "CSR" | "CCSID" | "PCSID";
+}) {
+  const isRegistered =
+    type === "CSR"
+      ? status === "CSR" || status === "CCSID" || status === "PCSID"
+      : type === "CCSID"
+        ? status === "CCSID" || status === "PCSID"
+        : status === "PCSID";
 
   if (!isRegistered) {
     return (
@@ -246,6 +259,7 @@ export default function CertificatesPosDevices() {
                 </div>
               )}
             />
+            <Column field="currentCertificateType" header="CSR" style={{ width: "15%" }} body={(row: Certificate) => <CertificateBadge status={row.currentCertificateType} isCertificateExpired={row.isExpired} type="CSR" />} />
             <Column field="currentCertificateType" header="CCSID" style={{ width: "15%" }} body={(row: Certificate) => <CertificateBadge status={row.currentCertificateType} isCertificateExpired={row.isExpired} type="CCSID" />} />
             <Column field="currentCertificateType" header="PCSID" style={{ width: "15%" }} body={(row: Certificate) => <CertificateBadge status={row.currentCertificateType} isCertificateExpired={row.isExpired} type="PCSID" />} />
             <Column field="certificateExpiresAt" header="تاريخ الانتهاء" style={{ width: "10%" }} body={(row: Certificate) => <span className="text-sm font-mono text-gray-700">{formatDate(row.expiresAt) ?? "—"}</span>} />
@@ -255,6 +269,7 @@ export default function CertificatesPosDevices() {
               body={(row: Certificate) => {
                 const isCCSID = row.currentCertificateType === "CCSID";
                 const isPCSID = row.currentCertificateType === "PCSID";
+                const isCSR = row.currentCertificateType === "CSR";
                 // const isNotRegistered = row.status === "NotRegistered" || row.status === "PendingOTP";
 
                 return (
@@ -272,7 +287,7 @@ export default function CertificatesPosDevices() {
                       </button>
                     )} */}
 
-                    {isCCSID && (
+                    {(isCCSID || isCSR) && (
                       <button
                         onClick={() => {
                           const device = {
