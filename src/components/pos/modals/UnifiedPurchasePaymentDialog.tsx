@@ -173,7 +173,7 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
         }
       }
       onOpenChange(false);
-      navigate("/purchases");
+      if (isEditMode) navigate("/purchases");
     } catch (err) {
       console.error(err);
     }
