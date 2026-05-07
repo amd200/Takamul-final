@@ -42,18 +42,18 @@ export interface Group {
 
 const GROUPS: Group[] = [
   {
-    id: "dashboard",
-    label: "لوحة التحكم",
+    id: "statistics",
+    label: "الإحصائيات",
     pages: [
       {
-        id: "dashboard_stats",
-        label: "إحصائيات لوحة التحكم",
+        id: "statistics",
+        label: "الإحصائيات",
         permissions: [
-          { id: "view_sales", label: "عرض إحصائيات المبيعات", value: Permissions?.dashboard?.viewSales },
-          { id: "view_expenses", label: "عرض إحصائيات المصروفات", value: Permissions?.dashboard?.viewExpenses },
-          { id: "view_purchases", label: "عرض إحصائيات المشتريات", value: Permissions?.dashboard?.viewPurchases },
-          { id: "view_profit", label: "عرض إحصائيات الأرباح", value: Permissions?.dashboard?.viewProfit },
-       
+          { id: "view_sales", label: "اجمالي المبيعات", value: Permissions?.statistics?.sales },
+          { id: "view_expenses", label: "اجمالي المصروفات ", value: Permissions?.statistics?.expenses },
+          { id: "view_purchases", label: "اجمالي المشتريات", value: Permissions?.statistics?.purchases },
+          { id: "view_profit", label: "اجمالي الربح ", value: Permissions?.statistics?.profit },
+
         ],
       },
     ],
@@ -332,7 +332,7 @@ const GROUPS: Group[] = [
       },
     ],
   },
-   {
+  {
     id: "shifts",
     label: "الورديات",
     pages: [
@@ -356,7 +356,7 @@ const GROUPS: Group[] = [
             label: "غلق",
             value: Permissions?.shifts?.close,
           },
-         
+
         ],
       },
     ],
