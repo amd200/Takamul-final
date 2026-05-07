@@ -58,7 +58,6 @@ zatcaStatus: "InProgress" | "Submitted" | "Valid" | "Invalid" | "Rejected" | "Ca
 
 export type CreateSalesOrder = {
   customerId: number;
-  orderDate: string;
   warehouseId: number;
   notes: string;
   description: string;

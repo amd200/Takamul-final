@@ -27,11 +27,16 @@ import { useMemo } from "react";
 import { useAuthStore } from "@/store/authStore";
 import useToast from "@/hooks/useToast";
 
-
 export default function Topbar2() {
   const navigate = useNavigate();
   const { notifySuccess } = useToast();
-  const [deliveryDate, setDeliveryDate] = useState("");
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().slice(0, 16);
+  };
+
+  const [deliveryDate, setDeliveryDate] = useState(getCurrentDateTime());
   const [employee, setEmployee] = useState("");
   const { data: customers } = useGetAllCustomers({ page: 1, limit: 10000 });
   const { selectedCustomer, setSelectedCustomer, setOrderNote, orderNote } = usePosStore();
@@ -62,10 +67,7 @@ export default function Topbar2() {
     const normalizedUserName = userName?.toLowerCase().trim();
 
     // 1. Try to find an open shift for the current user
-    const openShiftForUser = shiftsArray.find((s: any) => 
-      s.status === "Open" && 
-      s.employeeName?.toLowerCase().trim() === normalizedUserName
-    );
+    const openShiftForUser = shiftsArray.find((s: any) => s.status === "Open" && s.employeeName?.toLowerCase().trim() === normalizedUserName);
     if (openShiftForUser) return openShiftForUser;
 
     // 2. Fallback: Find any open shift in the list
@@ -73,13 +75,9 @@ export default function Topbar2() {
     if (anyOpenShift) return anyOpenShift;
 
     // 3. Fallback: Find the latest shift for the current user even if not marked "Open"
-    const latestUserShift = shiftsArray.find((s: any) => 
-      s.employeeName?.toLowerCase().trim() === normalizedUserName
-    );
+    const latestUserShift = shiftsArray.find((s: any) => s.employeeName?.toLowerCase().trim() === normalizedUserName);
     return latestUserShift || null;
   }, [shifts, userName, authShiftId]);
-
-
 
   useEffect(() => {
     if (customers) {
@@ -146,7 +144,7 @@ export default function Topbar2() {
               </div>
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[10px] text-blue-400">كود الوردية</span>
-                <span className="text-[11px] font-semibold text-[#000052] dark:text-foreground">{(authShiftId && authShiftId !== "0") ? authShiftId : currentOpenShift?.id || "---"}</span>
+                <span className="text-[11px] font-semibold text-[#000052] dark:text-foreground">{authShiftId && authShiftId !== "0" ? authShiftId : currentOpenShift?.id || "---"}</span>
               </div>
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[10px] text-blue-400">تاريخ الفاتورة</span>
@@ -202,7 +200,7 @@ export default function Topbar2() {
 
             <div className="flex flex-col gap-1">
               <Label className="text-[10px] text-[#000052] dark:text-muted-foreground">وقت وتاريخ الاستلام</Label>
-              <Input type="datetime-local" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="text-[11px] bg-white border-[#000052] text-[#000052] dark:bg-background dark:border-border dark:text-foreground" />
+              <Input type="datetime-local" value={deliveryDate} readOnly className="text-[11px] bg-white border-[#000052] text-[#000052] dark:bg-background dark:border-border dark:text-foreground  cursor-not-allowed" />{" "}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -258,9 +256,9 @@ export default function Topbar2() {
       <ShiftReportModal
         isOpen={shiftReportOpen}
         onClose={() => setShiftReportOpen(false)}
-        shiftId={(authShiftId && authShiftId !== "0") ? Number(authShiftId) : currentOpenShift?.id || 0}
+        shiftId={authShiftId && authShiftId !== "0" ? Number(authShiftId) : currentOpenShift?.id || 0}
         onConfirmCloseShift={() => {
-          const targetShiftId = (authShiftId && authShiftId !== "0") ? Number(authShiftId) : currentOpenShift?.id;
+          const targetShiftId = authShiftId && authShiftId !== "0" ? Number(authShiftId) : currentOpenShift?.id;
           if (!targetShiftId) return;
           const fullTime = new Date().toLocaleTimeString("en-GB", { hour12: false });
           closeShift(
@@ -274,7 +272,7 @@ export default function Topbar2() {
                   navigate("/login");
                 }, 1500);
               },
-            }
+            },
           );
         }}
       />

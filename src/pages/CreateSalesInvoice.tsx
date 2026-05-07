@@ -269,7 +269,6 @@ const CreateSalesInvoice: React.FC = () => {
   const handleSubmit = async (data: SalesInvoiceType) => {
     const payload: CreateSalesOrder = {
       customerId: data.customerId,
-      orderDate: data.orderDate,
       warehouseId: data.warehouseId,
       notes: data.notes || "",
       description: "",
