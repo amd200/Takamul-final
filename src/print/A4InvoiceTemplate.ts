@@ -514,7 +514,7 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
   <!-- ══ DOC TYPE SECTION ══ -->
   <div class="doc-type-container">
     <div class="doc-type-item">${order.purchaseOrderNumber ? t("purchase_invoice", "فاتورة مشتريات") : t("cash_sales_invoice", "فاتورة مبيعات نقدية")}</div>
-    <div class="doc-type-item">${t("tax_invoice", "فاتورة ضريبية")} ${custTaxNo ? "" : "(مبسطة)"}</div>
+    <div class="doc-type-item">${t("tax_invoice", "فاتورة ضريبية")} ${custTaxNo ? "" : "مبسطة"}</div>
     <div class="doc-type-item">${t("seller_name", "اسم البائع")} : ${order.createdBy || order.sellerName || order.cashier || order.employeeName || "-"}</div>
   </div>
 
