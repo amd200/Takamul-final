@@ -237,7 +237,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
 
   const [clickedGeneratedCSR, setClickedGeneratedCSR] = useState<boolean>(false);
   const [createdDeviceId, setCreatedDeviceId] = useState<number | undefined>();
-  const [certificateId, setCertificateId] = useState<number | undefined>();
+  const [certificateId, setCertificateId] = useState<number | undefined>(7);
   const [csr, setCsr] = useState<CSRResult | undefined>();
   const [privateKey, setPrivateKey] = useState<string | undefined>();
   const [ccsid, setCcsid] = useState<CCSIDResult | undefined>();
