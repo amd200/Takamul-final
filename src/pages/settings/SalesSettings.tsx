@@ -34,6 +34,7 @@ export default function SalesSettings() {
       isTekawuy: systemSettings.sales.isTekawuy,
       isTables: systemSettings.sales.isTables,
       isDelivary: systemSettings.sales.isDelivary,
+      enableCursorOnAddProduct: systemSettings.sales.enableCursorOnAddProduct,
     });
   };
 
