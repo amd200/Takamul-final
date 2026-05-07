@@ -46,8 +46,8 @@ const GROUPS: Group[] = [
     label: "لوحة التحكم",
     pages: [
       {
-        id: "dashboard",
-        label: "لوحة التحكم",
+        id: "statistics",
+        label: "الإحصائيات",
         permissions: [
           { id: "view_sales", label: "اجمالي المبيعات", value: Permissions?.statistics?.sales },
           { id: "view_expenses", label: "اجمالي المصروفات ", value: Permissions?.statistics?.expenses },
