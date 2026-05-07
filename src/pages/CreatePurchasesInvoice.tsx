@@ -25,6 +25,7 @@ import z from "zod/v3";
 import { calcVat } from "@/utils/calcVat";
 import { useUpdatePurchaseOrder } from "@/features/purchases/hooks/useUpdatePurchaseOrder";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { format } from "@/constants/data";
 
 const createPurchasesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -649,13 +650,10 @@ const CreatePurchaseInvoice: React.FC = () => {
                   </>
                 )}
 
-
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-zinc-900 dark:text-white">{t("final_total")}</span>
                   <span className="text-xl font-black text-green-600">
-                    {summary.finalTotal.toLocaleString("en-EG", {
-                      minimumFractionDigits: 2,
-                    })}
+                    {format(summary.finalTotal)}
                   </span>
                 </div>
               </div>

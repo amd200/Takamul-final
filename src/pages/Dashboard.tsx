@@ -147,7 +147,7 @@ export default function Dashboard() {
             {hasPermission(Permissions?.purchaseOrders?.view) && <StatCard title={t("total_purchases")} value={formatCurrency(totalPurchasesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })} icon={ShoppingBag} bgClass="bg-[var(--dashboard-purchases)]" textColor="text-[var(--dashboard-purchases-text)]" delay={0.4} isLoading={purchasesLoading} />}
           </div>
 
-          <OperationsStats />
+          {systemSettings?.taxSetting?.taxSetting == "" && <OperationsStats />}
 
           {/* Charts Section */}
 

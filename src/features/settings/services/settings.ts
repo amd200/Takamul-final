@@ -15,7 +15,7 @@ export const getAllSettings = async () => {
     const phaseSource = rawTaxSetting || rawItemsTaxPhase;
     const phaseStr = String(phaseSource || "");
 
-    let finalPhase = "FirstStage"; // Default
+    let finalPhase = "FirstStage"; 
     if (phaseStr === "2" || phaseStr === "SecondStage") finalPhase = "SecondStage";
     else if (phaseStr === "3" || phaseStr === "Exempt") finalPhase = "Exempt";
     else if (phaseStr === "1" || phaseStr === "FirstStage") finalPhase = "FirstStage";

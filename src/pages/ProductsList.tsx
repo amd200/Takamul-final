@@ -17,7 +17,7 @@ import { useGetAllProductsDirect } from "@/features/products/hooks/useGetAllProd
 import { useGetAllProductsBranched } from "@/features/products/hooks/useGetAllProductsBranched";
 import { useGetAllProductsRawMatrial } from "@/features/products/hooks/useGetAllProductsRawMatrial";
 import { useGetAllProductsPrepared } from "@/features/products/hooks/useGetAllProductsPrepared";
-import { useDeleteProduct } from "@/features/products/hooks/useDeleteCustomer";
+import { useDeleteProduct } from "@/features/products/hooks/useDeleteProduct";
 import { useAuthStore } from "@/store/authStore";
 import { Permission, Permissions } from "@/lib/permissions";
 import { Input } from "@/components/ui/input";
