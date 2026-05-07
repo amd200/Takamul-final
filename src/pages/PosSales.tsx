@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import { format } from "@/constants/data";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export default function PosSales() {
   type Payment = SalesOrder["payments"][number];
@@ -98,6 +99,8 @@ export default function PosSales() {
     },
     [language, t],
   );
+    const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  
   return (
     <div className="space-y-4 pb-12" dir={direction}>
       <Card>
@@ -134,7 +137,7 @@ export default function PosSales() {
             <Column header={t("date")} sortable field="orderDate" body={(row) => formatDate(row.orderDate)} />
             <Column header={t("customer_name")} sortable field="customerName" />
             <Column header={t("cashier")} sortable field="createdBy" />
-            <Column header={"حالة إرسال المرحلة التانية"} sortable body={(rawData) => zatcaStatusBodyTemplate(rawData)} field="zatcaStatus" />
+            {taxSetting == "SecondStage" && <Column header={"حالة إرسال المرحلة التانية"} sortable body={(rawData) => zatcaStatusBodyTemplate(rawData)} field="zatcaStatus" />}
             <Column header={t("invoice_status")} sortable body={(rawData) => statusBodyTemplate(rawData)} field="orderStatus" />
             <Column header={t("total_amount")} sortable field="grandTotal" body={(row: SalesOrder) => format(row.grandTotal)} />
             <Column header={t("paid_amount")} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />

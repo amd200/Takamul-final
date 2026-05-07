@@ -53,7 +53,7 @@ export type Settings = {
   };
 
   taxSetting?: {
-    taxSetting: string;
+    taxSetting: "Exempt" | "FirstStage" | "SecondStage";
     itemTax: boolean;
   };
 

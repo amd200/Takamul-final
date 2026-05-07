@@ -58,6 +58,11 @@ interface BarcodeScaleSettings {
   barcodeDivideWeightBy: number;
 }
 
+interface TaxSetting {
+  taxSetting: "Exempt" | "FirstStage" | "SecondStage";
+  itemTax: boolean;
+}
+
 interface MoneySettings {
   decimals: number;
   quantityDecimals: number;
@@ -127,7 +132,6 @@ const defaultSettings: Settings = {
     barcodeWeightCharactersCount: 5,
     barcodeDivideWeightBy: 1000,
   },
-
   taxSetting: {
     taxSetting: "FirstStage",
     itemTax: false,
@@ -149,7 +153,6 @@ const defaultSettings: Settings = {
 interface SettingsStore {
   settings: Settings;
 
-  // Setters per section
   setSettings: (settings: Settings) => void;
   setTobaccoFees: (data: Partial<TobaccoFeesSettings>) => void;
   setGeneral: (data: Partial<GeneralSettings>) => void;
@@ -157,29 +160,20 @@ interface SettingsStore {
   setItems: (data: Partial<ItemsSettings>) => void;
   setSales: (data: Partial<SalesSettings>) => void;
   setBarcodeScale: (data: Partial<BarcodeScaleSettings>) => void;
-  // setPoints: (data: Partial<PointsSettings>) => void;
+  setTaxSetting: (data: Partial<TaxSetting>) => void; // ✅
+  setMoney: (data: Partial<MoneySettings>) => void; // ✅
 
-  // Granular field setters — useful for single-field optimistic updates
   setRowsPerPage: (value: number) => void;
   setDefaultPaymentCompany: (value: number) => void;
   setDefaultSalesVault: (value: number) => void;
   setDefaultPurchasesVault: (value: number) => void;
 
-  // Reset
   resetSettings: () => void;
 }
 
 export const useSettingsStore = create<SettingsStore>((set) => ({
   settings: defaultSettings,
 
-  // setSettings: (settings) =>
-  //   set((state) => ({
-  //     settings: {
-  //       ...state.settings,
-  //       ...settings,
-  //       money: settings.money || state.settings.money,
-  //     },
-  //   })),
   setSettings: (settings) =>
     set((state) => ({
       settings: {
@@ -187,7 +181,7 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
         ...settings,
       },
     })),
-  // ── Section-level setters ────────────────────────────────────────────────────
+
   setTobaccoFees: (data) =>
     set((state) => ({
       settings: {
@@ -236,15 +230,26 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
       },
     })),
 
-  // setPoints: (data) =>
-  //   set((state) => ({
-  //     settings: {
-  //       ...state.settings,
-  //       points: { ...state.settings.points, ...data },
-  //     },
-  //   })),
+  setTaxSetting: (
+    data, // ✅
+  ) =>
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        taxSetting: { ...state.settings.taxSetting, ...data } as TaxSetting,
+      },
+    })),
 
-  // ── Granular setters ─────────────────────────────────────────────────────────
+  setMoney: (
+    data, // ✅
+  ) =>
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        money: { ...state.settings.money, ...data },
+      },
+    })),
+
   setRowsPerPage: (value) =>
     set((state) => ({
       settings: {
@@ -277,7 +282,6 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
       },
     })),
 
-  // ── Reset to defaults ────────────────────────────────────────────────────────
   resetSettings: () => set({ settings: defaultSettings }),
 }));
 
@@ -288,7 +292,8 @@ export const selectLocation = (s: SettingsStore) => s.settings.location;
 export const selectItems = (s: SettingsStore) => s.settings.items;
 export const selectSales = (s: SettingsStore) => s.settings.sales;
 export const selectBarcodeScale = (s: SettingsStore) => s.settings.barcodeScale;
-// export const selectPoints = (s: SettingsStore) => s.settings.points;
+export const selectTaxSetting = (s: SettingsStore) => s.settings.taxSetting; // ✅
+export const selectMoney = (s: SettingsStore) => s.settings.money; // ✅
 
 export const selectRowsPerPage = (s: SettingsStore) => s.settings.location.rowsPerPage;
 export const selectAllowSaleWithZeroStock = (s: SettingsStore) => s.settings.sales.allowSaleWithZeroStock;

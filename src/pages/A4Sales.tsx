@@ -20,6 +20,7 @@ import { Permissions } from "@/lib/permissions";
 import { format } from "@/constants/data";
 import formatDate from "@/lib/formatDate";
 import { useSendInvoiceSell } from "@/features/zatcaInvoice/hooks/useSendInvoiceSell";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
@@ -36,6 +37,7 @@ export default function A4Sales() {
     setGlobalFilterValue(value);
     setCurrentPage(1);
   };
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
   const renderHeader = () => {
     return (
       <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -133,7 +135,7 @@ export default function A4Sales() {
             <Column header={t("date")} sortable field="orderDate" body={(row) => formatDate(row.orderDate)} />
             <Column header={t("customer_name")} sortable field="customerName" />
             <Column header={t("cashier")} sortable field="createdBy" />
-            <Column header={"حالة إرسال المرحلة التانية"} sortable body={(rawData) => zatcaStatusBodyTemplate(rawData)} field="zatcaStatus" />
+            {taxSetting == "SecondStage" && <Column header={"حالة إرسال المرحلة التانية"} sortable body={(rawData) => zatcaStatusBodyTemplate(rawData)} field="zatcaStatus" />}
             <Column header={t("invoice_status")} sortable body={(rawData) => statusBodyTemplate(rawData)} field="orderStatus" />
             <Column header={t("total_amount")} sortable field="grandTotal" body={(row: SalesOrder) => format(row.grandTotal)} />
             <Column header={t("paid_amount")} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />
@@ -203,9 +205,14 @@ export default function A4Sales() {
                       {t("send_whatsapp")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={async() => {await sendInvoiceSell({ invoiceId: row.id })}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        await sendInvoiceSell({ invoiceId: row.id });
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md"
+                    >
                       <RefreshCw size={14} />
-                     إعادة الإرسال للهيئة
+                      إعادة الإرسال للهيئة
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
