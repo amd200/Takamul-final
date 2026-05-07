@@ -165,6 +165,12 @@ export const Permissions = {
     all: "الإحصائيات.الكل",
     view: "الإحصائيات.عرض",
   },
+  dashboard: {
+    viewSales: "لوحة التحكم.عرض إحصائيات المبيعات",
+    viewExpenses: "لوحة التحكم.عرض إحصائيات المصروفات",
+    viewPurchases: "لوحة التحكم.عرض إحصائيات المشتريات",
+    viewProfit: "لوحة التحكم.عرض إحصائيات الأرباح",
+  },
   stockInventory: {
     all: "المخزون.الكل",
     view: "المخزون.عرض",

@@ -55,4 +55,15 @@ export type Settings = {
     taxSetting: string;
     itemTax: boolean;
   };
+
+  money: {
+    decimals: number;
+    quantityDecimals: number;
+    southAsiaFormat: boolean;
+    decimalSeparator: string;
+    thousandSeparator: string;
+    showCurrencySymbol: boolean;
+    currencySymbol: string;
+    a4InvoiceDecimals: number;
+  };
 };

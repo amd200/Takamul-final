@@ -42,6 +42,23 @@ export interface Group {
 
 const GROUPS: Group[] = [
   {
+    id: "dashboard",
+    label: "لوحة التحكم",
+    pages: [
+      {
+        id: "dashboard_stats",
+        label: "إحصائيات لوحة التحكم",
+        permissions: [
+          { id: "view_sales", label: "عرض إحصائيات المبيعات", value: Permissions?.dashboard?.viewSales },
+          { id: "view_expenses", label: "عرض إحصائيات المصروفات", value: Permissions?.dashboard?.viewExpenses },
+          { id: "view_purchases", label: "عرض إحصائيات المشتريات", value: Permissions?.dashboard?.viewPurchases },
+          { id: "view_profit", label: "عرض إحصائيات الأرباح", value: Permissions?.dashboard?.viewProfit },
+       
+        ],
+      },
+    ],
+  },
+  {
     id: "products",
     label: "الأصناف",
     pages: [
