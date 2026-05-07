@@ -232,6 +232,7 @@ interface Props {
     location?: string;
     isActive?: boolean;
     status: DeviceStatus;
+    certificateId: number;
   };
   editMode: boolean;
 }
@@ -246,7 +247,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
 
   const [clickedGeneratedCSR, setClickedGeneratedCSR] = useState<boolean>(false);
   const [createdDeviceId, setCreatedDeviceId] = useState<number | undefined>();
-  const [certificateId, setCertificateId] = useState<number | undefined>(7);
+  const [certificateId, setCertificateId] = useState<number | undefined>(undefined);
   const [csr, setCsr] = useState<CSRResult | undefined>();
   const [privateKey, setPrivateKey] = useState<string | undefined>();
   const [ccsid, setCcsid] = useState<CCSIDResult | undefined>();
@@ -304,7 +305,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
         isActive: device.isActive,
       });
       setCreatedDeviceId(device.id);
-      // setCertificateId(device.certificateId ??);
+      setCertificateId(device.certificateId);
       setDeviceStatus(device.status as DeviceStatus);
 
       const resumeStep = statusToStep[device.status as DeviceStatus] ?? 1;
@@ -437,7 +438,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
   const handleRegisterPCSID = async () => {
     // if (!certificateId) return;
     try {
-      const res = await registerPCSID({ certificateId: 8 });
+      const res = await registerPCSID({ certificateId: certificateId });
       const expiresAt = res?.data?.expiresAt;
       const isExpired = !expiresAt || new Date(expiresAt) <= new Date();
       setPcsid({

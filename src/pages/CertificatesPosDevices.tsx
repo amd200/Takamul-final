@@ -65,21 +65,8 @@ function handleDeleteWithUndo(certificate: Certificate, onDelete: (id: number) =
   });
 }
 
-function CertificateBadge({
-  status,
-  isCertificateExpired,
-  type,
-}: {
-  status: Certificate["currentCertificateType"];
-  isCertificateExpired: boolean;
-  type: "CSR" | "CCSID" | "PCSID";
-}) {
-  const isRegistered =
-    type === "CSR"
-      ? status === "CSR" || status === "CCSID" || status === "PCSID"
-      : type === "CCSID"
-        ? status === "CCSID" || status === "PCSID"
-        : status === "PCSID";
+function CertificateBadge({ status, isCertificateExpired, type }: { status: Certificate["currentCertificateType"]; isCertificateExpired: boolean; type: "CSR" | "CCSID" | "PCSID" }) {
+  const isRegistered = type === "CSR" ? status === "CSR" || status === "CCSID" || status === "PCSID" : type === "CCSID" ? status === "CCSID" || status === "PCSID" : status === "PCSID";
 
   if (!isRegistered) {
     return (
@@ -123,6 +110,7 @@ export default function CertificatesPosDevices() {
     location?: string;
     isActive?: boolean;
     status: DeviceStatus;
+    certificateId: number;
   } | null>(null);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set());
@@ -299,7 +287,9 @@ export default function CertificatesPosDevices() {
                             location: devices?.data?.find((d) => d.id === row.deviceId)?.location || "",
                             isActive: devices?.data?.find((d) => d.id === row.deviceId)?.isActive || false,
                             status: devices?.data?.find((d) => d.id === row.deviceId)?.status || "NotRegistered",
+                            certificateId: row?.deviceCertificateId,
                           };
+                          console.log(device.certificateId);
                           setSelectedDevice(device);
                           setIsAddModalOpen(true);
                         }}
