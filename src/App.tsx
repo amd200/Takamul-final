@@ -131,6 +131,8 @@ import { useSettingsStore } from "./features/settings/store/settingsStore";
 
 function AppRoutes() {
   const posPurcherstype = useSettingsStore((s) => s.settings.location.posPurcherstype);
+  const isPurchers2 = String(posPurcherstype).toUpperCase() === "POS2" || String(posPurcherstype) === "Purchers2" || Number(posPurcherstype) === 2;
+
   return (
     <>
       <div>
@@ -144,7 +146,7 @@ function AppRoutes() {
           <Route path="/pos2" element={<AppLayout2 />} />
           <Route path="/pos3" element={<AppLayout3 />} />
 
-          {posPurcherstype === "Purchers2" && (
+          {isPurchers2 && (
             <>
               <Route path="/purchases/create" element={<AppLayout3 />} />
               <Route path="/purchases/edit/:id" element={<AppLayout3 />} />
@@ -197,7 +199,7 @@ function AppRoutes() {
             {/* المشتريات */}
             <Route path="/purchases" element={<PurchasesList />} />
             <Route path="/purchases/return" element={<CreateReturnPurchasesInvoice />} />
-            {posPurcherstype !== "Purchers2" && (
+            {!isPurchers2 && (
               <>
                 <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
                 <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
