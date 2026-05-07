@@ -192,7 +192,7 @@ const CreateSalesInvoice: React.FC = () => {
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const isExempt = taxSetting === "Exempt" ;
+      const isExempt = taxSetting === "Exempt";
       const vatAmount = taxCalc === 1 || isExempt ? 0 : afterDisc * taxPercentage;
       const beforeTax = afterDisc - vatAmount;
 
@@ -337,7 +337,7 @@ const CreateSalesInvoice: React.FC = () => {
                       <FieldLabel>
                         {t("date")} <span className="text-red-500">*</span>
                       </FieldLabel>
-                      <Input type="date" {...field} />
+                      <Input type="date" readOnly className={"cursor-not-allowed"} {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
