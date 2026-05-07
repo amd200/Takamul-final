@@ -94,7 +94,7 @@ interface PosState {
 
   handleAddItemsToExistingOrder: (deps: { addItemsToOrder: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 
-  handleConfirmPayment: (params: { shouldPrintKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: CreateTakeawayOrder) => Promise<TakeawayOrdeResponse>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] }; generateQR: (data: GenereateQRRequest) => Promise<GenereateQRResponse> }) => Promise<void>;
+  handleConfirmPayment: (params: { shouldPrintKitchenBon?: boolean; shouldPrintInvoice?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: CreateTakeawayOrder) => Promise<TakeawayOrdeResponse>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] }; generateQR: (data: GenereateQRRequest) => Promise<GenereateQRResponse> }) => Promise<void>;
 }
 
 export const usePosStore = create<PosState>((set, get) => ({
@@ -249,7 +249,7 @@ export const usePosStore = create<PosState>((set, get) => ({
     } catch {}
   },
 
-  handleConfirmPayment: async ({ shouldPrintKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers, generateQR }) => {
+  handleConfirmPayment: async ({ shouldPrintKitchenBon = true, shouldPrintInvoice = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers, generateQR }) => {
     const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, handleReleaseHoldingOrder, resetCart, originalItems, dineInMode, selectedDelivery } = get();
     const branch = useBranchStore.getState().branch;
 
@@ -327,7 +327,9 @@ export const usePosStore = create<PosState>((set, get) => ({
           qrCode = qrRes.qrCode;
         }
 
-        await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount, qrCode });
+        if (shouldPrintInvoice) {
+          await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount, qrCode });
+        }
 
         if (dineInMode === "add-items") {
           await PrintKitchenBon({ cart, originalItems, selectedCustomer });

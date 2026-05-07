@@ -159,6 +159,12 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
   }, [paid]);
 
   const handleAction = (action: SaveAction) => {
+    if (action === "save_only") {
+      onSave?.({ vault: null, method: null, action });
+      onOpenChange(false);
+      return;
+    }
+
     const selectedVault = treasurys?.find((v) => v.id === vaultId);
     if (selectedVault) onSave?.({ vault: selectedVault, method: "Cash", action });
     onOpenChange(false);
@@ -275,7 +281,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
                   checkoutDineInOrder,
                   releaseHolding,
                   customers,
-                generateQR,
+                  generateQR,
                 });
                 onOpenChange(false);
               }}
