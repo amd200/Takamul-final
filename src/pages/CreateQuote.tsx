@@ -103,7 +103,6 @@ const QuoteSummaryContent: React.FC<{
     const disc = dType === "fixed" ? dVal : gross * (dVal / 100);
     const afterTax = Math.max(0, gross - disc);
     const taxCalc = product?.taxCalculation ?? 1;
-    const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
     const tax = taxCalc === 1 || isExempt ? 0 : afterTax * taxPercentage;
     const beforeTax = afterTax - tax;
 

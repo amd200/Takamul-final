@@ -192,7 +192,7 @@ const CreateSalesInvoice: React.FC = () => {
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const isExempt = taxSetting === "Exempt" || taxSetting === "FirstStage";
+      const isExempt = taxSetting === "Exempt" ;
       const vatAmount = taxCalc === 1 || isExempt ? 0 : afterDisc * taxPercentage;
       const beforeTax = afterDisc - vatAmount;
 
