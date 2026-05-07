@@ -304,7 +304,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
         isActive: device.isActive,
       });
       setCreatedDeviceId(device.id);
-      setCertificateId(7);
+      // setCertificateId(device.certificateId ??);
       setDeviceStatus(device.status as DeviceStatus);
 
       const resumeStep = statusToStep[device.status as DeviceStatus] ?? 1;
@@ -400,6 +400,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
     try {
       const res = await generateCSR({ deviceId: createdDeviceId });
       setClickedGeneratedCSR(true);
+      setCertificateId(res?.data?.certificateId);
       setCsr({
         secret: res?.data?.secretKey,
         token: res?.data?.token,
@@ -418,7 +419,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
     // if (!certificateId) return;
     setOtpError("");
     try {
-      const res = await registerCCSID({ certificateId: 8, otp });
+      const res = await registerCCSID({ certificateId: certificateId, otp });
       const expiresAt = res?.data?.expiresAt;
       const isExpired = !expiresAt || new Date(expiresAt) <= new Date();
       setCcsid({

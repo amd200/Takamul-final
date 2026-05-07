@@ -110,7 +110,11 @@ export type PurchaseType = "الكل" | "المشتريات" | "المشتريا
  *   الإجمالي = الكمية × سعر_الوحدة × (1 + نسبة_الضريبة / 100)
  *   سعر_الوحدة = الإجمالي ÷ (الكمية × (1 + نسبة_الضريبة / 100))
  */
-function calcFromTotal(rowTotal: number, qty: number, taxRate: number): { price: number; taxamount: number } {
+function calcFromTotal(
+  rowTotal: number,
+  qty: number,
+  taxRate: number,
+): { price: number; taxamount: number } {
   if (qty <= 0) return { price: 0, taxamount: 0 };
   const divisor = qty * (1 + taxRate / 100);
   const price = divisor === 0 ? 0 : rowTotal / divisor;
@@ -250,8 +254,17 @@ export default function CartPanel3() {
     return taxes?.find((t) => t.id === item.taxId)?.amount ?? 0;
   };
 
-  // ─── معالج تغيير الإجمالي في الوضع العكسي ───────────────────────────────
-  const handleRowTotalChange = (idx: number, newTotal: number) => {
+  // ─── Draft totals: نص حر أثناء الكتابة لكل صف ───────────────────────────
+  // المفتاح هو idx، القيمة هي النص اللي المستخدم بيكتبه
+  const [draftTotals, setDraftTotals] = useState<Record<number, string>>({});
+
+  // ─── تطبيق الحساب العكسي عند الخروج من الحقل أو الضغط على Enter ─────────
+  const applyReverseTotal = (idx: number) => {
+    const raw = draftTotals[idx];
+    if (raw === undefined) return;
+    const newTotal = parseFloat(raw);
+    if (isNaN(newTotal) || newTotal < 0) return;
+
     setCart((prev) =>
       prev.map((item, i) => {
         if (i !== idx) return item;
@@ -260,6 +273,12 @@ export default function CartPanel3() {
         return { ...item, price, taxamount };
       }),
     );
+    // امسح الـ draft بعد التطبيق
+    setDraftTotals((prev) => {
+      const next = { ...prev };
+      delete next[idx];
+      return next;
+    });
   };
 
   return (
@@ -278,10 +297,20 @@ export default function CartPanel3() {
               <th className="whitespace-nowrap text-center">الإجمالي قبل الضريبة</th>
               {!isExempt && <th className="whitespace-nowrap text-center">نسبة الضريبة</th>}
               {!isExempt && <th className="whitespace-nowrap text-center">ضريبة القيمة المضافة</th>}
+              {/* عنوان عمود الإجمالي مع زر التبديل */}
               <th className="whitespace-nowrap text-center">
                 <div className="flex items-center justify-center gap-1.5">
                   <span>الإجمالي النهائي</span>
-                  <button onClick={() => setReverseModeEnabled((prev) => !prev)} title={reverseModeEnabled ? "إيقاف الإدخال العكسي" : "تفعيل الإدخال العكسي"} className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold transition-colors ${reverseModeEnabled ? "bg-yellow-300 text-yellow-900 ring-1 ring-yellow-400" : "bg-white/20 text-white hover:bg-white/30"}`}>
+                  {/* زر تفعيل الإدخال العكسي */}
+                  <button
+                    onClick={() => setReverseModeEnabled((prev) => !prev)}
+                    title={reverseModeEnabled ? "إيقاف الإدخال العكسي" : "تفعيل الإدخال العكسي"}
+                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold transition-colors ${
+                      reverseModeEnabled
+                        ? "bg-yellow-300 text-yellow-900 ring-1 ring-yellow-400"
+                        : "bg-white/20 text-white hover:bg-white/30"
+                    }`}
+                  >
                     ✎
                   </button>
                 </div>
@@ -344,11 +373,17 @@ export default function CartPanel3() {
 
                   <td className="text-center px-2 w-[300px] whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</td>
 
-                  <td className="px-1 text-center whitespace-nowrap text-[11px]">{units?.items?.find((u) => u.id === (item.unitId || units?.items?.[0]?.id))?.name || "--"}</td>
+                  <td className="px-1 text-center whitespace-nowrap text-[11px]">
+                    {units?.items?.find((u) => u.id === (item.unitId || units?.items?.[0]?.id))?.name || "--"}
+                  </td>
 
+                  {/* تكلفة الوحدة — تصبح للقراءة فقط في الوضع العكسي */}
                   <td className="px-1 text-center">
                     {reverseModeEnabled ? (
-                      <span className=" whitespace-nowrap text-[11px]">{format(item.price)}</span>
+                      // في الوضع العكسي: القيمة تُحسب تلقائياً، نعرضها فقط
+                      <span className="inline-block h-7 w-20 leading-7 bg-gray-50 border border-gray-200 rounded text-center text-gray-500">
+                        {item.price.toFixed(4)}
+                      </span>
                     ) : (
                       <Input
                         type="number"
@@ -356,18 +391,11 @@ export default function CartPanel3() {
                         value={item.price}
                         onChange={(e) => {
                           const val = Number(e.target.value);
-
                           setCart((prev) =>
                             prev.map((it, i) => {
                               if (i !== idx) return it;
-
                               const taxAmt = (val * (taxes?.find((t) => t.id === it.taxId)?.amount ?? 0)) / 100;
-
-                              return {
-                                ...it,
-                                price: val,
-                                taxamount: taxAmt,
-                              };
+                              return { ...it, price: val, taxamount: taxAmt };
                             }),
                           );
                         }}
@@ -386,16 +414,22 @@ export default function CartPanel3() {
                           // في الوضع العكسي: تغيير الكمية يُعيد حساب السعر من الإجمالي المخزَّن
                           const storedTotal = rowTotal; // الإجمالي الحالي قبل تغيير الكمية
                           const { price, taxamount } = calcFromTotal(storedTotal, val, taxRate);
-                          setCart((prev) => prev.map((it, i) => (i === idx ? { ...it, qty: val, price, taxamount } : it)));
+                          setCart((prev) =>
+                            prev.map((it, i) => (i === idx ? { ...it, qty: val, price, taxamount } : it)),
+                          );
                         } else {
-                          setCart((prev) => prev.map((it, i) => (i === idx ? { ...it, qty: val } : it)));
+                          setCart((prev) =>
+                            prev.map((it, i) => (i === idx ? { ...it, qty: val } : it)),
+                          );
                         }
                       }}
                     />
                   </td>
 
                   {/* الإجمالي قبل الضريبة */}
-                  <td className="whitespace-nowrap font-semibold text-center">{(item.price * item.qty).toFixed(2)}</td>
+                  <td className="whitespace-nowrap font-semibold text-center">
+                    {(item.price * item.qty).toFixed(2)}
+                  </td>
 
                   {!isExempt && (
                     <td className="px-1 text-center">
@@ -434,18 +468,40 @@ export default function CartPanel3() {
                             ))}
                           </SelectContent>
                         </Select>
-                        {showTaxErrors && !item.taxId && <p className="text-[9px] text-red-500 mt-0.5 leading-tight font-bold">يرجى اختيار الضريبة</p>}
+                        {showTaxErrors && !item.taxId && (
+                          <p className="text-[9px] text-red-500 mt-0.5 leading-tight font-bold">يرجى اختيار الضريبة</p>
+                        )}
                       </div>
                     </td>
                   )}
 
-                  {!isExempt && <td className="whitespace-nowrap text-orange-600 text-center">{((item.taxamount || 0) * item.qty).toFixed(2)}</td>}
+                  {!isExempt && (
+                    <td className="whitespace-nowrap text-orange-600 text-center">
+                      {((item.taxamount || 0) * item.qty).toFixed(2)}
+                    </td>
+                  )}
 
                   {/* ─── عمود الإجمالي النهائي ────────────────────────────── */}
                   <td className="whitespace-nowrap font-bold text-green-600 text-center px-1">
                     {reverseModeEnabled ? (
-                      // الوضع العكسي: حقل إدخال قابل للتعديل
-                      <Input type="number" step="0.01" className="h-7 text-[11px] w-24 text-center mx-auto font-bold text-green-700 border-yellow-400 bg-yellow-50" defaultValue={rowTotal} onBlur={(e) => handleRowTotalChange(idx, Number(e.target.value))} />
+                      // الوضع العكسي: حقل إدخال حر — الحساب يُطبَّق عند onBlur أو Enter
+                      <Input
+                        type="number"
+                        className="h-7 text-[11px] w-24 text-center mx-auto font-bold text-green-700 border-yellow-400 bg-yellow-50 focus:ring-yellow-300"
+                        // نعرض الـ draft لو موجود، وإلا نعرض القيمة المحسوبة
+                        value={draftTotals[idx] !== undefined ? draftTotals[idx] : rowTotal.toFixed(2)}
+                        onChange={(e) =>
+                          setDraftTotals((prev) => ({ ...prev, [idx]: e.target.value }))
+                        }
+                        onBlur={() => applyReverseTotal(idx)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            applyReverseTotal(idx);
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                        title="اكتب الإجمالي النهائي ثم اضغط Enter أو انتقل للحقل التالي"
+                      />
                     ) : (
                       // الوضع العادي: عرض فقط
                       <span>{(item.price * item.qty + (item.taxamount || 0) * item.qty).toFixed(2)}</span>
@@ -493,7 +549,7 @@ export default function CartPanel3() {
       </div>
 
       {/* ─── مؤشر الوضع العكسي ─────────────────────────────────────────────── */}
-      {/* {reverseModeEnabled && (
+      {reverseModeEnabled && (
         <div className="flex items-center gap-2 px-3 py-1 bg-yellow-50 border-b border-yellow-200 text-[10px] text-yellow-800">
           <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
           وضع الإدخال العكسي مفعَّل — اكتب الإجمالي النهائي وسيُحسب سعر الوحدة تلقائياً
@@ -501,7 +557,7 @@ export default function CartPanel3() {
             ✕ إيقاف
           </button>
         </div>
-      )} */}
+      )}
 
       <div style={{ fontSize: 11 }} className="w-full border border-gray-300">
         <div className="hidden lg:grid" style={{ gridTemplateColumns: " 1fr 260px" }}>
@@ -578,9 +634,7 @@ export default function CartPanel3() {
           <div className="grid grid-cols-4 gap-1 p-2 border-b border-gray-300">
             <button className="bg-violet-700 text-white text-[10px] rounded-md py-1.5">عرض أسعار</button>
             <button className="bg-cyan-600 text-white text-[10px] rounded-md py-1.5">تعليق</button>
-            <button onClick={() => setInvoicesOpen(true)} className="bg-teal-600 text-white text-[10px] rounded-md py-1.5">
-              قائمة
-            </button>
+            <button onClick={() => setInvoicesOpen(true)} className="bg-teal-600 text-white text-[10px] rounded-md py-1.5">قائمة</button>
             <button className="bg-red-600 text-white text-[10px] rounded-md py-1.5">حذف</button>
           </div>
 
