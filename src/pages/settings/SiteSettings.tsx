@@ -27,8 +27,8 @@ export default function SiteSettings() {
       showItemCodeInSalesPrint: systemSettings.location.showItemCodeInSalesPrint,
       showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
       showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
-      postype: systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2" ? "POS2" : "POS1",
-      posPurcherstype: systemSettings.location.posPurcherstype === "Purchers2" ? "Purchers2" : "Purchers1",
+      postype: String(systemSettings.location.postype).toLowerCase() === "pos2" || Number(systemSettings.location.postype) === 2 ? "POS2" : "POS1",
+      posPurcherstype: String(systemSettings.location.posPurcherstype).toUpperCase() === "POS2" || String(systemSettings.location.posPurcherstype) === "Purchers2" || Number(systemSettings.location.posPurcherstype) === 2 ? "Purchers2" : "Purchers1",
       defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
     },
   });
@@ -41,8 +41,8 @@ export default function SiteSettings() {
       showItemCodeInSalesPrint: systemSettings.location.showItemCodeInSalesPrint,
       showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
       showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
-      postype: systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2" ? "POS2" : "POS1",
-      posPurcherstype: systemSettings.location.posPurcherstype === "Purchers2" ? "Purchers2" : "Purchers1",
+      postype: String(systemSettings.location.postype).toLowerCase() === "pos2" || Number(systemSettings.location.postype) === 2 ? "POS2" : "POS1",
+      posPurcherstype: String(systemSettings.location.posPurcherstype).toUpperCase() === "POS2" || String(systemSettings.location.posPurcherstype) === "Purchers2" || Number(systemSettings.location.posPurcherstype) === 2 ? "Purchers2" : "Purchers1",
       defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
     });
   }, [systemSettings.location, reset]);
@@ -50,8 +50,8 @@ export default function SiteSettings() {
   const onSubmit = (data: any) => {
     const payload = {
       ...data,
-      postype: data.postype === "POS1" ? "Pos1" : "Pos2",
-      posPurcherstype: data.posPurcherstype,
+      postype: data.postype === "POS1" ? 1 : 2,
+      posPurcherstype: data.posPurcherstype === "Purchers1" ? 1 : 2,
     };
     updateSite(payload);
   };

@@ -62,8 +62,8 @@ export const updateSiteSettings = (data: {
   showItemCodeInSalesPrint: boolean;
   showItemCodeInQuotations: boolean;
   showItemCodeInPurchases: boolean;
-  postype: string;
-  posPurcherstype: string;
+  postype: number | string;
+  posPurcherstype: number | string;
 }) =>
   httpClient("/Settings/Site", {
     method: "PUT",
