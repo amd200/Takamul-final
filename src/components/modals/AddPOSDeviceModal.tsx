@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CreateDevicePOS, DeviceType, POSDevice } from "@/features/pos/types/pos.types";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useCreateDevicePOS } from "@/features/pos/hooks/useCreateDevicePOS";
 import { useGenerateCSR } from "@/features/ZatcaRegistration/hooks/useGenerateCSR";
@@ -23,6 +22,7 @@ import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { useUpdatePOSDevice } from "@/features/posDevice/hooks/useUpdatePOSDevice";
 import { useGetAllDeviceTypes } from "@/features/posDevice/hooks/useGetAllDeviceTypes";
 import { useGenereateSerial } from "@/features/posDevice/hooks/useGenereateSerial";
+import { CreateDevicePOS, POSDevice } from "@/features/posDevice/types/posDevice.types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ interface PCSIDResult {
 // ─── Status → Step mapping ────────────────────────────────────────────────────
 const statusToStep: Record<DeviceStatus, number> = {
   NotRegistered: 1,
-  PendingOTP: 2,
+  PendingOTP: 3,
   CCSIDRegistered: 4,
   PCSIDRegistered: 5,
 };
@@ -166,26 +166,6 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function SecretBlock({ label, value }: { label: string; value?: string }) {
-  const [show, setShow] = useState(false);
-  if (!value) return null;
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setShow(!show)} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors">
-            {show ? <EyeOff size={12} /> : <Eye size={12} />}
-            {show ? "إخفاء" : "إظهار"}
-          </button>
-          <CopyButton text={value} />
-        </div>
-      </div>
-      <div className="bg-gray-900 rounded-xl px-4 py-3 font-mono text-xs text-green-400 leading-relaxed break-all max-h-[90px] overflow-y-auto select-all">{show ? value : "•".repeat(Math.min(value.length, 48))}</div>
-    </div>
-  );
-}
-
 function CodeBlock({ label, value, secret }: { label: string; value?: string; secret?: boolean }) {
   const [show, setShow] = useState(false);
   if (!value) return null;
@@ -257,6 +237,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
 
   const [clickedGeneratedCSR, setClickedGeneratedCSR] = useState<boolean>(false);
   const [createdDeviceId, setCreatedDeviceId] = useState<number | undefined>();
+  const [certificateId, setCertificateId] = useState<number | undefined>();
   const [csr, setCsr] = useState<CSRResult | undefined>();
   const [privateKey, setPrivateKey] = useState<string | undefined>();
   const [ccsid, setCcsid] = useState<CCSIDResult | undefined>();
@@ -299,6 +280,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
       setOtp("");
       setOtpError("");
       setCreatedDeviceId(undefined);
+      setCertificateId(undefined);
       setDeviceStatus(undefined);
       return;
     }
@@ -313,6 +295,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
         isActive: device.isActive,
       });
       setCreatedDeviceId(device.id);
+      setCertificateId(device.certificateId);
       setDeviceStatus(device.status as DeviceStatus);
 
       const resumeStep = statusToStep[device.status as DeviceStatus] ?? 1;
@@ -389,6 +372,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
         };
         const res = await createDevice(payload);
         setCreatedDeviceId(res?.data?.id);
+        setCertificateId(res?.data?.certificateId);
       } catch {
         return;
       }
@@ -422,10 +406,10 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
       setOtpError("يرجى إدخال رمز OTP");
       return;
     }
-    if (!createdDeviceId) return;
+    if (!certificateId) return;
     setOtpError("");
     try {
-      const res = await registerCCSID({ deviceId: createdDeviceId, otp });
+      const res = await registerCCSID({ deviceId: certificateId, otp });
       const expiresAt = res?.data?.expiresAt;
       const isExpired = !expiresAt || new Date(expiresAt) <= new Date();
       setCcsid({
@@ -438,12 +422,12 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
     } catch {
       setOtpError("رمز OTP غير صحيح أو منتهي الصلاحية، حاول مجدداً");
     }
-  }, [otp, createdDeviceId]);
+  }, [otp, certificateId]);
 
   const handleRegisterPCSID = async () => {
-    if (!createdDeviceId) return;
+    if (!certificateId) return;
     try {
-      const res = await registerPCSID({ deviceId: createdDeviceId });
+      const res = await registerPCSID({ deviceId: certificateId });
       const expiresAt = res?.data?.expiresAt;
       const isExpired = !expiresAt || new Date(expiresAt) <= new Date();
       setPcsid({
@@ -598,7 +582,6 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
                       </Button>
                     </div>
                     <CodeBlock label="ملف CSR" value={csr?.token} />
-                    <CodeBlock label="المفتاح الخاص (Private Key)" secret={true} value={csr?.secret} />
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
                       شيله في مكان كويس عشان مش هتشوفه تاني
@@ -670,8 +653,8 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
                       </div>
                       <ReviewRow label="تاريخ الانتهاء" value={formatDate(ccsid.expiresAt)} />
                     </div>
-                    <SecretBlock label="CCSID Token" value={ccsid.token} />
-                    <SecretBlock label="CCSID Secret" value={ccsid.secret} />
+                    <CodeBlock secret={true} label="CCSID Token" value={ccsid.token} />
+                    <CodeBlock secret={true} label="CCSID Secret" value={ccsid.secret} />
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
                       احفظ الـ Token والـ Secret - عشان مش هتشوفهم تاني
@@ -719,8 +702,8 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device, editMo
                       <ReviewRow label="تاريخ الإصدار" value={formatDate(pcsid.issuedAt)} />
                       <ReviewRow label="تاريخ الانتهاء" value={formatDate(pcsid.expiresAt)} />
                     </div>
-                    <SecretBlock label="PCSID Token" value={pcsid.token} />
-                    {pcsid.secret && <SecretBlock label="PCSID Secret" value={pcsid.secret} />}
+                    <CodeBlock secret={true} label="PCSID Token" value={pcsid.token} />
+                    {pcsid.secret && <CodeBlock secret={true} label="PCSID Secret" value={pcsid.secret} />}
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
                       احفظ الـ Token والـ Secret الآن - عشان مش هتشوفهم تاني

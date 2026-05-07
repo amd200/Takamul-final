@@ -291,6 +291,15 @@ export default function CertificatesPosDevices() {
           </DataTable>
         </CardContent>
       </Card>
+      <AddPOSDeviceModal
+        editMode={false}
+        device={selectedDevice}
+        isOpen={isAddModalOpen}
+        onOpenChange={(open) => {
+          setIsAddModalOpen(open);
+          if (!open) setSelectedDevice(null);
+        }}
+      />
     </>
   );
 }
