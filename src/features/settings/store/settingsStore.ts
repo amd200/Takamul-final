@@ -131,6 +131,16 @@ const defaultSettings: Settings = {
     taxSetting: "FirstStage",
     itemTax: false,
   },
+  money: {
+    decimals: 2,
+    quantityDecimals: 2,
+    southAsiaFormat: false,
+    decimalSeparator: ".",
+    thousandSeparator: ",",
+    showCurrencySymbol: true,
+    currencySymbol: "SAR",
+    a4InvoiceDecimals: 2,
+  },
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────────
