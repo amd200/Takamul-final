@@ -158,9 +158,22 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
     setPaidAmount(paid);
   }, [paid]);
 
+  const payments: CreateSalesOrder["payments"] = isSplit ? splits.map((s) => ({ amount: rawToFloat(s.raw), paymentMethod: "Cash" as const, treasuryId: s.vaultId, notes: "" })) : [{ amount: singlePaid, paymentMethod: "Cash" as const, treasuryId: activeVault!, notes: "" }];
+
   const handleAction = (action: SaveAction) => {
     if (action === "save_only") {
-      onSave?.({ vault: null, method: null, action });
+      handleConfirmPayment({
+        isHolding: false,
+        shouldPrintInvoice: false,
+        shouldPrintKitchenBon: mode === "cashier",
+        payments,
+        createTakwayOrder,
+        createDeliveryOrder,
+        checkoutDineInOrder,
+        releaseHolding,
+        customers,
+        generateQR,
+      });
       onOpenChange(false);
       return;
     }
