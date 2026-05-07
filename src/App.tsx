@@ -127,8 +127,10 @@ import { useAuthStore } from "./store/authStore";
 import { useAuthChannel } from "./hooks/useAuthChannel";
 import AppLayout3 from "./components/pos/layout/AppLayout3";
 import { useBranch } from "./features/EmployeeBranches/hooks/useBranch";
+import { useSettingsStore } from "./features/settings/store/settingsStore";
 
 function AppRoutes() {
+  const posPurcherstype = useSettingsStore((s) => s.settings.location.posPurcherstype);
   return (
     <>
       <div>
@@ -141,6 +143,13 @@ function AppRoutes() {
           <Route path="/pos" element={<AppLayout />} />
           <Route path="/pos2" element={<AppLayout2 />} />
           <Route path="/pos3" element={<AppLayout3 />} />
+
+          {posPurcherstype === "Purchers2" && (
+            <>
+              <Route path="/purchases/create" element={<AppLayout3 />} />
+              <Route path="/purchases/edit/:id" element={<AppLayout3 />} />
+            </>
+          )}
 
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
@@ -188,8 +197,12 @@ function AppRoutes() {
             {/* المشتريات */}
             <Route path="/purchases" element={<PurchasesList />} />
             <Route path="/purchases/return" element={<CreateReturnPurchasesInvoice />} />
-            <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
-            <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
+            {posPurcherstype !== "Purchers2" && (
+              <>
+                <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
+                <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
+              </>
+            )}
             <Route path="/purchases/import-csv" element={<AddPurchaseCSV />} />
             <Route path="/purchases/expenses" element={<Expenses />} />
             <Route path="/suppliers" element={<SuppliersList />} />

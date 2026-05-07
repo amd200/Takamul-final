@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, CartItem, format, itemBasePrice, itemBasePriceRaw, itemUnitPriceRaw } from "@/constants/data";
@@ -502,7 +503,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
                   <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2.5 text-[12px]">
                     <div className="flex gap-1">
                       <span className="text-gray-500">المورد:</span>
-                      <span className="font-semibold text-gray-800">{found.supplierName}</span>
+                      <span className="font-semibold text-gray-800">{found.supplierName || found.customerName}</span>
                     </div>
                     <div className="flex gap-1">
                       <span className="text-gray-500">التاريخ:</span>
@@ -605,6 +606,7 @@ export default function CartPanel3() {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [invoicesOpen, setInvoicesOpen] = useState(false);
   const { notifyError } = useToast();
+  const { id } = useParams();
   const handleApplyDiscount = () => {
     if (discPct) setDiscount({ type: "pct", value: Number(discPct) });
     if (discFlat) setDiscount({ type: "flat", value: Number(discFlat) });
@@ -1008,6 +1010,7 @@ export default function CartPanel3() {
         onOpenChange={setPaymentOpen} 
         total={total} 
         warehouseId={selectedWarehouseId}
+        id={id}
       />
       <PurchasesDialog
         suppliers={suppliers ?? { items: [] }}

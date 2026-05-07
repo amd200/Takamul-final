@@ -25,8 +25,14 @@ import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { useGetAllShifts, useCloseShift } from "@/features/shifts/hooks/useShifts";
 import { useMemo } from "react";
 import { useAuthStore } from "@/store/authStore";
+import { useParams } from "react-router-dom";
+import { useGetPurchaseOrderById } from "@/features/purchases/hooks/useGetPurchaseOrderById";
+
 
 export default function Topbar3() {
+  const { id } = useParams();
+  const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
+
   const [deliveryDate, setDeliveryDate] = useState("");
   const [employee, setEmployee] = useState("");
   const { data: suppliers } = useGetAllSuppliers();
@@ -127,7 +133,7 @@ export default function Topbar3() {
             <div className="flex items-center gap-6 shrink-0">
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[10px] text-blue-400">كود الفاتورة</span>
-                <span className="text-[11px] font-semibold text-[#871d46] dark:text-foreground">---</span>
+                <span className="text-[11px] font-semibold text-[#871d46] dark:text-foreground">{purchaseOrder?.purchaseOrderNumber || "---"}</span>
               </div>
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[10px] text-blue-400">كود الوردية</span>

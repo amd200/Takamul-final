@@ -1712,5 +1712,8 @@
   "claim_text_p4": "and until the date of this letter the payment has not been received.",
   "claim_text_p5": "Therefore, we request you to pay the outstanding amount within",
   "claim_text_p6": "In case of non-payment within the specified period, we will be forced to take the necessary legal measures.",
-  "tax_phase": "Tax Phase"
+  "tax_phase": "Tax Phase",
+  "purchase_screen": "Purchase Screen",
+  "purchase_screen_1": "Purchase Screen_1",
+  "purchase_screen_2": "Purchase Screen_2"
 }
