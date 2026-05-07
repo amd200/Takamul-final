@@ -2,6 +2,7 @@
 
 export const certificatesKeys = {
   all: ["certificates"] as const,
+  list: () => [...certificatesKeys.all, "list"] as const,
   summary: () => [...certificatesKeys.all, "summary"] as const,
   detailsSummary: (id) => [...certificatesKeys.all, "summary", id] as const,
   types: () => [...certificatesKeys.all, "types"] as const,

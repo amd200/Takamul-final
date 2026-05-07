@@ -104,8 +104,8 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
         discountValue: c.itemDiscount?.type === "flat" ? c.itemDiscount.value : 0,
         discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
         unitPrice: c.price,
-        taxId: c.taxId || 1, // Fallback if not found
-        unitId: c.unitId || 1, // Fallback
+        taxId: c.taxId || 1, 
+        unitId: c.unitId || 1, 
       })),
       payments,
     };

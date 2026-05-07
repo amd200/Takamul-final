@@ -4,9 +4,10 @@ export interface GenerateCSR {
   deviceId: number;
 }
 export interface UpgradeToPcsidRequest {
-  deviceId: number;
+  certificateId: number;
 }
-export interface RegisterCCSIDRequest extends GenerateCSR {
+export interface RegisterCCSIDRequest {
+  certificateId: number;
   otp: string;
 }
 

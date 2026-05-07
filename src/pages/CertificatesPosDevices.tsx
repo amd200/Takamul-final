@@ -7,15 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { POSDevice } from "@/features/pos/types/pos.types";
 import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 import { useDeleteDevicePOS } from "@/features/pos/hooks/useDeleteDevicePOS";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import formatDate from "@/lib/formatDate";
 import { useGetAllPOSDevices } from "@/features/posDevice/hooks/useGetAllPOSDevices";
+import { POSDevice } from "@/features/posDevice/types/posDevice.types";
+import { useGetAllCertificates } from "@/features/PosCertificates/hooks/useGetAllCertificates";
+import { Certificate } from "@/features/PosCertificates/types/pos.types";
+import { de } from "zod/v4/locales";
 
-function DeleteDeviceButton({ device, onDelete, setHiddenIds }: { device: POSDevice; onDelete: (id: number) => Promise<unknown>; setHiddenIds: React.Dispatch<React.SetStateAction<Set<number>>> }) {
+function DeleteDeviceButton({ certificate, onDelete, setHiddenIds }: { certificate: Certificate; onDelete: (id: number) => Promise<unknown>; setHiddenIds: React.Dispatch<React.SetStateAction<Set<number>>> }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -24,11 +27,11 @@ function DeleteDeviceButton({ device, onDelete, setHiddenIds }: { device: POSDev
         </button>
       </AlertDialogTrigger>
       <AlertDialogContent size="default" className="shadow-none">
-        <AlertDialogTitle className="text-base font-bold text-red-500 text-right">حذف الجهاز {device.deviceName}</AlertDialogTitle>
+        <AlertDialogTitle className="text-base font-bold text-red-500 text-right">حذف الجهاز {certificate.deviceName}</AlertDialogTitle>
         <AlertDialogDescription className="text-sm text-right mt-1 mb-6">هل أنت متأكد من هذا؟</AlertDialogDescription>
         <div className="flex items-center gap-2 justify-end">
           <AlertDialogCancel className="bg-transparent hover:bg-[var(--table-row-hover)] px-5 py-5 text-sm font-medium transition-colors">إلغاء</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" className="px-5 py-5 text-sm font-medium transition-colors" onClick={() => handleDeleteWithUndo(device, onDelete, setHiddenIds)}>
+          <AlertDialogAction variant="destructive" className="px-5 py-5 text-sm font-medium transition-colors" onClick={() => handleDeleteWithUndo(certificate, onDelete, setHiddenIds)}>
             تأكيد الحذف
           </AlertDialogAction>
         </div>
@@ -37,10 +40,10 @@ function DeleteDeviceButton({ device, onDelete, setHiddenIds }: { device: POSDev
   );
 }
 
-function handleDeleteWithUndo(device: POSDevice, onDelete: (id: number) => Promise<unknown>, setHiddenIds: React.Dispatch<React.SetStateAction<Set<number>>>) {
+function handleDeleteWithUndo(certificate: Certificate, onDelete: (id: number) => Promise<unknown>, setHiddenIds: React.Dispatch<React.SetStateAction<Set<number>>>) {
   let undone = false;
-  setHiddenIds((prev) => new Set(prev).add(device.id));
-  toast.success(`تم حذف "${device.deviceName}"`, {
+  setHiddenIds((prev) => new Set(prev).add(certificate.deviceId));
+  toast.success(`تم حذف "${certificate.deviceName}"`, {
     duration: 5000,
     action: {
       label: "استرجاع",
@@ -48,22 +51,22 @@ function handleDeleteWithUndo(device: POSDevice, onDelete: (id: number) => Promi
         undone = true;
         setHiddenIds((prev) => {
           const next = new Set(prev);
-          next.delete(device.id);
+          next.delete(certificate.deviceId);
           return next;
         });
       },
     },
     onDismiss: () => {
-      if (!undone) onDelete(device.id);
+      if (!undone) onDelete(certificate.deviceId);
     },
     onAutoClose: () => {
-      if (!undone) onDelete(device.id);
+      if (!undone) onDelete(certificate.deviceId);
     },
   });
 }
 
-function CertificateBadge({ status, isCertificateExpired, type }: { status: "NotRegistered" | "PendingOTP" | "CCSIDRegistered" | "PCSIDRegistered"; isCertificateExpired: boolean; type: "CCSID" | "PCSID" }) {
-  const isRegistered = type === "PCSID" ? status === "PCSIDRegistered" : status === "CCSIDRegistered" || status === "PCSIDRegistered";
+function CertificateBadge({ status, isCertificateExpired, type }: { status: Certificate["currentCertificateType"]; isCertificateExpired: boolean; type: "CCSID" | "PCSID" }) {
+  const isRegistered = type === "PCSID" ? status === "PCSID" : status === "CCSID" || status === "PCSID";
 
   if (!isRegistered) {
     return (
@@ -93,21 +96,30 @@ function CertificateBadge({ status, isCertificateExpired, type }: { status: "Not
 
 export default function CertificatesPosDevices() {
   const { t, direction } = useLanguage();
-
+  type DeviceStatus = "NotRegistered" | "PendingOTP" | "CCSIDRegistered" | "PCSIDRegistered";
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState<POSDevice | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<{
+    id: number;
+    deviceName: string;
+    serialNumber: string;
+    InvoiceSequence: string;
+    branchId: number;
+    location?: string;
+    isActive?: boolean;
+    status: DeviceStatus;
+  } | null>(null);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set());
-
   const { data: devices } = useGetAllPOSDevices();
+  const { data: certificates } = useGetAllCertificates();
   const { mutateAsync: deleteDevice } = useDeleteDevicePOS();
 
-  const visibleDevices = useMemo(() => (devices?.data ?? []).filter((d) => !hiddenIds.has(d.id)), [devices?.data, hiddenIds]);
+  const visibleDevices = useMemo(() => (certificates?.data ?? [])?.filter((d) => !hiddenIds.has(d.deviceId)), [certificates?.data, hiddenIds]);
 
-  const selectedDeviceDetails = useMemo(() => visibleDevices.find((d) => d.id === selectedDeviceId) ?? null, [visibleDevices, selectedDeviceId]);
+  const selectedDeviceDetails = useMemo(() => visibleDevices.find((d) => d.deviceId === selectedDeviceId) ?? null, [visibleDevices, selectedDeviceId]);
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGlobalFilterValue(e.target.value);
@@ -136,7 +148,7 @@ export default function CertificatesPosDevices() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <Select value={selectedDeviceId?.toString() ?? ""} onValueChange={(val) => setSelectedDeviceId(val ? Number(val) : null)}>
+          {/* <Select value={selectedDeviceId?.toString() ?? ""} onValueChange={(val) => setSelectedDeviceId(val ? Number(val) : null)}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="اختر جهاز لعرض تفاصيله" />
             </SelectTrigger>
@@ -200,7 +212,7 @@ export default function CertificatesPosDevices() {
                 <p className="font-mono text-gray-700">{selectedDeviceDetails.currentICV}</p>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* DataTable */}
           <DataTable
@@ -234,20 +246,20 @@ export default function CertificatesPosDevices() {
                 </div>
               )}
             />
-            <Column field="certificateType" header="CCSID" style={{ width: "15%" }} body={(row: POSDevice) => <CertificateBadge status={row.status} isCertificateExpired={row.isCertificateExpired} type="CCSID" />} />
-            <Column field="certificateType2" header="PCSID" style={{ width: "15%" }} body={(row: POSDevice) => <CertificateBadge status={row.status} isCertificateExpired={row.isCertificateExpired} type="PCSID" />} />
-            <Column field="certificateExpiresAt" header="تاريخ الانتهاء" style={{ width: "10%" }} body={(row: POSDevice) => <span className="text-sm font-mono text-gray-700">{formatDate(row.certificateExpiresAt) ?? "—"}</span>} />
+            <Column field="currentCertificateType" header="CCSID" style={{ width: "15%" }} body={(row: Certificate) => <CertificateBadge status={row.currentCertificateType} isCertificateExpired={row.isExpired} type="CCSID" />} />
+            <Column field="currentCertificateType" header="PCSID" style={{ width: "15%" }} body={(row: Certificate) => <CertificateBadge status={row.currentCertificateType} isCertificateExpired={row.isExpired} type="PCSID" />} />
+            <Column field="certificateExpiresAt" header="تاريخ الانتهاء" style={{ width: "10%" }} body={(row: Certificate) => <span className="text-sm font-mono text-gray-700">{formatDate(row.expiresAt) ?? "—"}</span>} />
             <Column
               header="العمليات"
               style={{ width: "10%" }}
-              body={(row: POSDevice) => {
-                const isCCSID = row.status === "CCSIDRegistered";
-                const isPCSID = row.status === "PCSIDRegistered";
-                const isNotRegistered = row.status === "NotRegistered" || row.status === "PendingOTP";
+              body={(row: Certificate) => {
+                const isCCSID = row.currentCertificateType === "CCSID";
+                const isPCSID = row.currentCertificateType === "PCSID";
+                // const isNotRegistered = row.status === "NotRegistered" || row.status === "PendingOTP";
 
                 return (
                   <div className="flex items-center gap-2 justify-center">
-                    {isNotRegistered && (
+                    {/* {isNotRegistered && (
                       <button
                         onClick={() => {
                           setSelectedDevice(row);
@@ -258,12 +270,22 @@ export default function CertificatesPosDevices() {
                       >
                         <Monitor size={16} />
                       </button>
-                    )}
+                    )} */}
 
                     {isCCSID && (
                       <button
                         onClick={() => {
-                          setSelectedDevice(row);
+                          const device = {
+                            id: row?.deviceId,
+                            deviceName: row?.deviceName,
+                            serialNumber: devices?.data?.find((d) => d.id === row.deviceId)?.serialNumber || "",
+                            InvoiceSequence: devices?.data?.find((d) => d.id === row.deviceId)?.InvoiceSequence || "",
+                            branchId: devices?.data?.find((d) => d.id === row.deviceId)?.branchId || 0,
+                            location: devices?.data?.find((d) => d.id === row.deviceId)?.location || "",
+                            isActive: devices?.data?.find((d) => d.id === row.deviceId)?.isActive || false,
+                            status: devices?.data?.find((d) => d.id === row.deviceId)?.status || "NotRegistered",
+                          };
+                          setSelectedDevice(device);
                           setIsAddModalOpen(true);
                         }}
                         className="btn-minimal-action text-green-600 hover:text-green-700"
@@ -273,7 +295,7 @@ export default function CertificatesPosDevices() {
                       </button>
                     )}
 
-                    {<DeleteDeviceButton device={row} onDelete={deleteDevice} setHiddenIds={setHiddenIds} />}
+                    {<DeleteDeviceButton certificate={row} onDelete={deleteDevice} setHiddenIds={setHiddenIds} />}
 
                     {/* <button
                       onClick={() => {

@@ -6,13 +6,13 @@ import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { POSDevice } from "@/features/pos/types/pos.types";
 import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 import { useDeleteDevicePOS } from "@/features/pos/hooks/useDeleteDevicePOS";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { set } from "zod";
 import { useGetAllPOSDevices } from "@/features/posDevice/hooks/useGetAllPOSDevices";
+import { POSDevice } from "@/features/posDevice/types/posDevice.types";
 // import { useGetPOSDeviceById } from "@/features/pos/hooks/useGetPOSDeviceById";
 // import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 
@@ -94,24 +94,7 @@ function CertificateBadge({ certificateType, isCertificateExpired }: { certifica
   );
 }
 
-function formatLastSent(dateStr: string) {
-  if (!dateStr || dateStr === "—") return "—";
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return "—";
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-  const timeStr = date.toLocaleTimeString("ar-SA", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  if (diffDays === 0) return `اليوم ${timeStr}`;
-  if (diffDays === 1) return `أمس ${timeStr}`;
-  return date.toLocaleDateString("ar-SA", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+
 
 export default function POSDevicesList() {
   const { t, direction } = useLanguage();
@@ -217,7 +200,11 @@ export default function POSDevicesList() {
                     onClick={() => {
                       setSelectedDevice(row);
                       setIsAddModalOpen(true);
-                      setEditMode(true);
+                      if (row.status == "NotRegistered") {
+                        setEditMode(false);
+                      } else {
+                        setEditMode(true);
+                      }
                     }}
                     className="btn-minimal-action"
                     title={!row.certificateType?.toUpperCase().includes("PCSID") && row.certificateType?.toUpperCase().includes("CCSID") ? "استكمال التسجيل" : "تعديل"}
