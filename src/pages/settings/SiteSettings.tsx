@@ -28,6 +28,7 @@ export default function SiteSettings() {
       showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
       showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
       postype: systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2" ? "POS2" : "POS1",
+      posPurcherstype: systemSettings.location.posPurcherstype === "Purchers2" ? "Purchers2" : "Purchers1",
       defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
     },
   });
@@ -41,6 +42,7 @@ export default function SiteSettings() {
       showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
       showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
       postype: systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2" ? "POS2" : "POS1",
+      posPurcherstype: systemSettings.location.posPurcherstype === "Purchers2" ? "Purchers2" : "Purchers1",
       defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
     });
   }, [systemSettings.location, reset]);
@@ -49,6 +51,7 @@ export default function SiteSettings() {
     const payload = {
       ...data,
       postype: data.postype === "POS1" ? "Pos1" : "Pos2",
+      posPurcherstype: data.posPurcherstype,
     };
     updateSite(payload);
   };
@@ -198,18 +201,18 @@ export default function SiteSettings() {
               )}
             />
             <Controller
-              name="postype"
+              name="posPurcherstype"
               control={control}
               render={({ field }) => (
                 <Field>
-                  <FieldLabel>شاشة المشتريات*</FieldLabel>
+                  <FieldLabel>{t("purchase_screen") || "شاشة المشتريات"} *</FieldLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="POS1">شاشة مشتريات 1</SelectItem>
-                      <SelectItem value="POS2">شاشة مشتريات 2</SelectItem>
+                      <SelectItem value="Purchers1">{t("purchase_screen_1") || "شاشة مشتريات 1"}</SelectItem>
+                      <SelectItem value="Purchers2">{t("purchase_screen_2") || "شاشة مشتريات 2"}</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>

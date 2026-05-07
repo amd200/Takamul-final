@@ -1,12 +1,12 @@
 import { httpClient } from "@/api/httpClient";
-import { SettingsResponse } from "../types/settings.types";
+import { Settings } from "../types/settings.types";
 
 // ===================
 // GET
 // ===================
 
 export const getAllSettings = async () => {
-  const response = await httpClient<SettingsResponse>(`/Settings`);
+  const response = await httpClient<Settings>(`/Settings`);
 
   if (response.items) {
     // Map taxSetting (from separate object) to items.taxPhase (which the UI uses)
@@ -63,6 +63,7 @@ export const updateSiteSettings = (data: {
   showItemCodeInQuotations: boolean;
   showItemCodeInPurchases: boolean;
   postype: string;
+  posPurcherstype: string;
 }) =>
   httpClient("/Settings/Site", {
     method: "PUT",

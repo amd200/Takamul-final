@@ -1619,5 +1619,8 @@
   "smtp_user": "SMTP صارف",
   "smtp_password": "SMTP پاس ورڈ",
   "smtp_port": "SMTP پورٹ",
-  "smtp_encryption": "SMTP انکرپشن"
+  "smtp_encryption": "SMTP انکرپشن",
+  "purchase_screen": "خریداری کی سکرین",
+  "purchase_screen_1": "خریداری کی سکرین_1",
+  "purchase_screen_2": "خریداری کی سکرین_2"
 }

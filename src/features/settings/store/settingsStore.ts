@@ -22,6 +22,7 @@ interface LocationSettings {
   showItemCodeInQuotations: boolean;
   showItemCodeInPurchases: boolean;
   postype: number | string;
+  posPurcherstype: string;
 }
 
 interface ItemsSettings {
@@ -95,6 +96,7 @@ const defaultSettings: Settings = {
     showItemCodeInQuotations: false,
     showItemCodeInPurchases: false,
     postype: 1,
+    posPurcherstype: "Purchers1",
   },
   items: {
     itemTax: true,

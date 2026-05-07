@@ -12,6 +12,8 @@ import { useCreatePurchaseOrder } from "@/features/purchases/hooks/useCreatePurc
 import { calcTotals } from "@/constants/data";
 import { usePrint } from "@/context/PrintContext";
 import { getPurchaseOrderById } from "@/features/purchases/services/purchases";
+import { useUpdatePurchaseOrder } from "@/features/purchases/hooks/useUpdatePurchaseOrder";
+import { useNavigate } from "react-router-dom";
 
 type SaveAction = "pdf" | "whatsapp" | "email" | "save_only" | "save_and_print";
 
@@ -21,6 +23,7 @@ interface UnifiedPurchasePaymentDialogProps {
   total?: number;
   onCancel?: () => void;
   warehouseId?: number;
+  id?: string;
 }
 
 interface Split {
@@ -50,12 +53,15 @@ function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (
   );
 }
 
-export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: externalTotal, onCancel, warehouseId = 1 }: UnifiedPurchasePaymentDialogProps) {
+export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: externalTotal, onCancel, warehouseId = 1, id }: UnifiedPurchasePaymentDialogProps) {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { printInvoice } = usePrint();
   const { data: treasurys } = useGetAllTreasurys();
   const { selectedSupplier, cart, discount, setPaidAmount, setSelectedVaultId, handleConfirmPurchase } = usePurchaseStore();
   const { mutateAsync: createPurchaseOrder } = useCreatePurchaseOrder();
+  const { mutateAsync: updatePurchaseOrder } = useUpdatePurchaseOrder();
+  const isEditMode = !!id;
 
   const { total: cartTotal } = calcTotals(cart, discount);
   const total = externalTotal ?? cartTotal;
@@ -152,7 +158,7 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
     try {
       const response = await handleConfirmPurchase({
         payments,
-        createPurchaseOrder,
+        createPurchaseOrder: isEditMode ? (data) => updatePurchaseOrder({ id: Number(id), data }) : createPurchaseOrder,
         warehouseId,
       });
 
@@ -167,6 +173,7 @@ export function UnifiedPurchasePaymentDialog({ open, onOpenChange, total: extern
         }
       }
       onOpenChange(false);
+      navigate("/purchases");
     } catch (err) {
       console.error(err);
     }
