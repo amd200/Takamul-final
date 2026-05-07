@@ -42,12 +42,12 @@ export interface Group {
 
 const GROUPS: Group[] = [
   {
-    id: "statistics",
-    label: "الإحصائيات",
+    id: "dashbord",
+    label: "لوحة التحكم",
     pages: [
       {
-        id: "statistics",
-        label: "الإحصائيات",
+        id: "dashboard",
+        label: "لوحة التحكم",
         permissions: [
           { id: "view_sales", label: "اجمالي المبيعات", value: Permissions?.statistics?.sales },
           { id: "view_expenses", label: "اجمالي المصروفات ", value: Permissions?.statistics?.expenses },

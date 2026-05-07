@@ -91,6 +91,7 @@ export const updateSalesSettings = (data: {
   isTekawuy: boolean;
   isTables: boolean;
   isDelivary: boolean;
+  enableCursorOnAddProduct: boolean;
 }) =>
   httpClient("/Settings/sales", {
     method: "PUT",

@@ -38,6 +38,7 @@ export type Settings = {
     isTekawuy: boolean;
     isTables: boolean;
     isDelivary: boolean;
+    enableCursorOnAddProduct: boolean;
   };
 
   barcodeScale: {

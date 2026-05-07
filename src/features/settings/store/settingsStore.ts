@@ -115,6 +115,7 @@ const defaultSettings: Settings = {
     isTekawuy: false,
     isTables: false,
     isDelivary: false,
+    enableCursorOnAddProduct: false,
   },
   barcodeScale: {
     barcodeType: 1,
