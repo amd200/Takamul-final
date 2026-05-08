@@ -70,7 +70,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
   // ── deps ──────────────────────────────────────────────────────────────────
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
   const { mutateAsync: createDeliveryOrder } = useCreateDeliveryOrder();
-  const { data: salesInvoices } = useGetAllSales({ page: 1, limit: 10000 });
+  const { data: salesInvoices } = useGetAllSales({ page: 1, limit: 1 });
   const { mutateAsync: checkoutDineInOrder } = useCheckoutDineInOrder();
   const { mutateAsync: releaseHolding } = useReleaseHolding();
 

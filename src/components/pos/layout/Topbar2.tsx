@@ -28,6 +28,8 @@ import { useAuthStore } from "@/store/authStore";
 import useToast from "@/hooks/useToast";
 import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
 import { getNextOrderNumber } from "@/utils/getNextOrderNumber";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 export default function Topbar2() {
   const navigate = useNavigate();
@@ -62,7 +64,6 @@ export default function Topbar2() {
     const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
     if (!shiftsArray || !Array.isArray(shiftsArray)) return null;
 
-    // 0. Priority: Find the shift that matches shiftId from auth token
     if (authShiftId && authShiftId !== "0") {
       const tokenShift = shiftsArray.find((s: any) => String(s.id) === String(authShiftId));
       if (tokenShift) return tokenShift;
@@ -70,15 +71,12 @@ export default function Topbar2() {
 
     const normalizedUserName = userName?.toLowerCase().trim();
 
-    // 1. Try to find an open shift for the current user
     const openShiftForUser = shiftsArray.find((s: any) => s.status === "Open" && s.employeeName?.toLowerCase().trim() === normalizedUserName);
     if (openShiftForUser) return openShiftForUser;
 
-    // 2. Fallback: Find any open shift in the list
     const anyOpenShift = shiftsArray.find((s: any) => s.status === "Open");
     if (anyOpenShift) return anyOpenShift;
 
-    // 3. Fallback: Find the latest shift for the current user even if not marked "Open"
     const latestUserShift = shiftsArray.find((s: any) => s.employeeName?.toLowerCase().trim() === normalizedUserName);
     return latestUserShift || null;
   }, [shifts, userName, authShiftId]);
@@ -104,16 +102,7 @@ export default function Topbar2() {
     }
   };
   const now = new Date();
-  const dateTime = now.toLocaleString("ar-EG", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    numberingSystem: "latn",
-  });
+  const dateTime = format(now, "EEEE، d MMMM yyyy، hh:mm a", { locale: ar });
 
   return (
     <>

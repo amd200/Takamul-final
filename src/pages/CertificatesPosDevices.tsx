@@ -278,15 +278,16 @@ export default function CertificatesPosDevices() {
                     {(isCCSID || isCSR) && (
                       <button
                         onClick={() => {
-                          const device = {
+                          const foundDevice = devices?.data?.find((d) => d.id === row.deviceId);
+                          const device: Pick<POSDevice, "id" | "deviceName" | "serialNumber" | "InvoiceSequence" | "branchId" | "location" | "isActive" | "status" | "certificateId"> = {
                             id: row?.deviceId,
                             deviceName: row?.deviceName,
-                            serialNumber: devices?.data?.find((d) => d.id === row.deviceId)?.serialNumber || "",
-                            InvoiceSequence: devices?.data?.find((d) => d.id === row.deviceId)?.InvoiceSequence || "",
-                            branchId: devices?.data?.find((d) => d.id === row.deviceId)?.branchId || 0,
-                            location: devices?.data?.find((d) => d.id === row.deviceId)?.location || "",
-                            isActive: devices?.data?.find((d) => d.id === row.deviceId)?.isActive || false,
-                            status: devices?.data?.find((d) => d.id === row.deviceId)?.status || "NotRegistered",
+                            serialNumber: foundDevice?.serialNumber || "",
+                            InvoiceSequence: foundDevice?.InvoiceSequence || "",
+                            branchId: foundDevice?.branchId || 0,
+                            location: foundDevice?.location || "",
+                            isActive: foundDevice?.isActive || false,
+                            status: foundDevice?.status || "NotRegistered",
                             certificateId: row?.deviceCertificateId,
                           };
                           console.log(device.certificateId);

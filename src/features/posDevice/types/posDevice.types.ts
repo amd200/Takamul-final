@@ -19,14 +19,12 @@ export interface POSDevice {
   branchName: string | null;
   deviceTypeId: number;
   branchId: number;
-  isActive: boolean;
-  location: string;
+  isActive?: boolean;
+  location?: string;
   createdAt: string;
   certificateId: number | null;
   updatedAt: string;
 }
-
-
 
 export interface DeviceType {
   value: number;

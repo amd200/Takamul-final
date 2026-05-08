@@ -270,8 +270,8 @@ html, body {
   border-top: none;
 }
 #qr, .qr-wrap img {
-  width: 90px;
-  height: 90px;
+  width: 100px;
+  height: 100px;
   display: inline-block;
 }
 
@@ -418,7 +418,7 @@ html, body {
     !isExempt
       ? `
     <div class="qr-wrap">
-      ${qrImageSrc && `<img src="${qrImageSrc}" alt="QR" width="90" height="90"/>`}
+      ${qrImageSrc && `<img src="${qrImageSrc}" alt="QR" />`}
   </div>`
       : ""
   }

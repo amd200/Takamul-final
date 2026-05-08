@@ -223,17 +223,7 @@ function ReviewRow({ label, value }: { label: string; value?: string | number | 
 interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  device: {
-    id: number;
-    deviceName: string;
-    serialNumber: string;
-    InvoiceSequence: string;
-    branchId: number;
-    location?: string;
-    isActive?: boolean;
-    status: DeviceStatus;
-    certificateId: number;
-  };
+  device: Pick<POSDevice, "id" | "deviceName" | "serialNumber" | "InvoiceSequence" | "branchId" | "location" | "isActive" | "status" | "certificateId"> | null;
   editMode: boolean;
 }
 
