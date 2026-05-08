@@ -246,7 +246,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
           <CardTitle>فاتورة مرتجعات</CardTitle>
           <CardAction>
             <Button size="xl" variant="outline" asChild>
-              <Link to="/sales/all">
+              <Link to="/sales/a4-invoices">
                 العودة لفواتير المبيعات
                 <ArrowLeft size={16} />
               </Link>
@@ -503,7 +503,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
             {!isViewMode && (
               <div className="bg-white dark:bg-transparent p-5 sm:p-6 rounded-sm border border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-                <Button type="button" variant="destructive" className="h-12 px-6" onClick={() => navigate("/sales/all")}>
+                <Button type="button" variant="destructive" className="h-12 px-6" onClick={() => navigate("/sales/a4-invoices")}>
                   {t("cancel_and_return")}
                 </Button>
                 <Button type="submit" className="h-12 px-6">

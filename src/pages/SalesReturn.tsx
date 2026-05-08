@@ -11,6 +11,7 @@ import formatDate from "@/lib/formatDate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useGetAllSalesReturns } from "@/features/salesReturns/hooks/useGetAllSalesReturns";
+import { format } from "@/constants/data";
 export default function SalesReturn() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction } = useLanguage();
@@ -99,8 +100,8 @@ export default function SalesReturn() {
             <Column header={t("date")} sortable field="returnDate" body={(row) => formatDate(row.returnDate)} />
             <Column header={t("customer_name")} sortable field="customerName" />
             <Column header={t("invoice_status")} sortable body={(rawData) => statusBodyTemplate(rawData)} field="returnStatus" />
-            <Column header={t("total_amount")} sortable field="grandTotal" />
-            <Column header={"المبلغ المرتجع"} sortable field="refundedAmount" />
+            <Column header={t("total_amount")} sortable field="grandTotal" body={(row) => format(row.grandTotal)} />
+            <Column header={"المبلغ المرتجع"} sortable field="refundedAmount" body={(row) => format(row.refundedAmount)} />
             {/* <Column header={t("remaining_amount")} sortable field="" /> */}
             <Column
               header={t("actions")}

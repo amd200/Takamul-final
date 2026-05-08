@@ -731,7 +731,7 @@ const CreateSalesInvoice: React.FC = () => {
 
             {/* Actions */}
             <div className="bg-background p-5 sm:p-6 rounded-sm border border-border flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-              <Button type="button" variant="destructive" className="h-12 px-4" onClick={() => navigate("/sales/all")}>
+              <Button type="button" variant="destructive" className="h-12 px-4" onClick={() => navigate("/sales/a4-invoices")}>
                 {t("cancel_and_return")}
               </Button>
               <Button type="submit" className="h-12 px-4">
