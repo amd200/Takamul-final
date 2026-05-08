@@ -13,7 +13,7 @@ export const useUpdateGeneralSettings = () => {
     mutationFn: updateGeneralSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
-      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
+      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعداد");
     },
   });
 };
@@ -27,7 +27,7 @@ export const useUpdateSiteSettings = () => {
     mutationFn: updateSiteSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
-      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
+      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعداد");
     },
   });
 };
@@ -41,7 +41,7 @@ export const useUpdateItemsSettings = () => {
     mutationFn: updateItemsSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
-      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
+      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعداد");
     },
   });
 };
@@ -55,7 +55,7 @@ export const useUpdateSalesSettings = () => {
     mutationFn: updateSalesSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
-      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
+      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعداد");
     },
   });
 };
@@ -69,7 +69,7 @@ export const useUpdateBarcodeSettings = () => {
     mutationFn: updateBarcodeSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
-      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
+      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعداد");
     },
   });
 };
@@ -83,7 +83,7 @@ export const useUpdateTaxSettings = () => {
     mutationFn: updateTaxSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
-      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
+      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعداد");
     },
   });
 };

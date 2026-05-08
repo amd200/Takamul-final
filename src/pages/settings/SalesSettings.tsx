@@ -35,7 +35,7 @@ export default function SalesSettings() {
       isTables: systemSettings.sales.isTables,
       isDelivary: systemSettings.sales.isDelivary,
       enableCursorOnAddProduct: systemSettings.sales.enableCursorOnAddProduct,
-    });
+    }, { onSuccess: () => navigate("/settings/system") });
   };
 
   const enableStr = t("enable_option") || "تمكين";

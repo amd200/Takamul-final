@@ -13,7 +13,7 @@ export const useUpdateTobaccoFees = () => {
     mutationFn: (data: { tobaccoFees: number }) => updateTobaccoFees(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
-      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعدادات بنجاح");
+      notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعداد");
     },
   });
 };

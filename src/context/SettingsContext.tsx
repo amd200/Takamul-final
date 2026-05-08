@@ -495,7 +495,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const saveSettings = () => {
     localStorage.setItem("systemSettings", JSON.stringify(systemSettings));
     localStorage.setItem("posSettings", JSON.stringify(posSettings));
-    toast.success("تم حفظ الإعدادات بنجاح");
+    toast.success("تم حفظ الإعداد");
   };
 
   return (

@@ -53,7 +53,7 @@ export default function SiteSettings() {
       postype: data.postype === "POS1" ? 1 : 2,
       posPurcherstype: data.posPurcherstype === "Purchers1" ? 1 : 2,
     };
-    updateSite(payload);
+    updateSite(payload, { onSuccess: () => navigate("/settings/system") });
   };
 
   const booleanToString = (val: boolean) => (val ? enableStr : disableStr);
