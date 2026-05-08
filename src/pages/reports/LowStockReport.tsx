@@ -30,18 +30,23 @@ export default function LowStockReport() {
   const [submittedFilters, setSubmittedFilters] = useState({
     branchId: " ",
   });
+  const [isSearched, setIsSearched] = useState(false);
 
   const {
-    data: rows = [],
+    data: rawRows,
     isLoading,
     isFetching,
   } = useGetStockAlertsReport({
     branchId: submittedFilters.branchId.trim() || "",
+    enabled: isSearched,
   });
+
+  const rows = isSearched ? (rawRows ?? []) : [];
 
   const { data: branches = [] } = useGetAllBranches();
 
   const handleSearch = () => {
+    setIsSearched(true);
     setSubmittedFilters(filters);
     setCurrentPage(1);
   };
@@ -50,6 +55,7 @@ export default function LowStockReport() {
     const resetState = {
       branchId: " ",
     };
+    setIsSearched(false);
     setFilters(resetState);
     setSubmittedFilters(resetState);
     setCurrentPage(1);
@@ -127,6 +133,16 @@ export default function LowStockReport() {
         </CardHeader>
 
         <CardContent className="space-y-5">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-2">
+            <FinancialStatCard
+              title={t("items_count", "عدد الأصناف")}
+              value={String(rows.length)}
+              icon={AlertTriangle}
+              color="orange"
+            />
+          </div>
+
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4 items-end">
@@ -162,7 +178,7 @@ export default function LowStockReport() {
           </div>
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <DataTable value={rows} loading={isLoading || isFetching} paginator rows={entriesPerPage} dataKey="productId" className="custom-green-table custom-compact-table low-stock-table" emptyMessage={t("no_data")} responsiveLayout="stack">
+            <DataTable value={rows} loading={isLoading || isFetching} paginator rows={entriesPerPage} dataKey="productId" className="custom-green-table custom-compact-table low-stock-table" emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
               <Column header={t("serial", "م")} body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>} className="w-16" />
               <Column field="barcode" header={t("barcode", "باركود")} sortable body={(rowData) => <span className="text-sm font-medium">{rowData.barcode}</span>} />
 

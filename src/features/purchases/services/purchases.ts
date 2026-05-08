@@ -5,9 +5,16 @@ import type { CreatePurchaseOrder, GetAllPurchasesResponse, Purchase } from "../
 // GET
 // ===================
 
-export const getAllPurchases = (page: number, limit: number, searchTerm?: string) =>
+export const getAllPurchases = (page: number, limit: number, searchTerm?: string, branchId?: string, from?: string, to?: string) =>
   httpClient<GetAllPurchasesResponse>(`/PurchaseOrder`, {
-    params: { Page: page, PageSize: limit, SearchTerm: searchTerm },
+    params: { 
+      Page: page, 
+      PageSize: limit, 
+      SearchTerm: searchTerm,
+      branchid: branchId,
+      From: from,
+      To: to
+    },
   });
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);

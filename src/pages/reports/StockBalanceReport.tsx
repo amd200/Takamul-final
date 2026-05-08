@@ -16,11 +16,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { 
-  generateReportHTML, 
-  printCustomHTML, 
-  exportCustomPDF, 
-  exportToExcel 
+import {
+  generateReportHTML,
+  printCustomHTML,
+  exportCustomPDF,
+  exportToExcel
 } from "@/utils/customExportUtils";
 
 type FilterState = { branchId: string; from: string; to: string };
@@ -29,35 +29,45 @@ export default function StockBalanceReport() {
   const { t, direction } = useLanguage();
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  const [filters, setFilters] = useState<FilterState>({
-    branchId: " ",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const now = new Date();
+    return {
+      branchId: " ",
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
+    };
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
   const {
-    data: reportData = [],
+    data: rawReportData,
     isLoading,
     isFetching,
   } = useGetInventoryStock({
     branchid: searchParams.branchId.trim() || undefined,
     from: searchParams.from,
     to: searchParams.to,
+    enabled: isSearched,
   });
+
+  const reportData = isSearched ? (rawReportData ?? []) : [];
 
   const { data: branches = [] } = useGetAllBranches();
 
   const handleSearch = () => {
+    setIsSearched(true);
     setSearchParams(filters);
   };
 
   const handleClear = () => {
+    setIsSearched(false);
+    const now = new Date();
     const reset: FilterState = {
       branchId: " ",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
     };
     setFilters(reset);
     setSearchParams(reset);
@@ -67,7 +77,7 @@ export default function StockBalanceReport() {
 
   const totalCostValue = useMemo(() => reportData?.reduce((s, r) => s + (r.totalCostValue || 0), 0) ?? 0, [reportData]);
   const totalSaleValue = useMemo(() => reportData?.reduce((s, r) => s + (r.totalSaleValue || 0), 0) ?? 0, [reportData]);
-  
+
   const title = t("inventory_report", "تقرير جرد الأصناف");
 
   const getFiltersInfo = () => {
@@ -147,26 +157,26 @@ export default function StockBalanceReport() {
             </CardTitle>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button 
+            <button
               onClick={handlePrint}
               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
             >
-              <Printer size={16} /> 
+              <Printer size={16} />
               <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button 
+            <button
               onClick={handleExportPDF}
               disabled={pdfLoading}
               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
             >
-              <FileText size={16} /> 
+              <FileText size={16} />
               <span className="hidden sm:inline">PDF</span>
             </button>
-            <button 
+            <button
               onClick={handleExportExcel}
               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
             >
-              <FileSpreadsheet size={16} /> 
+              <FileSpreadsheet size={16} />
               <span className="hidden sm:inline">Excel</span>
             </button>
           </div>
@@ -215,8 +225,8 @@ export default function StockBalanceReport() {
                 <Label className="text-xs font-medium text-text-main">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -224,7 +234,7 @@ export default function StockBalanceReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -235,8 +245,8 @@ export default function StockBalanceReport() {
                 <Label className="text-xs font-medium text-text-main">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -245,7 +255,7 @@ export default function StockBalanceReport() {
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
-                          {filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
+                          {filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
                     }
@@ -271,7 +281,7 @@ export default function StockBalanceReport() {
               paginator rows={10}
               dataKey="productId"
               className="custom-green-table custom-compact-table"
-              emptyMessage={t("no_data", "لا توجد بيانات")}
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
               responsiveLayout="stack"
             >
               <Column

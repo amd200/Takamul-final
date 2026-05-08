@@ -58,15 +58,17 @@ export default function ItemMovementReport() {
   const { t, direction } = useLanguage();
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  const [filters, setFilters] = useState<FilterState>({
-    branchId: " ",
-    productId: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30))
-      .toISOString()
-      .split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const now = new Date();
+    return {
+      branchId: " ",
+      productId: "",
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
+    };
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
@@ -78,28 +80,32 @@ export default function ItemMovementReport() {
     [productsResponse]
   );
 
-  const { data: movementData = [], isLoading, isFetching } =
+  const { data: rawReportData = [], isLoading, isFetching } =
     useGetProductMovement({
       productId: searchParams.productId ? Number(searchParams.productId) : "",
       from: searchParams.from,
       to: searchParams.to,
       branchid: searchParams.branchId.trim() || undefined,
+      enabled: isSearched && !!searchParams.productId,
     });
+
+  const movementData = isSearched ? (rawReportData ?? []) : [];
 
   const { data: branches = [] } = useGetAllBranches();
 
   const handleSearch = () => {
+    setIsSearched(true);
     setSearchParams(filters);
   };
 
   const handleClear = () => {
+    setIsSearched(false);
+    const now = new Date();
     const defaultFilters: FilterState = {
       branchId: " ",
       productId: "",
-      from: new Date(new Date().setDate(new Date().getDate() - 30))
-        .toISOString()
-        .split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
     };
     setFilters(defaultFilters);
     setSearchParams(defaultFilters);
@@ -234,6 +240,21 @@ export default function ItemMovementReport() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+             <FinancialStatCard
+              title={t("current_balance", "الرصيد الحالي")}
+              value={movementData.length > 0 ? formatNumber(movementData[movementData.length - 1].runningBalance) : "0.00"}
+              icon={TrendingUp}
+              color="teal"
+            />
+            <FinancialStatCard
+              title={t("movements_count", "عدد الحركات")}
+              value={String(movementData.length)}
+              icon={RefreshCw}
+              color="blue"
+            />
+          </div>
 
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
@@ -285,10 +306,8 @@ export default function ItemMovementReport() {
                 </Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) =>
-                      setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
-                    }
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -298,7 +317,7 @@ export default function ItemMovementReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
+                            ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -313,10 +332,8 @@ export default function ItemMovementReport() {
                 </Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) =>
-                      setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
-                    }
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -326,7 +343,7 @@ export default function ItemMovementReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
+                            ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -353,7 +370,9 @@ export default function ItemMovementReport() {
               responsiveLayout="stack"
               className="custom-green-table custom-compact-table"
               emptyMessage={
-                !searchParams.productId
+                !isSearched
+                  ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات")
+                  : !searchParams.productId
                   ? t("select_product_first", "اختر صنفاً أولاً لعرض الحركة")
                   : t("no_data", "لا توجد بيانات في الجدول")
               }

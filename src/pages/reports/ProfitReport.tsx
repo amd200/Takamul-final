@@ -30,7 +30,7 @@ import { Permissions } from "@/lib/permissions";
 import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, TrendingUp, Receipt, DollarSign, BarChart3 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   printCustomHTML,
@@ -234,32 +234,42 @@ export default function ProfitReport() {
   const { t, direction } = useLanguage();
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  const [filters, setFilters] = useState<FilterState>({
-    branchId: " ",
-    fiscalYear: new Date().getFullYear().toString(),
-    fiscalQuarter: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const now = new Date();
+    return {
+      branchId: " ",
+      fiscalYear: now.getFullYear().toString(),
+      fiscalQuarter: "",
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
+    };
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
   const { data: profitData, isLoading, isFetching } = useGetProfitReport({
     branchid: searchParams.branchId.trim() || undefined,
     from: searchParams.from,
     to: searchParams.to,
+    enabled: isSearched,
   });
 
   const { data: branches = [] } = useGetAllBranches();
 
-  const handleSearch = () => setSearchParams(filters);
+  const handleSearch = () => {
+    setIsSearched(true);
+    setSearchParams(filters);
+  };
   const handleClear = () => {
+    setIsSearched(false);
+    const now = new Date();
     const reset = {
       branchId: " ",
-      fiscalYear: new Date().getFullYear().toString(),
+      fiscalYear: now.getFullYear().toString(),
       fiscalQuarter: "",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
     };
     setFilters(reset);
     setSearchParams(reset);
@@ -405,8 +415,8 @@ export default function ProfitReport() {
                 <Label className="text-xs font-medium text-text-main">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -414,7 +424,7 @@ export default function ProfitReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -425,8 +435,8 @@ export default function ProfitReport() {
                 <Label className="text-xs font-medium text-text-main">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -434,7 +444,7 @@ export default function ProfitReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -452,36 +462,39 @@ export default function ProfitReport() {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50/50 dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
-                <tr>
-                  <th className="px-6 py-3 text-start font-bold text-slate-900 dark:text-white w-16">{t("serial", "م")}</th>
-                  <th className="px-6 py-3 text-start font-bold text-slate-900 dark:text-white">{t("item", "البند")}</th>
-                  <th className="px-6 py-3 text-end font-bold text-slate-900 dark:text-white">{t("amount", "المبلغ")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {profitRows.map((row, i) => (
-                  <tr key={row.id} className={`border-b border-gray-100 dark:border-slate-800 ${row.isGray ? "bg-gray-50/50 dark:bg-slate-900/40" : ""}`}>
-                    <td className="px-6 py-4 font-semibold text-slate-500">{i + 1}</td>
-                    <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">{row.label}</td>
-                    <td className="px-6 py-4 text-end">
-                      <span className="text-sm font-bold text-slate-900 dark:text-white">{formatNumber(row.value)}</span>
-                    </td>
-                  </tr>
-                ))}
-                <tr className="bg-[rgba(49,201,110,0.05)] border-t-2 border-[var(--primary)]">
-                  <td className="px-6 py-5 font-bold text-[var(--text-main)]">{profitRows.length + 1}</td>
-                  <td className="px-6 py-5 text-base font-bold text-[var(--text-main)]">{t("net_profit", "صافي الربح")}</td>
-                  <td className="px-6 py-5 text-end">
-                    <span className="text-base font-bold text-[var(--primary)]">{formatNumber(profitData?.netProfit)}</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+              {/* Table */}
+              <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50/50 dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
+                    <tr>
+                      <th className="px-6 py-3 text-start font-bold text-slate-900 dark:text-white w-16">{t("serial", "م")}</th>
+                      <th className="px-6 py-3 text-start font-bold text-slate-900 dark:text-white">{t("item", "البند")}</th>
+                      <th className="px-6 py-3 text-end font-bold text-slate-900 dark:text-white">{t("amount", "المبلغ")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profitRows.map((row, i) => (
+                      <tr key={row.id} className={`border-b border-gray-100 dark:border-slate-800 ${row.isGray ? "bg-gray-50/50 dark:bg-slate-900/40" : ""}`}>
+                        <td className="px-6 py-4 font-semibold text-slate-500">{i + 1}</td>
+                        <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">{row.label}</td>
+                        <td className="px-6 py-4 text-end">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">{formatNumber(row.value)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-[rgba(49,201,110,0.05)] border-t-2 border-[var(--primary)]">
+                      <td className="px-6 py-5 font-bold text-[var(--text-main)]">{profitRows.length + 1}</td>
+                      <td className="px-6 py-5 text-base font-bold text-[var(--text-main)]">{t("net_profit", "صافي الربح")}</td>
+                      <td className="px-6 py-5 text-end">
+                        <span className="text-base font-bold text-[var(--primary)]">{formatNumber(profitData?.netProfit)}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            
+          
+       
         </CardContent>
       </Card>
     </div>

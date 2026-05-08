@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Package,
   DollarSign,
+  ShoppingBag,
   Calendar as CalendarIcon
 } from "lucide-react";
 import { DataTable } from "primereact/datatable";
@@ -63,30 +64,36 @@ export default function BestSellersChart() {
 
   const [filters, setFilters] = useState({
     branchId: " ",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    to: new Date().toLocaleDateString('en-CA'),
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [submittedFilters, setSubmittedFilters] = useState(filters);
 
-  const { data: reportData = [], isLoading, isFetching } = useGetTopSellingProducts({
+  const { data: rawReportData, isLoading, isFetching } = useGetTopSellingProducts({
     branchid: submittedFilters.branchId.trim() || undefined,
     from: submittedFilters.from,
     to: submittedFilters.to,
+    enabled: isSearched,
   });
+
+  const reportData = isSearched ? (rawReportData ?? []) : [];
 
   const { data: branches = [] } = useGetAllBranches();
 
   const handleSearch = () => {
+    setIsSearched(true);
     setSubmittedFilters(filters);
   };
 
   const handleClear = () => {
     const resetState = {
       branchId: " ",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      to: new Date().toLocaleDateString('en-CA'),
     };
+    setIsSearched(false);
     setFilters(resetState);
     setSubmittedFilters(resetState);
   };
@@ -177,7 +184,29 @@ export default function BestSellersChart() {
         </CardHeader>
 
         <CardContent className="pt-6 space-y-6">
-     
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+            <FinancialStatCard
+              title={t("total_sales", "إجمالي المبيعات")}
+              value={formatNumber(summary.totalSales)}
+              suffix="SAR"
+              icon={TrendingUp}
+              color="blue"
+            />
+            <FinancialStatCard
+              title={t("total_qty", "إجمالي الكمية المباعة")}
+              value={String(summary.totalQty)}
+              icon={ShoppingBag}
+              color="teal"
+            />
+            <FinancialStatCard
+              title={t("products_count", "عدد المنتجات")}
+              value={String(summary.productCount)}
+              icon={BarChart2}
+              color="orange"
+            />
+          </div>
+
 
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
@@ -203,7 +232,7 @@ export default function BestSellersChart() {
                 <Label className="text-xs font-medium text-text-main">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) => setFilters(p => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
@@ -212,7 +241,7 @@ export default function BestSellersChart() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date")}</span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date")}</span>
                       </div>
                     }
                   />
@@ -223,7 +252,7 @@ export default function BestSellersChart() {
                 <Label className="text-xs font-medium text-text-main">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) => setFilters(p => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
@@ -232,7 +261,7 @@ export default function BestSellersChart() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date")}</span>
+                        <span className="text-sm">{filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date")}</span>
                       </div>
                     }
                   />
@@ -289,7 +318,7 @@ export default function BestSellersChart() {
               value={reportData}
               loading={isLoading || isFetching}
               className="custom-green-table custom-compact-table"
-              emptyMessage={t("no_data", "لا توجد بيانات")}
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
               paginator
               rows={10}
               responsiveLayout="stack"

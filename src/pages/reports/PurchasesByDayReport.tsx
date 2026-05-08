@@ -56,10 +56,11 @@ export default function PurchasesByDayReport() {
     branchId: " ",
     fiscalYear: new Date().getFullYear().toString(),
     fiscalQuarter: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    to: new Date().toLocaleDateString('en-CA'),
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
   // Data Fetching
@@ -67,6 +68,7 @@ export default function PurchasesByDayReport() {
     branchid: searchParams.branchId.trim() || undefined,
     From: searchParams.from,
     To: searchParams.to,
+    enabled: isSearched,
   });
 
   const { data: branches = [] } = useGetAllBranches();
@@ -92,14 +94,18 @@ export default function PurchasesByDayReport() {
     }));
   };
 
-  const handleSearch = () => setSearchParams(filters);
+  const handleSearch = () => {
+    setIsSearched(true);
+    setSearchParams(filters);
+  };
   const handleClear = () => {
+    setIsSearched(false);
     const reset = {
       branchId: " ",
       fiscalYear: new Date().getFullYear().toString(),
       fiscalQuarter: "",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0]
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      to: new Date().toLocaleDateString('en-CA')
     };
     setFilters(reset);
     setSearchParams(reset);
@@ -310,7 +316,7 @@ export default function PurchasesByDayReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -323,7 +329,7 @@ export default function PurchasesByDayReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
+                            ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -338,7 +344,7 @@ export default function PurchasesByDayReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -351,7 +357,7 @@ export default function PurchasesByDayReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
+                            ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -377,7 +383,7 @@ export default function PurchasesByDayReport() {
               paginator rows={10}
               loading={purchasesLoading || purchasesFetching}
               className="custom-green-table custom-compact-table"
-              emptyMessage={t("no_data", "لا توجد بيانات")}
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
               responsiveLayout="stack"
             >
               <Column
@@ -386,9 +392,9 @@ export default function PurchasesByDayReport() {
                 className="w-16"
               />
               <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm font-bold text-[var(--text-main)]">{new Date(r.date).toLocaleDateString("en-GB")}</span>} />
-              {!isExempt && <Column field="totalPurchases" header={t("purchases_excl_tax", "المشتريات")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.totalPurchases)}</span>} />}
-              {!isExempt && <Column header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber((r.netPurchases || 0) - (r.totalPurchases || 0))}</span>} />}
-              <Column field="netPurchases" header={t("total_with_tax", "إجمالي المستندات بعد الضريبة")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.netPurchases)}</span>} />
+              {!isExempt && <Column field="totalPurchases" header={t("total_purchases_excl_tax", "إجمالي المشتريات بدون ضريبة")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.totalPurchases)}</span>} />}
+              {!isExempt && <Column header={t("total_tax", "إجمالي الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber((r.netPurchases || 0) - (r.totalPurchases || 0))}</span>} />}
+              <Column field="netPurchases" header={t("grand_total_with_tax", "الإجمالي النهائي")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.netPurchases)}</span>} />
             </DataTable>
           </div>
         </CardContent>

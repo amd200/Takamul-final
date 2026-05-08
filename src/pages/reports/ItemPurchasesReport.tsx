@@ -46,25 +46,37 @@ export default function ItemPurchasesReport() {
   const initialFilters: FilterState = {
     branchId: "all",
     productId: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    to: new Date().toLocaleDateString('en-CA'),
   };
 
   const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(initialFilters);
 
   const { data: productsData, isLoading: productsLoading } = useGetAllProducts({ page: 1, limit: 1000 });
   const { data: branches = [] } = useGetAllBranches();
 
-  const { data: purchasesResponse, isLoading: purchasesLoading, isFetching: purchasesFetching } = useGetProductPurchases({
+  const {
+    data: rawReportData,
+    isLoading: purchasesLoading,
+    isFetching: purchasesFetching,
+  } = useGetProductPurchases({
     branchid: searchParams.branchId === "all" ? undefined : searchParams.branchId,
     productID: searchParams.productId,
     from: searchParams.from,
     to: searchParams.to,
+    enabled: isSearched && !!searchParams.productId,
   });
 
-  const handleSearch = () => setSearchParams(filters);
+  const purchasesResponse = isSearched ? rawReportData : undefined;
+
+  const handleSearch = () => {
+    setIsSearched(true);
+    setSearchParams(filters);
+  };
   const handleClear = () => {
+    setIsSearched(false);
     setFilters(initialFilters);
     setSearchParams(initialFilters);
   };
@@ -94,7 +106,7 @@ export default function ItemPurchasesReport() {
     { header: t("date", "التاريخ"), field: "date", body: (r: any) => r.date ? new Date(r.date).toLocaleDateString("en-GB") : "-" },
     { header: t("invoice_number", "رقم الفاتورة"), field: "orderNumber" },
     { header: t("purchased_quantity", "الكمية المشتراة"), field: "quantityPurchased" },
-    { header: t("total_purchases_value", "إجمالي الشراء"), field: "totalPurchases", body: (r: any) => formatNumber(r.totalPurchases) },
+    { header: "إجمالي الشراء", field: "totalPurchases", body: (r: any) => formatNumber(r.totalPurchases) },
   ];
 
   const handleExportPDF = async () => {
@@ -183,7 +195,7 @@ export default function ItemPurchasesReport() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <FinancialStatCard
-              title={t("total_item_purchases", "إجمالي مشتريات الصنف")}
+              title={t("total_amount", "إجمالي القيمة")}
               value={formatNumber(totalAmount)}
               suffix="SAR"
               icon={DollarSign}
@@ -241,7 +253,7 @@ export default function ItemPurchasesReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -254,7 +266,7 @@ export default function ItemPurchasesReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
+                            ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -269,7 +281,7 @@ export default function ItemPurchasesReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -282,7 +294,7 @@ export default function ItemPurchasesReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
+                            ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -309,14 +321,14 @@ export default function ItemPurchasesReport() {
               rows={10}
               loading={purchasesLoading || purchasesFetching}
               className="custom-green-table custom-compact-table"
-              emptyMessage={!searchParams.productId ? t("select_product_first", "اختر صنفاً أولاً لعرض التقرير") : t("no_data", "لا توجد بيانات")}
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : !searchParams.productId ? t("select_product_first", "اختر صنفاً أولاً لعرض التقرير") : t("no_data", "لا توجد بيانات")}
               responsiveLayout="stack"
             >
               <Column header={t("serial", "م")} body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>} />
               <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm">{r.date ? new Date(r.date).toLocaleDateString("en-GB") : "-"}</span>} />
               <Column field="orderNumber" header={t("invoice_number", "رقم الفاتورة")} sortable body={(r) => <span className="text-sm font-bold text-[var(--text-main)]">{r.orderNumber}</span>} />
               <Column field="quantityPurchased" header={t("purchased_quantity", "الكمية المشتراة")} sortable body={(r) => <span className="text-sm font-medium">{r.quantityPurchased}</span>} />
-              <Column field="totalPurchases" header={t("total_purchases_value", "إجمالي الشراء")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.totalPurchases)}</span>} />
+              <Column field="totalPurchases" header="إجمالي الشراء" sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.totalPurchases)}</span>} />
             </DataTable>
           </div>
         </CardContent>

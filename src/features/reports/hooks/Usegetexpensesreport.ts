@@ -3,10 +3,11 @@ import { getExpensesReport } from "../services/reportsService";
 import { reportsKeys } from "../keys/reports.keys";
 import { ExpensesReportParams } from "../types/reports.types";
 
-export const useGetExpensesReport = (params: ExpensesReportParams) => {
+export const useGetExpensesReport = (params: ExpensesReportParams & { enabled?: boolean }) => {
+  const { enabled, ...apiParams } = params;
   return useQuery({
-    queryKey: reportsKeys.expenses(params),
-    queryFn: () => getExpensesReport(params),
-    enabled: true, // Allow fetching even with empty params if needed, or customize
+    queryKey: reportsKeys.expenses(apiParams),
+    queryFn: () => getExpensesReport(apiParams),
+    enabled: enabled !== undefined ? enabled : true,
   });
 };

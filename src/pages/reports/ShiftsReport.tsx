@@ -34,18 +34,21 @@ export default function ShiftsReport() {
     to: new Date().toISOString().split("T")[0],
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(filters);
 
-  const { data: shiftsData, isLoading } = useGetAllShifts();
+  const { data: shiftsData, isLoading } = useGetAllShifts({ enabled: isSearched });
   const { data: branches = [] } = useGetAllBranches();
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const allShifts = useMemo(() => {
+    if (!isSearched) return [];
     return Array.isArray(shiftsData) ? shiftsData : (shiftsData as any)?.items || (shiftsData as any)?.data || [];
-  }, [shiftsData]);
+  }, [shiftsData, isSearched]);
 
   // Client-side filtering
   const filteredShifts = useMemo(() => {
+    if (!isSearched) return [];
     return allShifts.filter((shift: Shift) => {
       const shiftDate = new Date(shift.shiftDate).getTime();
       const fromDate = new Date(searchParams.from).getTime();
@@ -54,9 +57,9 @@ export default function ShiftsReport() {
       const branchMatch = searchParams.branchId.trim() === "" || String(shift.branchName).includes(searchParams.branchId.trim()) || searchParams.branchId === " ";
       // Note: branchId filtering might need real branchId if available in Shift type, for now using name matching or ignoring
 
-      return shiftDate >= fromDate && shiftDate <= toDate;
+      return shiftDate >= fromDate && shiftDate <= toDate && branchMatch;
     });
-  }, [allShifts, searchParams]);
+  }, [allShifts, searchParams, isSearched]);
 
   const summary = useMemo(() => {
     return filteredShifts.reduce(
@@ -74,10 +77,12 @@ export default function ShiftsReport() {
   const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const handleSearch = () => {
+    setIsSearched(true);
     setSearchParams(filters);
   };
 
   const handleClear = () => {
+    setIsSearched(false);
     const reset = {
       branchId: " ",
       from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
@@ -98,17 +103,7 @@ export default function ShiftsReport() {
       { header: t("expenses", "المصاريف"), field: "totalExpenses" },
       { header: t("total", "صافي الوردية"), field: "netTotal" },
     ];
-
-    const data = filteredShifts.map((s) => ({
-      ...s,
-      totalSales: fmt(s.totalSales),
-      totalExpenses: fmt(s.totalExpenses),
-      netTotal: fmt(s.netTotal),
-    }));
-
-    const summaryCards: any[] = [];
-
-    const html = generateReportHTML(reportTitle, t("all_shifts", "جميع الورديات"), summaryCards, columns, data, t, direction);
+    const html = generateReportHTML(reportTitle, "", [], columns, filteredShifts, t, direction);
     printCustomHTML(reportTitle, html);
   };
 
@@ -118,7 +113,7 @@ export default function ShiftsReport() {
       const columns = [
         { header: t("serial", "م"), field: "serial" },
         { header: t("shift_id", "رقم الوردية"), field: "id" },
-        { header: t("user", "المستخدم"), field: "employeeName" },
+        { header: t("open_time", "وقت الافتتاح"), field: "startTime" },
         { header: t("total", "صافي الوردية"), field: "netTotal" },
       ];
 
@@ -195,6 +190,8 @@ export default function ShiftsReport() {
         </CardHeader>
 
         <CardContent className="pt-6">
+ 
+
           <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />

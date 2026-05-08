@@ -3,10 +3,11 @@ import { getDailySalesReport } from "../services/reportsService";
 import { reportsKeys } from "../keys/reports.keys";
 import { DailySalesReportParams } from "../types/reports.types";
 
-export const useGetDailySalesReport = (params: DailySalesReportParams) => {
+export const useGetDailySalesReport = (params: DailySalesReportParams & { enabled?: boolean }) => {
+  const { enabled, ...apiParams } = params;
   return useQuery({
-    queryKey: reportsKeys.dailySales(params),
-    queryFn: () => getDailySalesReport(params),
-    enabled: !!(params.From && params.To),
+    queryKey: reportsKeys.dailySales(apiParams),
+    queryFn: () => getDailySalesReport(apiParams),
+    enabled: enabled !== undefined ? enabled : !!(apiParams.From && apiParams.To),
   });
 };

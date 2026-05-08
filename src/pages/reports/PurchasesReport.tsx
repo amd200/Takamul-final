@@ -31,23 +31,30 @@ export default function PurchasesReport() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  const [filters, setFilters] = useState({
-    branchId: " ",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+  const [filters, setFilters] = useState(() => {
+    const now = new Date();
+    return {
+      branchId: " ",
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
+    };
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(filters);
 
   // Data Fetching
   const { data: purchasesData, isLoading } = useGetAllPurchases({
     page: currentPage,
     limit: entriesPerPage,
-    searchTerm: filters.branchId.trim() ? filters.branchId : undefined,
+    branchId: searchParams.branchId.trim() || undefined,
+    from: searchParams.from,
+    to: searchParams.to,
+    enabled: isSearched,
   });
 
-  const items = purchasesData?.items ?? [];
-  const totalCount = purchasesData?.totalCount ?? 0;
+  const items = isSearched ? (purchasesData?.items ?? []) : [];
+  const totalCount = isSearched ? (purchasesData?.totalCount ?? 0) : 0;
 
   const { data: branches = [] } = useGetAllBranches();
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
@@ -68,17 +75,20 @@ export default function PurchasesReport() {
   const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const handleSearch = () => {
+    setIsSearched(true);
     setCurrentPage(1);
     setSearchParams(filters);
   };
 
   const handleClear = () => {
+    const now = new Date();
     const reset = {
       branchId: " ",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
     };
     setFilters(reset);
+    setIsSearched(false);
     setSearchParams(reset);
     setCurrentPage(1);
   };
@@ -214,13 +224,13 @@ export default function PurchasesReport() {
                 <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t("from_date", "من تاريخ")}</Label>
                 <div className="relative">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-11 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-sm">
                         <CalendarIcon className="h-4 w-4 text-slate-400 shrink-0" />
-                        <span>{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date")}</span>
+                        <span>{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date")}</span>
                       </div>
                     }
                   />
@@ -231,13 +241,13 @@ export default function PurchasesReport() {
                 <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t("to_date", "إلى تاريخ")}</Label>
                 <div className="relative">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-11 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-sm">
                         <CalendarIcon className="h-4 w-4 text-slate-400 shrink-0" />
-                        <span>{filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date")}</span>
+                        <span>{filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date")}</span>
                       </div>
                     }
                   />
@@ -272,7 +282,7 @@ export default function PurchasesReport() {
             }}
             className="custom-standard-table"
             dataKey="id"
-            emptyMessage={t("no_data", "لا توجد بيانات")}
+            emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
             scrollable
             scrollHeight="600px"
           >
