@@ -34,7 +34,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
-import { FinancialStatCard } from "@/components/FinancialStatCard";
 import { 
   generateReportHTML, 
   printCustomHTML, 
@@ -184,8 +183,6 @@ export default function BestSellersChart() {
         </CardHeader>
 
         <CardContent className="pt-6 space-y-6">
-      
-
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
