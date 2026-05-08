@@ -113,9 +113,9 @@ export default function SalesByDayReport() {
   const formatNumber = (value?: number) =>
     Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const totalSales = useMemo(() => salesData.reduce((s, r) => s + (r.totalSales || 0), 0), [salesData]);
-  const totalTax = useMemo(() => salesData.reduce((s, r) => s + (r.totalTax || 0), 0), [salesData]);
-  const totalFinal = useMemo(() => salesData.reduce((s, r) => s + (r.netSales || 0), 0), [salesData]);
+  const totalSales = useMemo(() => isSearched ? salesData.reduce((s, r) => s + (r.totalSales || 0), 0) : 0, [salesData, isSearched]);
+  const totalTax = useMemo(() => isSearched ? salesData.reduce((s, r) => s + (r.totalTax || 0), 0) : 0, [salesData, isSearched]);
+  const totalFinal = useMemo(() => isSearched ? salesData.reduce((s, r) => s + (r.netSales || 0), 0) : 0, [salesData, isSearched]);
 
   const title = t("sales_by_day", "تقرير إجمالي المبيعات على مستوى الأيام");
 
@@ -378,7 +378,7 @@ export default function SalesByDayReport() {
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
-              value={salesData}
+              value={isSearched ? salesData : []}
               paginator 
               paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
               rows={10}

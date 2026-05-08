@@ -114,9 +114,9 @@ export default function PurchasesByDayReport() {
   const formatNumber = (value?: number) =>
     Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const totalPurchases = useMemo(() => purchasesData.reduce((s, r) => s + (r.totalPurchases || 0), 0), [purchasesData]);
-  const totalTax = useMemo(() => purchasesData.reduce((s, r) => s + ((r.netPurchases || 0) - (r.totalPurchases || 0)), 0), [purchasesData]);
-  const totalFinal = useMemo(() => purchasesData.reduce((s, r) => s + (r.netPurchases || 0), 0), [purchasesData]);
+  const totalPurchases = useMemo(() => isSearched ? purchasesData.reduce((s, r) => s + (r.totalPurchases || 0), 0) : 0, [purchasesData, isSearched]);
+  const totalTax = useMemo(() => isSearched ? purchasesData.reduce((s, r) => s + ((r.netPurchases || 0) - (r.totalPurchases || 0)), 0) : 0, [purchasesData, isSearched]);
+  const totalFinal = useMemo(() => isSearched ? purchasesData.reduce((s, r) => s + (r.netPurchases || 0), 0) : 0, [purchasesData, isSearched]);
 
   const title = t("purchases_by_day", "تقرير مشتريات على مستوى الأيام");
 
@@ -227,33 +227,33 @@ export default function PurchasesByDayReport() {
 
         <CardContent className="space-y-4">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            {!isExempt && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              {!isExempt && (
+                <FinancialStatCard
+                  title={t("total_purchases_excl_tax", "إجمالي المشتريات بدون ضريبة")}
+                  value={formatNumber(totalPurchases)}
+                  suffix="SAR"
+                  icon={TrendingUp}
+                  color="orange"
+                />
+              )}
+              {!isExempt && (
+                <FinancialStatCard
+                  title={t("total_tax", "إجمالي الضريبة")}
+                  value={formatNumber(totalTax)}
+                  suffix="SAR"
+                  icon={Receipt}
+                  color="blue"
+                />
+              )}
               <FinancialStatCard
-                title={t("total_purchases_excl_tax", "إجمالي المشتريات بدون ضريبة")}
-                value={formatNumber(totalPurchases)}
+                title={t("grand_total_with_tax", "الإجمالي النهائي")}
+                value={formatNumber(totalFinal)}
                 suffix="SAR"
-                icon={TrendingUp}
-                color="orange"
+                icon={DollarSign}
+                color="teal"
               />
-            )}
-            {!isExempt && (
-              <FinancialStatCard
-                title={t("total_tax", "إجمالي الضريبة")}
-                value={formatNumber(totalTax)}
-                suffix="SAR"
-                icon={Receipt}
-                color="blue"
-              />
-            )}
-            <FinancialStatCard
-              title={t("grand_total_with_tax", "الإجمالي النهائي")}
-              value={formatNumber(totalFinal)}
-              suffix="SAR"
-              icon={DollarSign}
-              color="teal"
-            />
-          </div>
+            </div>
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-6 gap-4 items-end">
@@ -379,7 +379,7 @@ export default function PurchasesByDayReport() {
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
-              value={purchasesData}
+              value={isSearched ? purchasesData : []}
               paginator rows={10}
               loading={purchasesLoading || purchasesFetching}
               className="custom-green-table custom-compact-table"

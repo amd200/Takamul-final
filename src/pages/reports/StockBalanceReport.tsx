@@ -33,7 +33,7 @@ export default function StockBalanceReport() {
     const now = new Date();
     return {
       branchId: " ",
-      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA'),
       to: now.toLocaleDateString('en-CA'),
     };
   });
@@ -66,7 +66,7 @@ export default function StockBalanceReport() {
     const now = new Date();
     const reset: FilterState = {
       branchId: " ",
-      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA'),
       to: now.toLocaleDateString('en-CA'),
     };
     setFilters(reset);
@@ -75,8 +75,8 @@ export default function StockBalanceReport() {
 
   const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const totalCostValue = useMemo(() => reportData?.reduce((s, r) => s + (r.totalCostValue || 0), 0) ?? 0, [reportData]);
-  const totalSaleValue = useMemo(() => reportData?.reduce((s, r) => s + (r.totalSaleValue || 0), 0) ?? 0, [reportData]);
+  const totalCostValue = useMemo(() => isSearched ? (reportData?.reduce((s, r) => s + (r.totalCostValue || 0), 0) ?? 0) : 0, [reportData, isSearched]);
+  const totalSaleValue = useMemo(() => isSearched ? (reportData?.reduce((s, r) => s + (r.totalSaleValue || 0), 0) ?? 0) : 0, [reportData, isSearched]);
 
   const title = t("inventory_report", "تقرير جرد الأصناف");
 
