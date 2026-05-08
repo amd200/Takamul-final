@@ -95,7 +95,7 @@ export default function EmailSettings() {
               إلغاء
             </Button>
             <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
-              <Button size="lg" type="button" onClick={saveSettings} className="w-full lg:w-auto px-8 h-12 text-base">
+              <Button size="lg" type="button" onClick={() => { saveSettings(); navigate("/settings/system"); }} className="w-full lg:w-auto px-8 h-12 text-base">
                 {t("save_settings") || "حفظ الإعدادات"}
               </Button>
             </div>

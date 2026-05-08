@@ -58,6 +58,7 @@ const SettingSection: React.FC<SettingSectionProps> = ({ id, title, children, on
 export default function SystemSettings() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
+  const { saveSettings } = useSettings();
   const { mutate: updateTobaccoFees } = useUpdateTobaccoFees();
   const { mutate: updateGeneral } = useUpdateGeneralSettings();
   const { mutate: updateItems } = useUpdateItemsSettings();
@@ -125,7 +126,14 @@ export default function SystemSettings() {
           {/* Main Content */}
           <div className="flex-1 w-full min-w-0">
             {activeSection === "points" && (
-              <SettingSection id="points" title={t("loyalty_points", "نقاط الولاء")} >
+              <SettingSection 
+                id="points" 
+                title={t("loyalty_points", "نقاط الولاء")}
+                onSave={() => {
+                  saveSettings();
+                  setActiveSection("points");
+                }}
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <h3 className="font-bold text-[var(--text-main)]">جائزة العملاء نقاط</h3>
@@ -168,7 +176,7 @@ export default function SystemSettings() {
                 id="tobacco"
                 title={t("tobacco_fees", "رسوم التبغ")}
                 onSave={() => {
-                  updateTobaccoFees({ tobaccoFees: tobaccoStore.tobaccoFees || 0 });
+                  updateTobaccoFees({ tobaccoFees: tobaccoStore.tobaccoFees || 0 }, { onSuccess: () => setActiveSection("points") });
                 }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -190,7 +198,7 @@ export default function SystemSettings() {
                 id="reports"
                 title={t("report_settings", "إعدادات التقارير")}
                 onSave={() => {
-                  updateGeneral({ topDataStatus: generalStore.topDataStatus, image: generalStore.image });
+                  updateGeneral({ topDataStatus: generalStore.topDataStatus, image: generalStore.image }, { onSuccess: () => setActiveSection("points") });
                 }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -309,7 +317,7 @@ export default function SystemSettings() {
                     enableSecondLanguageItemName: itemsStore.enableSecondLanguageItemName,
                     showProductBalanceAtSale: itemsStore.showProductBalanceAtSale,
                     allowPriceChangeOnSale: itemsStore.allowPriceChangeOnSale,
-                  });
+                  }, { onSuccess: () => setActiveSection("points") });
                   updateTax({ taxSetting: itemsStore.taxPhase, itemTax: itemsStore.itemTax });
                 }}
               >

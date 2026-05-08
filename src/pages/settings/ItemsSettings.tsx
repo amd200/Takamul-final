@@ -32,7 +32,7 @@ export default function ItemsSettings() {
       enableSecondLanguageItemName: itemsStore.enableSecondLanguageItemName,
       showProductBalanceAtSale: itemsStore.showProductBalanceAtSale,
       allowPriceChangeOnSale: itemsStore.allowPriceChangeOnSale,
-    });
+    }, { onSuccess: () => navigate("/settings/system") });
     updateTax({ taxSetting: itemsStore.taxPhase, itemTax: itemsStore.itemTax });
   };
 

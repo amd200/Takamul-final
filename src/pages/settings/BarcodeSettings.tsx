@@ -34,7 +34,7 @@ export default function BarcodeSettings() {
       barcodeWeightStartPosition: systemSettings.barcode.weightStart,
       barcodeWeightCharactersCount: systemSettings.barcode.weightLength,
       barcodeDivideWeightBy: systemSettings.barcode.weightDivider,
-    });
+    }, { onSuccess: () => navigate("/settings/system") });
   };
 
   return (
