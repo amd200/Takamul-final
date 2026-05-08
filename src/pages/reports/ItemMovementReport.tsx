@@ -63,7 +63,7 @@ export default function ItemMovementReport() {
     return {
       branchId: " ",
       productId: "",
-      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA'),
       to: now.toLocaleDateString('en-CA'),
     };
   });
@@ -240,21 +240,7 @@ export default function ItemMovementReport() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
-             <FinancialStatCard
-              title={t("current_balance", "الرصيد الحالي")}
-              value={movementData.length > 0 ? formatNumber(movementData[movementData.length - 1].runningBalance) : "0.00"}
-              icon={TrendingUp}
-              color="teal"
-            />
-            <FinancialStatCard
-              title={t("movements_count", "عدد الحركات")}
-              value={String(movementData.length)}
-              icon={RefreshCw}
-              color="blue"
-            />
-          </div>
+      
 
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">

@@ -35,7 +35,7 @@ export default function EmployeeSalesReport() {
   const [filters, setFilters] = useState({
     employeeId: "all",
     branchId: " ",
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
     to: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0],
   });
 
@@ -82,7 +82,7 @@ export default function EmployeeSalesReport() {
     const reset = {
       employeeId: "all",
       branchId: "all",
-      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
       to: new Date().toLocaleDateString('en-CA'),
     };
     setFilters(reset);
