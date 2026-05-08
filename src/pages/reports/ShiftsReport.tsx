@@ -30,7 +30,7 @@ export default function ShiftsReport() {
 
   const [filters, setFilters] = useState({
     branchId: " ",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
     to: new Date().toISOString().split("T")[0],
   });
 
@@ -85,7 +85,7 @@ export default function ShiftsReport() {
     setIsSearched(false);
     const reset = {
       branchId: " ",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
       to: new Date().toISOString().split("T")[0],
     };
     setFilters(reset);
@@ -190,7 +190,7 @@ export default function ShiftsReport() {
         </CardHeader>
 
         <CardContent className="pt-6">
- 
+  
 
           <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
             <div className="relative w-full md:w-80">

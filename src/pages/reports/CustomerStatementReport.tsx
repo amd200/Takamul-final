@@ -40,7 +40,7 @@ export default function CustomerStatementReport() {
     const now = new Date();
     return {
       customerId: "",
-      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA'),
       to: now.toLocaleDateString('en-CA'),
       type: "",
       branchId: "",
@@ -189,11 +189,11 @@ export default function CustomerStatementReport() {
         <CardContent className="space-y-4">
           {/* Summary Cards */}
           
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-              <FinancialStatCard title={t("total_sales", "إجمالي المبيعات")} value={formatNumber(totalDebit)} suffix="SAR" icon={TrendingUp} color="orange" />
-              <FinancialStatCard title={t("total_collections", "إجمالي التحصيلات")} value={formatNumber(totalCredit)} suffix="SAR" icon={Receipt} color="teal" />
-              <FinancialStatCard title={t("total_debit", "إجمالي المديونية")} value={formatNumber(totalBalance)} suffix="SAR" icon={Wallet} color="blue" />
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <FinancialStatCard title={t("total_sales", "إجمالي المبيعات")} value={formatNumber(isSearched ? totalDebit : 0)} suffix="SAR" icon={TrendingUp} color="orange" />
+            <FinancialStatCard title={t("total_collections", "إجمالي التحصيلات")} value={formatNumber(isSearched ? totalCredit : 0)} suffix="SAR" icon={Receipt} color="teal" />
+            <FinancialStatCard title={t("total_debit", "إجمالي المديونية")} value={formatNumber(isSearched ? totalBalance : 0)} suffix="SAR" icon={Wallet} color="blue" />
+          </div>
 
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-4 items-end">

@@ -46,7 +46,7 @@ export default function ItemSalesReport() {
   const [filters, setFilters] = useState<FilterState>({
     branchId: " ",
     productId: "",
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
     to: new Date().toLocaleDateString('en-CA'),
   });
 
@@ -78,7 +78,7 @@ export default function ItemSalesReport() {
     const reset = {
       branchId: " ",
       productId: "",
-      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
       to: new Date().toLocaleDateString('en-CA')
     };
     setFilters(reset);

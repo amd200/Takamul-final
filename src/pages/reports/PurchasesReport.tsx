@@ -35,7 +35,7 @@ export default function PurchasesReport() {
     const now = new Date();
     return {
       branchId: " ",
-      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA'),
       to: now.toLocaleDateString('en-CA'),
     };
   });
@@ -84,7 +84,7 @@ export default function PurchasesReport() {
     const now = new Date();
     const reset = {
       branchId: " ",
-      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA'),
       to: now.toLocaleDateString('en-CA'),
     };
     setFilters(reset);

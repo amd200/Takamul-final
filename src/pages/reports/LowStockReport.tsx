@@ -133,15 +133,7 @@ export default function LowStockReport() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-1 gap-4 mb-2">
-            <FinancialStatCard
-              title={t("items_count", "عدد الأصناف")}
-              value={String(rows.length)}
-              icon={AlertTriangle}
-              color="orange"
-            />
-          </div>
+    
 
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">

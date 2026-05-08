@@ -240,7 +240,7 @@ export default function ProfitReport() {
       branchId: " ",
       fiscalYear: now.getFullYear().toString(),
       fiscalQuarter: "",
-      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA'),
       to: now.toLocaleDateString('en-CA'),
     };
   });
@@ -268,7 +268,7 @@ export default function ProfitReport() {
       branchId: " ",
       fiscalYear: now.getFullYear().toString(),
       fiscalQuarter: "",
-      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA'),
       to: now.toLocaleDateString('en-CA'),
     };
     setFilters(reset);

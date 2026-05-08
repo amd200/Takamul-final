@@ -64,7 +64,7 @@ export default function BestSellersChart() {
 
   const [filters, setFilters] = useState({
     branchId: " ",
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
     to: new Date().toLocaleDateString('en-CA'),
   });
 
@@ -90,7 +90,7 @@ export default function BestSellersChart() {
   const handleClear = () => {
     const resetState = {
       branchId: " ",
-      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
       to: new Date().toLocaleDateString('en-CA'),
     };
     setIsSearched(false);
@@ -184,29 +184,7 @@ export default function BestSellersChart() {
         </CardHeader>
 
         <CardContent className="pt-6 space-y-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
-            <FinancialStatCard
-              title={t("total_sales", "إجمالي المبيعات")}
-              value={formatNumber(summary.totalSales)}
-              suffix="SAR"
-              icon={TrendingUp}
-              color="blue"
-            />
-            <FinancialStatCard
-              title={t("total_qty", "إجمالي الكمية المباعة")}
-              value={String(summary.totalQty)}
-              icon={ShoppingBag}
-              color="teal"
-            />
-            <FinancialStatCard
-              title={t("products_count", "عدد المنتجات")}
-              value={String(summary.productCount)}
-              icon={BarChart2}
-              color="orange"
-            />
-          </div>
-
+      
 
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
