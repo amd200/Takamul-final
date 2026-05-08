@@ -22,11 +22,11 @@ import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { 
-  generateReportHTML, 
-  printCustomHTML, 
-  exportCustomPDF, 
-  exportToExcel 
+import {
+  generateReportHTML,
+  printCustomHTML,
+  exportCustomPDF,
+  exportToExcel
 } from "@/utils/customExportUtils";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
@@ -56,18 +56,22 @@ export default function PurchasesByInvoiceReport() {
     branchId: " ",
     fiscalYear: new Date().getFullYear().toString(),
     fiscalQuarter: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    to: new Date().toLocaleDateString('en-CA'),
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
   // Data Fetching
-  const { data: purchasesData = [], isLoading: purchasesLoading, isFetching: purchasesFetching } = useGetPurchaseInvoicesReport({
+  const { data: rawPurchasesData, isLoading: purchasesLoading, isFetching: purchasesFetching } = useGetPurchaseInvoicesReport({
     branchid: searchParams.branchId.trim() || undefined,
     From: searchParams.from,
     To: searchParams.to,
+    enabled: isSearched,
   });
+
+  const purchasesData = isSearched ? (rawPurchasesData ?? []) : [];
 
   const { data: branches = [] } = useGetAllBranches();
 
@@ -92,14 +96,18 @@ export default function PurchasesByInvoiceReport() {
     }));
   };
 
-  const handleSearch = () => setSearchParams(filters);
+  const handleSearch = () => {
+    setIsSearched(true);
+    setSearchParams(filters);
+  };
   const handleClear = () => {
+    setIsSearched(false);
     const reset = {
       branchId: " ",
       fiscalYear: new Date().getFullYear().toString(),
       fiscalQuarter: "",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0]
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      to: new Date().toLocaleDateString('en-CA')
     };
     setFilters(reset);
     setSearchParams(reset);
@@ -117,7 +125,7 @@ export default function PurchasesByInvoiceReport() {
   const getFiltersInfo = () => {
     const b = branches.find(x => String(x.id) === searchParams.branchId.trim());
     const qLabel = FISCAL_QUARTERS.find(q => q.value === searchParams.fiscalQuarter)?.label || t("none", "لا يوجد");
-    
+
     return [
       `${t("branch", "الفرع")}: ${b ? b.name : t("all", "الكل")}`,
       `${t("fiscal_year", "السنة المالية")}: ${searchParams.fiscalYear}`,
@@ -145,8 +153,8 @@ export default function PurchasesByInvoiceReport() {
         getFiltersInfo(),
         [
           ...(!isExempt ? [{ title: t("total_purchases_excl_tax"), value: `${formatNumber(totalPurchases)} ${t('sar', 'ر.س')}`, color: "orange" }] : []),
-          ...(!isExempt ? [{ title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.с')}`, color: "blue" }] : []),
-          { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.с')}`, color: "teal" },
+          ...(!isExempt ? [{ title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" }] : []),
+          { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.س')}`, color: "teal" },
         ],
         exportColumns,
         purchasesData,
@@ -165,9 +173,9 @@ export default function PurchasesByInvoiceReport() {
       title,
       getFiltersInfo(),
       [
-        ...(!isExempt ? [{ title: t("total_purchases_excl_tax"), value: `${formatNumber(totalPurchases)} ${t('sar', 'ر.с')}`, color: "orange" }] : []),
-        ...(!isExempt ? [{ title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.с')}`, color: "blue" }] : []),
-        { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.с')}`, color: "teal" },
+        ...(!isExempt ? [{ title: t("total_purchases_excl_tax"), value: `${formatNumber(totalPurchases)} ${t('sar', 'ر.س')}`, color: "orange" }] : []),
+        ...(!isExempt ? [{ title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" }] : []),
+        { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.س')}`, color: "teal" },
       ],
       exportColumns,
       purchasesData,
@@ -195,26 +203,26 @@ export default function PurchasesByInvoiceReport() {
             </CardTitle>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button 
+            <button
               onClick={handlePrint}
               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
             >
-              <Printer size={16} /> 
+              <Printer size={16} />
               <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button 
+            <button
               onClick={handleExportPDF}
               disabled={pdfLoading}
               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
             >
-              <FileText size={16} /> 
+              <FileText size={16} />
               <span className="hidden sm:inline">PDF</span>
             </button>
-            <button 
+            <button
               onClick={handleExportExcel}
               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
             >
-              <FileSpreadsheet size={16} /> 
+              <FileSpreadsheet size={16} />
               <span className="hidden sm:inline">Excel</span>
             </button>
           </div>
@@ -249,7 +257,6 @@ export default function PurchasesByInvoiceReport() {
               color="teal"
             />
           </div>
-          {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-6 gap-4 items-end">
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
@@ -310,7 +317,7 @@ export default function PurchasesByInvoiceReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -323,7 +330,7 @@ export default function PurchasesByInvoiceReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
+                            ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -338,7 +345,7 @@ export default function PurchasesByInvoiceReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -351,7 +358,7 @@ export default function PurchasesByInvoiceReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
+                            ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -377,7 +384,7 @@ export default function PurchasesByInvoiceReport() {
               paginator rows={10}
               loading={purchasesLoading || purchasesFetching}
               className="custom-green-table custom-compact-table"
-              emptyMessage={t("no_data", "لا توجد بيانات")}
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
               responsiveLayout="stack"
             >
               <Column

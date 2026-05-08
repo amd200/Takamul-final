@@ -46,31 +46,43 @@ export default function ItemSalesReport() {
   const [filters, setFilters] = useState<FilterState>({
     branchId: " ",
     productId: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    to: new Date().toLocaleDateString('en-CA'),
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
-  const { data: salesResponse, isLoading: salesLoading, isFetching: salesFetching } = useGetItemSalesReport({
+  const {
+    data: rawReportData,
+    isLoading: salesLoading,
+    isFetching: salesFetching,
+  } = useGetItemSalesReport({
     branchid: searchParams.branchId.trim() || undefined,
     productCode: searchParams.productId,
     from: searchParams.from,
     to: searchParams.to,
+    enabled: isSearched && !!searchParams.productId,
   });
+
+  const salesResponse = isSearched ? rawReportData : undefined;
 
   const { data: productsData } = useGetAllProducts({ page: 1, limit: 1000 });
   const { data: branches = [] } = useGetAllBranches();
 
-  const handleSearch = () => setSearchParams(filters);
+  const handleSearch = () => {
+    setIsSearched(true);
+    setSearchParams(filters);
+  };
   const handleClear = () => {
     const reset = {
       branchId: " ",
       productId: "",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0]
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      to: new Date().toLocaleDateString('en-CA')
     };
     setFilters(reset);
+    setIsSearched(false);
     setSearchParams(reset);
   };
 
@@ -242,7 +254,7 @@ export default function ItemSalesReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -255,7 +267,7 @@ export default function ItemSalesReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
+                            ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -270,7 +282,7 @@ export default function ItemSalesReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -283,7 +295,7 @@ export default function ItemSalesReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
+                            ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -310,7 +322,7 @@ export default function ItemSalesReport() {
               rows={10}
               loading={salesLoading || salesFetching}
               className="custom-green-table custom-compact-table"
-              emptyMessage={!searchParams.productId ? t("select_product_first", "اختر صنفاً أولاً لعرض التقرير") : t("no_data", "لا توجد بيانات")}
+               emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : !searchParams.productId ? t("select_product_first", "اختر صنفاً أولاً لعرض التقرير") : t("no_data", "لا توجد بيانات")}
               responsiveLayout="stack"
             >
               <Column header={t("serial", "م")} body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>} />

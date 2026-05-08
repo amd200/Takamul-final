@@ -30,11 +30,12 @@ export default function SalesReturnsReport() {
 
   const [filters, setFilters] = useState({
     branchId: "all",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    to: new Date().toLocaleDateString('en-CA'),
     searchTerm: "",
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(filters);
 
   const { data: salesReturnOrders, isLoading, isFetching } = useGetSalesReturnReport({
@@ -44,14 +45,15 @@ export default function SalesReturnsReport() {
     From: searchParams.from,
     To: searchParams.to,
     BranchId: searchParams.branchId === "all" ? undefined : searchParams.branchId,
+    enabled: isSearched,
   });
 
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const { data: branches = [] } = useGetAllBranches();
 
-  const orders = salesReturnOrders?.items || [];
-  const totalCount = salesReturnOrders?.totalCount || 0;
+  const orders = isSearched ? (salesReturnOrders?.items ?? []) : [];
+  const totalCount = isSearched ? (salesReturnOrders?.totalCount ?? 0) : 0;
 
   const summary = useMemo(() => {
     const totalGrandTotal = orders.reduce((sum, s) => sum + (s.grandTotal || 0), 0);
@@ -69,15 +71,17 @@ export default function SalesReturnsReport() {
   const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const handleSearch = () => {
+    setIsSearched(true);
     setCurrentPage(1);
     setSearchParams(filters);
   };
 
   const handleClear = () => {
+    setIsSearched(false);
     const reset = {
       branchId: "all",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      to: new Date().toLocaleDateString('en-CA'),
       searchTerm: "",
     };
     setFilters(reset);
@@ -199,6 +203,8 @@ export default function SalesReturnsReport() {
         </CardHeader>
 
         <CardContent className="pt-6">
+   
+
           {/* Filters Bar matching SalesReport.tsx exactly */}
        <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 items-end">
@@ -224,7 +230,7 @@ export default function SalesReturnsReport() {
                 <Label className="text-xs font-medium text-text-main">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
@@ -233,7 +239,7 @@ export default function SalesReturnsReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -244,7 +250,7 @@ export default function SalesReturnsReport() {
                 <Label className="text-xs font-medium text-text-main">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
@@ -254,7 +260,7 @@ export default function SalesReturnsReport() {
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
-                          {filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
+                          {filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
                     }
@@ -291,7 +297,7 @@ export default function SalesReturnsReport() {
               responsiveLayout="scroll"
               className="custom-green-table"
               dataKey="id"
-              emptyMessage={t("no_data", "لا توجد بيانات")}
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
               stripedRows={false}
             >
               <Column header={t("return_id", "رقم السند")} sortable field="returnId" body={(row) => <span className="font-bold text-[#22c55e]">{row.returnId}</span>} />

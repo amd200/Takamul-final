@@ -55,10 +55,11 @@ export default function SalesByDayReport() {
     branchId: " ",
     fiscalYear: new Date().getFullYear().toString(),
     fiscalQuarter: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    to: new Date().toLocaleDateString('en-CA'),
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
   // Data Fetching
@@ -66,6 +67,7 @@ export default function SalesByDayReport() {
     branchid: searchParams.branchId.trim() || undefined,
     From: searchParams.from,
     To: searchParams.to,
+    enabled: isSearched,
   });
 
   const { data: branches = [] } = useGetAllBranches();
@@ -91,14 +93,18 @@ export default function SalesByDayReport() {
     }));
   };
 
-  const handleSearch = () => setSearchParams(filters);
+  const handleSearch = () => {
+    setIsSearched(true);
+    setSearchParams(filters);
+  };
   const handleClear = () => {
+    setIsSearched(false);
     const reset = {
       branchId: " ",
       fiscalYear: new Date().getFullYear().toString(),
       fiscalQuarter: "",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0]
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      to: new Date().toLocaleDateString('en-CA')
     };
     setFilters(reset);
     setSearchParams(reset);
@@ -308,7 +314,7 @@ export default function SalesByDayReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -321,7 +327,7 @@ export default function SalesByDayReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
+                            ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -336,7 +342,7 @@ export default function SalesByDayReport() {
                 </label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) =>
                       setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
                     }
@@ -349,7 +355,7 @@ export default function SalesByDayReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
+                            ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
@@ -378,7 +384,7 @@ export default function SalesByDayReport() {
               rows={10}
               loading={salesLoading || salesFetching}
               className="custom-green-table custom-compact-table"
-              emptyMessage={t("no_data", "لا توجد بيانات")}
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
               responsiveLayout="stack"
             >
               <Column
@@ -388,7 +394,7 @@ export default function SalesByDayReport() {
               />
               <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm font-bold text-[var(--text-main)]">{new Date(r.date).toLocaleDateString("en-GB")}</span>} />
               {!isExempt && <Column field="totalSales" header={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.totalSales)}</span>} />}
-              {!isExempt && <Column field="totalTax" header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.totalTax)}</span>} />}
+              {!isExempt && <Column field="totalTax" header={t("total_tax", "إجمالي الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.totalTax)}</span>} />}
               <Column field="netSales" header={t("grand_total_with_tax", "الإجمالي النهائي")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.netSales)}</span>} />
             </DataTable>
           </div>

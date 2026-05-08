@@ -57,22 +57,30 @@ export default function SalesReport() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  const [filters, setFilters] = useState({
-    branchId: " ",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+  const [filters, setFilters] = useState(() => {
+    const now = new Date();
+    return {
+      branchId: " ",
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
+    };
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(filters);
 
   // Data Fetching
   const { data: salesOrders, isLoading } = useGetAllSales({
     page: currentPage,
-    limit: entriesPerPage
+    limit: entriesPerPage,
+    branchId: searchParams.branchId.trim() || undefined,
+    from: searchParams.from,
+    to: searchParams.to,
+    enabled: isSearched,
   });
 
-  const orders = salesOrders?.items ?? [];
-  const totalCount = salesOrders?.totalCount ?? 0;
+  const orders = isSearched ? (salesOrders?.items ?? []) : [];
+  const totalCount = isSearched ? (salesOrders?.totalCount ?? 0) : 0;
 
   const { data: branches = [] } = useGetAllBranches();
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
@@ -93,17 +101,20 @@ export default function SalesReport() {
   const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const handleSearch = () => {
+    setIsSearched(true);
     setCurrentPage(1);
     setSearchParams(filters);
   };
 
   const handleClear = () => {
+    const now = new Date();
     const reset = {
       branchId: " ",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
     };
     setFilters(reset);
+    setIsSearched(false);
     setSearchParams(reset);
     setCurrentPage(1);
   };
@@ -230,39 +241,39 @@ export default function SalesReport() {
         <CardContent className="pt-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <FinancialStatCard
-              title={t('total_sales', 'إجمالي المبيعات')}
-              value={fmt(summary.totalSales)}
-              suffix="SAR"
-              icon={DollarSign}
-              color="blue"
-            />
-            {!isExempt && (
-              <>
-                <FinancialStatCard
-                  title={t('total_no_tax', 'الإجمالي بدون ضريبة')}
-                  value={fmt(summary.totalNoTax)}
-                  suffix="SAR"
-                  icon={Receipt}
-                  color="teal"
-                />
-                <FinancialStatCard
-                  title={t('total_tax', 'إجمالي الضريبة')}
-                  value={fmt(summary.totalTax)}
-                  suffix="SAR"
-                  icon={BarChart2}
-                  color="orange"
-                />
-              </>
-            )}
-            <FinancialStatCard
-              title={t('invoices_count', 'عدد الفواتير')}
-              value={String(summary.count)}
-              icon={TrendingUp}
-              color="purple"
-            />
-          </div>
-
+              <FinancialStatCard
+                title={t('total_sales', 'إجمالي المبيعات')}
+                value={fmt(summary.totalSales)}
+                suffix="SAR"
+                icon={DollarSign}
+                color="blue"
+              />
+              {!isExempt && (
+                <>
+                  <FinancialStatCard
+                    title={t('total_no_tax', 'الإجمالي بدون ضريبة')}
+                    value={fmt(summary.totalNoTax)}
+                    suffix="SAR"
+                    icon={Receipt}
+                    color="teal"
+                  />
+                  <FinancialStatCard
+                    title={t('total_tax', 'إجمالي الضريبة')}
+                    value={fmt(summary.totalTax)}
+                    suffix="SAR"
+                    icon={BarChart2}
+                    color="orange"
+                  />
+                </>
+              )}
+              <FinancialStatCard
+                title={t('invoices_count', 'عدد الفواتير')}
+                value={String(summary.count)}
+                icon={TrendingUp}
+                color="purple"
+              />
+            </div>
+          
           {/* Filters */}
           <div className="mb-8 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-end">
@@ -287,13 +298,13 @@ export default function SalesReport() {
                 <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t("from_date", "من تاريخ")}</Label>
                 <div className="relative">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) => setFilters(p => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters(p => ({ ...p, from: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-11 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-sm">
                         <CalendarIcon className="h-4 w-4 text-slate-400 shrink-0" />
-                        <span>{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date")}</span>
+                        <span>{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date")}</span>
                       </div>
                     }
                   />
@@ -304,13 +315,13 @@ export default function SalesReport() {
                 <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t("to_date", "إلى تاريخ")}</Label>
                 <div className="relative">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) => setFilters(p => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
+                    onChange={(date) => setFilters(p => ({ ...p, to: date ? date.toLocaleDateString('en-CA') : "" }))}
                     dateFormat="dd/MM/yyyy"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-11 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-sm">
                         <CalendarIcon className="h-4 w-4 text-slate-400 shrink-0" />
-                        <span>{filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date")}</span>
+                        <span>{filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date")}</span>
                       </div>
                     }
                   />
@@ -337,9 +348,9 @@ export default function SalesReport() {
 
           <DataTable
             value={orders} totalRecords={totalCount} loading={isLoading}
-            lazy paginator 
+            lazy paginator
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-            rows={entriesPerPage} 
+            rows={entriesPerPage}
             first={(currentPage - 1) * entriesPerPage}
             onPage={(e: DataTablePageEvent) => {
               if (e.page === undefined) return;
@@ -347,7 +358,7 @@ export default function SalesReport() {
               setEntriesPerPage(e.rows ?? entriesPerPage);
             }}
             className="custom-standard-table" dataKey="id"
-            emptyMessage={t('no_data', 'لا توجد بيانات')}
+            emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
             scrollable scrollHeight="600px"
           >
             <Column

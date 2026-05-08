@@ -36,14 +36,18 @@ export default function CustomerStatementReport() {
   const { t, direction } = useLanguage();
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  const [filters, setFilters] = useState<FilterState>({
-    customerId: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
-    type: "",
-    branchId: "",
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const now = new Date();
+    return {
+      customerId: "",
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
+      type: "",
+      branchId: "",
+    };
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
   const { data: customersResponse, isLoading: customersLoading } = useGetAllCustomers({ limit: 500 });
@@ -61,19 +65,35 @@ export default function CustomerStatementReport() {
     [searchParams],
   );
 
-  const { data: statementData, isLoading, isFetching } = useGetCustomerStatement(statementParams);
+  const {
+    data: rawReportData,
+    isLoading,
+    isFetching,
+  } = useGetCustomerStatement({
+    customerId: searchParams.customerId,
+    from: searchParams.from,
+    to: searchParams.to,
+    enabled: isSearched && !!searchParams.customerId,
+  });
 
-  const handleSearch = () => setSearchParams(filters);
+  const statementData = isSearched ? rawReportData : undefined;
+
+  const handleSearch = () => {
+    setIsSearched(true);
+    setSearchParams(filters);
+  };
 
   const handleClear = () => {
+    const now = new Date();
     const reset: FilterState = {
       customerId: "",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toLocaleDateString('en-CA'),
+      to: now.toLocaleDateString('en-CA'),
       type: "",
       branchId: "",
     };
     setFilters(reset);
+    setIsSearched(false);
     setSearchParams(reset);
   };
 
@@ -167,11 +187,13 @@ export default function CustomerStatementReport() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <FinancialStatCard title={t("total_sales", "إجمالي المبيعات")} value={formatNumber(totalDebit)} suffix="SAR" icon={TrendingUp} color="orange" />
-            <FinancialStatCard title={t("total_collections", "إجمالي التحصيلات")} value={formatNumber(totalCredit)} suffix="SAR" icon={Receipt} color="teal" />
-            <FinancialStatCard title={t("total_debit", "إجمالي المديونية")} value={formatNumber(totalBalance)} suffix="SAR" icon={Wallet} color="blue" />
-          </div>
+          {/* Summary Cards */}
+          
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <FinancialStatCard title={t("total_sales", "إجمالي المبيعات")} value={formatNumber(totalDebit)} suffix="SAR" icon={TrendingUp} color="orange" />
+              <FinancialStatCard title={t("total_collections", "إجمالي التحصيلات")} value={formatNumber(totalCredit)} suffix="SAR" icon={Receipt} color="teal" />
+              <FinancialStatCard title={t("total_debit", "إجمالي المديونية")} value={formatNumber(totalBalance)} suffix="SAR" icon={Wallet} color="blue" />
+            </div>
 
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-4 items-end">
@@ -183,11 +205,11 @@ export default function CustomerStatementReport() {
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
-                  <DatePicker selected={filters.from ? new Date(filters.from) : null} onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))} dateFormat="dd/MM/yyyy" placeholderText={t("select_date", "يوم/شهر/سنة")} popperPlacement="bottom-start" portalId="root-portal"
+                  <DatePicker selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null} onChange={(date) => setFilters((p) => ({ ...p, from: date ? date.toLocaleDateString('en-CA') : "" }))} dateFormat="dd/MM/yyyy" placeholderText={t("select_date", "يوم/شهر/سنة")} popperPlacement="bottom-start" portalId="root-portal"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -197,11 +219,11 @@ export default function CustomerStatementReport() {
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
-                  <DatePicker selected={filters.to ? new Date(filters.to) : null} onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))} dateFormat="dd/MM/yyyy" placeholderText={t("select_date", "يوم/شهر/سنة")} popperPlacement="bottom-start" portalId="root-portal"
+                  <DatePicker selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null} onChange={(date) => setFilters((p) => ({ ...p, to: date ? date.toLocaleDateString('en-CA') : "" }))} dateFormat="dd/MM/yyyy" placeholderText={t("select_date", "يوم/شهر/سنة")} popperPlacement="bottom-start" portalId="root-portal"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -235,7 +257,7 @@ export default function CustomerStatementReport() {
           </div>
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <DataTable value={statementData || []} loading={isLoading || isFetching} paginator rows={10} className="custom-green-table custom-compact-table" emptyMessage={!searchParams.customerId ? t("select_customer_first", "اختر عميلاً أولاً لعرض الكشف") : t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
+            <DataTable value={statementData || []} loading={isLoading || isFetching} paginator rows={10} className="custom-green-table custom-compact-table" emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : !searchParams.customerId ? t("select_customer_first", "اختر عميلاً أولاً لعرض الكشف") : t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
               <Column header={t("serial", "م")} body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>} className="w-16" />
               <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm whitespace-nowrap">{formatDate(r.date)}</span>} />
               <Column field="type" header={t("type", "النوع")} sortable body={(r) => <span className="text-sm font-medium text-[var(--text-main)]">{r.type}</span>} />

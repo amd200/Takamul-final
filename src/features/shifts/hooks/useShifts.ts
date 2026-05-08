@@ -11,13 +11,14 @@ import { jwtDecode } from "jwt-decode";
 import { AppJwtPayload } from "@/types";
 import { LoginResponse } from "@/features/auth/types/auth.types";
 
-export const useGetAllShifts = () => {
+export const useGetAllShifts = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: shiftsKeys.lists(),
     queryFn: getAllShifts,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     staleTime: 0,
+    ...options,
   });
 };
 

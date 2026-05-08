@@ -36,11 +36,12 @@ export default function ExpensesDetailReport() {
     branchId: " ",
     itemId: "",
     treasuryId: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+    to: new Date().toLocaleDateString('en-CA'),
   };
 
   const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState<FilterState>(initialFilters);
 
   const { data: branches = [] } = useGetAllBranches();
@@ -65,11 +66,16 @@ export default function ExpensesDetailReport() {
     ItemId: searchParams.itemId.trim() || undefined,
     FromDate: searchParams.from,
     ToDate: searchParams.to,
+    enabled: isSearched,
   });
 
-  const handleSearch = () => setSearchParams(filters);
+  const handleSearch = () => {
+    setIsSearched(true);
+    setSearchParams(filters);
+  };
 
   const handleClear = () => {
+    setIsSearched(false);
     setFilters(initialFilters);
     setSearchParams(initialFilters);
   };
@@ -236,7 +242,7 @@ export default function ExpensesDetailReport() {
                 <Label className="text-xs font-medium text-text-main">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
@@ -245,7 +251,7 @@ export default function ExpensesDetailReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -256,7 +262,7 @@ export default function ExpensesDetailReport() {
                 <Label className="text-xs font-medium text-text-main">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
@@ -265,7 +271,7 @@ export default function ExpensesDetailReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -284,7 +290,7 @@ export default function ExpensesDetailReport() {
           </div>
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <DataTable value={expensesResponse?.data ?? []} paginator rows={10} loading={expensesLoading || expensesFetching} className="custom-green-table custom-compact-table" emptyMessage={t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
+            <DataTable value={expensesResponse?.data ?? []} paginator rows={10} loading={expensesLoading || expensesFetching} className="custom-green-table custom-compact-table" emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
               <Column header="م" body={(_, opt) => opt.rowIndex + 1} />
               <Column header={t("operation_date", "تاريخ العملية")} body={(r) => <span className="text-sm">{formatDate(r.date)}</span>} sortable />
               <Column field="treasuryName" header={t("treasury", "الخزينة")} sortable />

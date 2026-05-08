@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Search, RotateCcw, Calendar as CalendarIcon, Printer, FileText, FileSpreadsheet, User, BarChart2 } from "lucide-react";
+import { Search, RotateCcw, Calendar as CalendarIcon, Printer, FileText, FileSpreadsheet, User, BarChart2, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
@@ -35,10 +35,11 @@ export default function EmployeeSalesReport() {
   const [filters, setFilters] = useState({
     employeeId: "all",
     branchId: " ",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
     to: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0],
   });
 
+  const [isSearched, setIsSearched] = useState(false);
   const [searchParams, setSearchParams] = useState(filters);
 
   const { data: reportData, isLoading, isFetching } = useGetEmployeeSalesReport({
@@ -48,6 +49,7 @@ export default function EmployeeSalesReport() {
     BranchId: searchParams.branchId.trim() === "" ? undefined : searchParams.branchId,
     From: searchParams.from,
     To: searchParams.to,
+    enabled: isSearched,
   });
 
   const { data: employeesData } = useGetAllEmployees({ page: 1, limit: 1000 });
@@ -56,22 +58,32 @@ export default function EmployeeSalesReport() {
   const { data: branches = [] } = useGetAllBranches();
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
-  const orders = reportData?.items || [];
-  const totalCount = reportData?.totalCount || 0;
+  const orders = isSearched ? (reportData?.items ?? []) : [];
+  const totalCount = isSearched ? (reportData?.totalCount ?? 0) : 0;
+
+  const summary = useMemo(() => {
+    const totalSales = orders.reduce((sum, s) => sum + (s.grandTotal || 0), 0);
+    return {
+      totalSales,
+      count: totalCount,
+    };
+  }, [orders, totalCount]);
 
   const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const handleSearch = () => {
+    setIsSearched(true);
     setCurrentPage(1);
     setSearchParams(filters);
   };
 
   const handleClear = () => {
+    setIsSearched(false);
     const reset = {
       employeeId: "all",
       branchId: "all",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-      to: new Date().toISOString().split("T")[0],
+      from: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30).toLocaleDateString('en-CA'),
+      to: new Date().toLocaleDateString('en-CA'),
     };
     setFilters(reset);
     setSearchParams(reset);
@@ -179,6 +191,7 @@ export default function EmployeeSalesReport() {
         </CardHeader>
 
         <CardContent className="pt-6">
+   
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
            
@@ -222,7 +235,7 @@ export default function EmployeeSalesReport() {
                 <Label className="text-xs font-medium text-text-main">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.from ? new Date(filters.from) : null}
+                    selected={filters.from ? new Date(filters.from.replace(/-/g, '/')) : null}
                     onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
@@ -231,7 +244,7 @@ export default function EmployeeSalesReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -242,7 +255,7 @@ export default function EmployeeSalesReport() {
                 <Label className="text-xs font-medium text-text-main">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
-                    selected={filters.to ? new Date(filters.to) : null}
+                    selected={filters.to ? new Date(filters.to.replace(/-/g, '/')) : null}
                     onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
@@ -252,7 +265,7 @@ export default function EmployeeSalesReport() {
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
-                          {filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
+                          {filters.to ? format(new Date(filters.to.replace(/-/g, '/')), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
                     }
@@ -290,7 +303,7 @@ export default function EmployeeSalesReport() {
               responsiveLayout="scroll"
               className="custom-green-table text-[10px] sm:text-[11px]"
               dataKey="orderNumber"
-              emptyMessage={t("no_data", "لا توجد بيانات")}
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")}
               stripedRows={false}
             >
               <Column header={t("serial", "م")} body={(_, opt) => opt.rowIndex + 1} className="w-10 px-1 text-center" headerClassName="px-1 text-center" />
