@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog, MoreHorizontal } from "lucide-react";
+import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog, MoreHorizontal, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { usePrint } from "@/context/PrintContext";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
@@ -21,6 +21,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import { format } from "@/constants/data";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { useSendInvoiceSell } from "@/features/zatcaInvoice/hooks/useSendInvoiceSell";
 
 export default function PosSales() {
   type Payment = SalesOrder["payments"][number];
@@ -99,8 +100,9 @@ export default function PosSales() {
     },
     [language, t],
   );
-    const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
-  
+  const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const { mutateAsync: sendInvoiceSell } = useSendInvoiceSell();
+
   return (
     <div className="space-y-4 pb-12" dir={direction}>
       <Card>
@@ -206,6 +208,20 @@ export default function PosSales() {
                       <MessageCircle size={14} />
                       {t("send_whatsapp")}
                     </DropdownMenuItem>
+                    {taxSetting == "SecondStage" && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            await sendInvoiceSell({ invoiceId: row.id });
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md"
+                        >
+                          <RefreshCw size={14} />
+                          إعادة الإرسال للهيئة
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}

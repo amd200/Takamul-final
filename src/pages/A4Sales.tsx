@@ -62,11 +62,11 @@ export default function A4Sales() {
           className: "text-[#1d6fa4] bg-[#3b82f61a]",
         },
         Valid: {
-          label: "صالح",
+          label: "تم الإرسال بنجاح",
           className: "text-[#09ad95] bg-[#00e6821a]",
         },
         Invalid: {
-          label: "غير صالح",
+          label: "لم يتم الارسال ",
           className: "text-[#b40b09] bg-[#f50b0b1a]",
         },
         Rejected: {
@@ -204,16 +204,20 @@ export default function A4Sales() {
                       <MessageCircle size={14} />
                       {t("send_whatsapp")}
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        await sendInvoiceSell({ invoiceId: row.id });
-                      }}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md"
-                    >
-                      <RefreshCw size={14} />
-                      إعادة الإرسال للهيئة
-                    </DropdownMenuItem>
+                    {taxSetting == "SecondStage" && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            await sendInvoiceSell({ invoiceId: row.id });
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md"
+                        >
+                          <RefreshCw size={14} />
+                          إعادة الإرسال للهيئة
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
