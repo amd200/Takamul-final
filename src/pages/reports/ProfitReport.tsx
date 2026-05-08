@@ -504,9 +504,9 @@ export default function ProfitReport() {
               </p>
             </div>
           )}
-            
-          
-       
+
+
+
         </CardContent>
       </Card>
     </div>

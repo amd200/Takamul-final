@@ -86,6 +86,8 @@ export default function SalesReport() {
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const summary = useMemo(() => {
+    if (!isSearched) return { totalSales: 0, totalNoTax: 0, totalTax: 0, count: 0 };
+    
     const totalSales = orders.reduce((sum, s) => sum + (s.grandTotal || 0), 0);
     const totalTax = orders.reduce((sum, s) => sum + (s.taxAmount || 0), 0);
     const totalNoTax = totalSales - totalTax;
@@ -96,7 +98,7 @@ export default function SalesReport() {
       totalTax,
       count: totalCount
     };
-  }, [orders, totalCount]);
+  }, [orders, totalCount, isSearched]);
 
   const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -241,38 +243,38 @@ export default function SalesReport() {
         <CardContent className="pt-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <FinancialStatCard
-                title={t('total_sales', 'إجمالي المبيعات')}
-                value={fmt(summary.totalSales)}
-                suffix="SAR"
-                icon={DollarSign}
-                color="blue"
-              />
-              {!isExempt && (
-                <>
-                  <FinancialStatCard
-                    title={t('total_no_tax', 'الإجمالي بدون ضريبة')}
-                    value={fmt(summary.totalNoTax)}
-                    suffix="SAR"
-                    icon={Receipt}
-                    color="teal"
-                  />
-                  <FinancialStatCard
-                    title={t('total_tax', 'إجمالي الضريبة')}
-                    value={fmt(summary.totalTax)}
-                    suffix="SAR"
-                    icon={BarChart2}
-                    color="orange"
-                  />
-                </>
-              )}
-              <FinancialStatCard
-                title={t('invoices_count', 'عدد الفواتير')}
-                value={String(summary.count)}
-                icon={TrendingUp}
-                color="purple"
-              />
-            </div>
+            <FinancialStatCard
+              title={t('total_sales', 'إجمالي المبيعات')}
+              value={fmt(summary.totalSales)}
+              suffix="SAR"
+              icon={DollarSign}
+              color="blue"
+            />
+            {!isExempt && (
+              <>
+                <FinancialStatCard
+                  title={t('total_no_tax', 'الإجمالي بدون ضريبة')}
+                  value={fmt(summary.totalNoTax)}
+                  suffix="SAR"
+                  icon={Receipt}
+                  color="teal"
+                />
+                <FinancialStatCard
+                  title={t('total_tax', 'إجمالي الضريبة')}
+                  value={fmt(summary.totalTax)}
+                  suffix="SAR"
+                  icon={BarChart2}
+                  color="orange"
+                />
+              </>
+            )}
+            <FinancialStatCard
+              title={t('invoices_count', 'عدد الفواتير')}
+              value={String(summary.count)}
+              icon={TrendingUp}
+              color="purple"
+            />
+          </div>
           
           {/* Filters */}
           <div className="mb-8 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">

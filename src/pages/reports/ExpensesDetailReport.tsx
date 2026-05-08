@@ -167,21 +167,21 @@ export default function ExpensesDetailReport() {
 
         <CardContent className="space-y-4">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            <FinancialStatCard
-              title={t("total_expenses", "إجمالي المصروفات")}
-              value={formatNumber(expensesResponse?.totalAmount)}
-              suffix="SAR"
-              icon={Wallet}
-              color="orange"
-            />
-            <FinancialStatCard
-              title={t("operation_count", "عدد العمليات")}
-              value={expensesResponse?.totalCount ?? 0}
-              icon={FileText}
-              color="blue"
-            />
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <FinancialStatCard
+                title={t("total_expenses", "إجمالي المصروفات")}
+                value={isSearched ? formatNumber(expensesResponse?.totalAmount) : "0.00"}
+                suffix="SAR"
+                icon={Wallet}
+                color="orange"
+              />
+              <FinancialStatCard
+                title={t("operation_count", "عدد العمليات")}
+                value={isSearched ? (expensesResponse?.totalCount ?? 0) : 0}
+                icon={FileText}
+                color="blue"
+              />
+            </div>
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
@@ -289,8 +289,16 @@ export default function ExpensesDetailReport() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <DataTable value={expensesResponse?.data ?? []} paginator rows={10} loading={expensesLoading || expensesFetching} className="custom-green-table custom-compact-table" emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
+          <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden mt-8">
+            <DataTable 
+              value={isSearched ? (expensesResponse?.data ?? []) : []} 
+              paginator 
+              rows={10} 
+              loading={expensesLoading || expensesFetching} 
+              className="custom-green-table custom-compact-table" 
+              emptyMessage={!isSearched ? t("click_search_to_view", "اضغط على زر البحث لعرض البيانات") : t("no_data", "لا توجد بيانات")} 
+              responsiveLayout="stack"
+            >
               <Column header="م" body={(_, opt) => opt.rowIndex + 1} />
               <Column header={t("operation_date", "تاريخ العملية")} body={(r) => <span className="text-sm">{formatDate(r.date)}</span>} sortable />
               <Column field="treasuryName" header={t("treasury", "الخزينة")} sortable />
