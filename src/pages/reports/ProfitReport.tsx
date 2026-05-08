@@ -6,6 +6,7 @@ import {
   FileSpreadsheet,
   Search,
   RotateCcw,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import {
   Card,
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/card";
 import { useGetProfitReport } from "@/features/reports/hooks/Usegetprofitreport";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
-import { FinancialStatCard } from "@/components/FinancialStatCard";
 import {
   Select,
   SelectContent,
@@ -30,7 +30,6 @@ import { Permissions } from "@/lib/permissions";
 import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Calendar as CalendarIcon, TrendingUp, Receipt, DollarSign, BarChart3 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   printCustomHTML,
@@ -462,8 +461,10 @@ export default function ProfitReport() {
             </div>
           </div>
 
+          {isSearched ? (
+            <>
               {/* Table */}
-              <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
+              <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm mt-8">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50/50 dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
                     <tr>
@@ -492,6 +493,17 @@ export default function ProfitReport() {
                   </tbody>
                 </table>
               </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 dark:bg-slate-900/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 mt-8">
+              <div className="p-4 bg-white dark:bg-slate-900 rounded-full shadow-sm mb-4">
+                <Search className="w-8 h-8 text-[var(--primary)] opacity-20" />
+              </div>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">
+                {t("click_search_to_view", "اضغط على زر البحث لعرض البيانات")}
+              </p>
+            </div>
+          )}
             
           
        

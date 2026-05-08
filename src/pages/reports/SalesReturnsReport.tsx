@@ -203,8 +203,6 @@ export default function SalesReturnsReport() {
         </CardHeader>
 
         <CardContent className="pt-6">
-   
-
           {/* Filters Bar matching SalesReport.tsx exactly */}
        <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 items-end">

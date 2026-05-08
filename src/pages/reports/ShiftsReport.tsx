@@ -4,7 +4,6 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
-import { FinancialStatCard } from "@/components/FinancialStatCard";
 import { Input } from "@/components/ui/input";
 import { generateReportHTML, printCustomHTML, exportCustomPDF, exportToExcel } from "@/utils/customExportUtils";
 import { useGetAllShifts } from "@/features/shifts/hooks/useShifts";
@@ -190,15 +189,40 @@ export default function ShiftsReport() {
         </CardHeader>
 
         <CardContent className="pt-6">
-  
-
           <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <Input type="text" value={globalFilterValue} onChange={(e) => setGlobalFilterValue(e.target.value)} placeholder={t("search_placeholder", "بحث...")} className="pl-10 h-11 bg-slate-50 border-none rounded-xl" />
+            <div className="flex flex-1 items-center gap-2 w-full">
+              <div className="relative flex-1 md:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <Input 
+                  type="text" 
+                  value={globalFilterValue} 
+                  onChange={(e) => setGlobalFilterValue(e.target.value)} 
+                  placeholder={t("search_placeholder", "بحث...")} 
+                  className="pl-10 h-11 bg-slate-50 border-none rounded-xl w-full" 
+                />
+              </div>
+              <Button 
+                onClick={handleSearch} 
+                disabled={isLoading} 
+                className="h-11 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-xl shadow-sm font-bold whitespace-nowrap"
+              >
+                <Search size={16} />
+                <span className="hidden sm:inline">{t("search", "بحث")}</span>
+              </Button>
+              <Button 
+                onClick={handleClear} 
+                variant="outline" 
+                className="h-11 px-3 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors rounded-xl"
+              >
+                <RotateCcw size={15} className="text-[var(--primary)]" />
+              </Button>
             </div>
+            
             {globalFilterValue && (
-              <button onClick={() => setGlobalFilterValue("")} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 p-2 rounded-lg">
+              <button 
+                onClick={() => setGlobalFilterValue("")} 
+                className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 p-2 rounded-lg"
+              >
                 <RotateCcw size={16} />
               </button>
             )}
