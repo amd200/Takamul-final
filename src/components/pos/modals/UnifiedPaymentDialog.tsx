@@ -18,6 +18,8 @@ import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomer
 import { usePosStore } from "@/features/pos/store/usePosStore";
 import { useGenerateCSR } from "@/features/ZatcaRegistration/hooks/useGenerateCSR";
 import { useGenerateQR } from "@/features/zatcaInvoice/hooks/useGenerateQR";
+import { getNextOrderNumber } from "@/utils/getNextOrderNumber";
+import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
 
 type PaymentMode = "cashier" | "payment";
 type SaveAction = "pdf" | "whatsapp" | "email" | "save_only";
@@ -68,6 +70,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
   // ── deps ──────────────────────────────────────────────────────────────────
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
   const { mutateAsync: createDeliveryOrder } = useCreateDeliveryOrder();
+  const { data: salesInvoices } = useGetAllSales({ page: 1, limit: 10000 });
   const { mutateAsync: checkoutDineInOrder } = useCheckoutDineInOrder();
   const { mutateAsync: releaseHolding } = useReleaseHolding();
 
@@ -173,6 +176,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
         releaseHolding,
         customers,
         generateQR,
+        nextOrderNumber: getNextOrderNumber(salesInvoices?.items),
       });
       onOpenChange(false);
       return;
@@ -295,6 +299,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
                   releaseHolding,
                   customers,
                   generateQR,
+                  nextOrderNumber: getNextOrderNumber(salesInvoices?.items),
                 });
                 onOpenChange(false);
               }}

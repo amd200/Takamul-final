@@ -10,7 +10,7 @@ interface PurchaseState {
   addToCart: (item: CartItem) => void;
   discount: { type: "pct" | "flat"; value: number };
   setDiscount: (d: { type: "pct" | "flat"; value: number }) => void;
-  
+
   selectedSupplier: Supplier | null;
   setSelectedSupplier: (s: Supplier | null) => void;
 
@@ -25,11 +25,7 @@ interface PurchaseState {
 
   resetCart: () => void;
 
-  handleConfirmPurchase: (params: {
-    payments?: { amount: number; treasuryId: number; notes: string }[];
-    createPurchaseOrder: (p: CreatePurchaseOrder) => Promise<any>;
-    warehouseId: number;
-  }) => Promise<any>;
+  handleConfirmPurchase: (params: { payments?: { amount: number; treasuryId: number; notes: string }[]; createPurchaseOrder: (p: CreatePurchaseOrder) => Promise<any>; warehouseId: number; nextOrderNumber: string }) => Promise<any>;
 }
 
 export const usePurchaseStore = create<PurchaseState>((set, get) => ({
@@ -104,8 +100,8 @@ export const usePurchaseStore = create<PurchaseState>((set, get) => ({
         discountValue: c.itemDiscount?.type === "flat" ? c.itemDiscount.value : 0,
         discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
         unitPrice: c.price,
-        taxId: c.taxId || 1, 
-        unitId: c.unitId || 1, 
+        taxId: c.taxId || 1,
+        unitId: c.unitId || 1,
       })),
       payments,
     };

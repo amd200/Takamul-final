@@ -15,6 +15,7 @@ export type PrintOrderInvoiceParams = {
   branch: BranchInfo | null;
   paidAmount: number;
   qrCode: string;
+  orderNumber: string;
 };
 
 export type PrintKitchenBonParams = {

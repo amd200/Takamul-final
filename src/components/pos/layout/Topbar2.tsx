@@ -26,6 +26,8 @@ import { useGetAllShifts, useCloseShift } from "@/features/shifts/hooks/useShift
 import { useMemo } from "react";
 import { useAuthStore } from "@/store/authStore";
 import useToast from "@/hooks/useToast";
+import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
+import { getNextOrderNumber } from "@/utils/getNextOrderNumber";
 
 export default function Topbar2() {
   const navigate = useNavigate();
@@ -52,6 +54,8 @@ export default function Topbar2() {
   const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
 
   const { userName, shiftId: authShiftId, clearAuth } = useAuthStore();
+  const { data: salesInvoices } = useGetAllSales({ limit: 10000, page: 1, OrderType: "POS" });
+
   const { data: shifts } = useGetAllShifts();
   const { mutate: closeShift } = useCloseShift();
   const currentOpenShift = useMemo(() => {
@@ -139,8 +143,8 @@ export default function Topbar2() {
 
             <div className="flex items-center gap-6 shrink-0">
               <div className="flex flex-col items-center gap-0.5">
-                <span className="text-[10px] text-blue-400">كود الفاتورة</span>
-                <span className="text-[11px] font-semibold text-[#000052] dark:text-foreground">---</span>
+                <span className="text-[10px] text-blue-400">رقم الفاتورة</span>
+                <span className="text-[11px] font-semibold text-[#000052] dark:text-foreground">{getNextOrderNumber(salesInvoices?.items)}</span>
               </div>
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[10px] text-blue-400">كود الوردية</span>

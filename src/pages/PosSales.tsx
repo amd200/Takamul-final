@@ -73,11 +73,11 @@ export default function PosSales() {
           className: "text-[#1d6fa4] bg-[#3b82f61a]",
         },
         Valid: {
-          label: "صالح",
+          label: "تم الإرسال بنجاح",
           className: "text-[#09ad95] bg-[#00e6821a]",
         },
         Invalid: {
-          label: "غير صالح",
+          label: "لم يتم الارسال ",
           className: "text-[#b40b09] bg-[#f50b0b1a]",
         },
         Rejected: {

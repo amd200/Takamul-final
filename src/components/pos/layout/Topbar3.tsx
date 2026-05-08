@@ -27,7 +27,8 @@ import { useMemo } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useParams } from "react-router-dom";
 import { useGetPurchaseOrderById } from "@/features/purchases/hooks/useGetPurchaseOrderById";
-
+import { getNextOrderNumber } from "@/utils/getNextOrderNumber";
+import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllPurchases";
 
 export default function Topbar3() {
   const { id } = useParams();
@@ -47,10 +48,12 @@ export default function Topbar3() {
   const { t } = useLanguage();
   const [shiftReportOpen, setShiftReportOpen] = useState(false);
   const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
+  const { data: purchaseOrders } = useGetAllPurchases({ page: 1, limit: 10000 });
 
   const { userName, shiftId: authShiftId } = useAuthStore();
   const { data: shifts } = useGetAllShifts();
   const { mutate: closeShift } = useCloseShift();
+
   const currentOpenShift = useMemo(() => {
     const shiftsArray = Array.isArray(shifts) ? shifts : (shifts as any)?.items || (shifts as any)?.data || [];
     if (!shiftsArray || !Array.isArray(shiftsArray)) return null;
@@ -132,8 +135,8 @@ export default function Topbar3() {
 
             <div className="flex items-center gap-6 shrink-0">
               <div className="flex flex-col items-center gap-0.5">
-                <span className="text-[10px] text-blue-400">كود الفاتورة</span>
-                <span className="text-[11px] font-semibold text-[#871d46] dark:text-foreground">{purchaseOrder?.purchaseOrderNumber || "---"}</span>
+                <span className="text-[10px] text-blue-400">رقم الفاتورة</span>
+                <span className="text-[11px] font-semibold text-[#871d46] dark:text-foreground">{getNextOrderNumber(purchaseOrders?.items) || "---"}</span>
               </div>
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[10px] text-blue-400">كود الوردية</span>
