@@ -22,6 +22,7 @@ import { exportCustomPDF, printCustomHTML, generateReportHTML, exportToExcel } f
 const operationTypes = [
   { id: "Sales", name: "مبيعات" },
   { id: "Collections", name: "تحصيلات" },
+  { id: "Returns", name: "المرتجعات" },
 ];
 
 type FilterState = {
@@ -73,6 +74,7 @@ export default function CustomerStatementReport() {
     customerId: searchParams.customerId,
     from: searchParams.from,
     to: searchParams.to,
+    type: searchParams.type || undefined,
     enabled: isSearched && !!searchParams.customerId,
   });
 
@@ -102,6 +104,7 @@ export default function CustomerStatementReport() {
 
   const totalDebit = useMemo(() => statementData?.reduce((s, r) => s + (r.debit ?? 0), 0) ?? 0, [statementData]);
   const totalCredit = useMemo(() => statementData?.reduce((s, r) => s + (r.credit ?? 0), 0) ?? 0, [statementData]);
+  const totalReturns = useMemo(() => statementData?.filter(r => r.type === "Returns" || r.type === "المرتجعات").reduce((s, r) => s + (r.credit ?? 0), 0) ?? 0, [statementData]);
   const totalBalance = useMemo(() => totalDebit - totalCredit, [totalDebit, totalCredit]);
 
   const selectedCustomerName = customersList.find((c) => String(c.id) === searchParams.customerId)?.customerName || "";
@@ -121,7 +124,7 @@ export default function CustomerStatementReport() {
 
     const summaryCards = [
       { title: t("total_sales", "إجمالي المبيعات"), value: `${formatNumber(totalDebit)} ${t('sar', 'ر.س')}`, color: "orange" },
-      { title: t("total_collections", "إجمالي التحصيلات"), value: `${formatNumber(totalCredit)} ${t('sar', 'ر.س')}`, color: "teal" },
+      { title: t("total_collections", "إجمالي التحصيلات"), value: `${formatNumber(totalCredit - totalReturns)} ${t('sar', 'ر.س')}`, color: "teal" },
       { title: t("total_debit", "إجمالي المديونية"), value: `${formatNumber(totalBalance)} ${t('sar', 'ر.س')}`, color: "blue" },
     ];
 
@@ -189,9 +192,10 @@ export default function CustomerStatementReport() {
         <CardContent className="space-y-4">
           {/* Summary Cards */}
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <FinancialStatCard title={t("total_sales", "إجمالي المبيعات")} value={formatNumber(isSearched ? totalDebit : 0)} suffix="SAR" icon={TrendingUp} color="orange" />
-            <FinancialStatCard title={t("total_collections", "إجمالي التحصيلات")} value={formatNumber(isSearched ? totalCredit : 0)} suffix="SAR" icon={Receipt} color="teal" />
+            <FinancialStatCard title={t("total_collections", "إجمالي التحصيلات")} value={formatNumber(isSearched ? totalCredit - totalReturns : 0)} suffix="SAR" icon={Receipt} color="teal" />
+
             <FinancialStatCard title={t("total_debit", "إجمالي المديونية")} value={formatNumber(isSearched ? totalBalance : 0)} suffix="SAR" icon={Wallet} color="blue" />
           </div>
 

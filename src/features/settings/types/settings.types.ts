@@ -18,6 +18,7 @@ export type Settings = {
     showItemCodeInPurchases: boolean;
     postype: number | string;
     posPurcherstype: number | string;
+    purchesSetting: boolean;
   };
 
   items: {

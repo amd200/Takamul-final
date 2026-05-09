@@ -21,10 +21,19 @@ export const getInventoryStock = async (params: InventoryStockParams): Promise<P
 };
 
 // ─── Customer Statement ────────────────────────────────────────
-export const getCustomerStatement = async (params: { customerId: string | number; from?: string; to?: string }): Promise<PaginatedResponse<StatementItem>> => {
+export const getCustomerStatement = async (params: CustomerStatementParams): Promise<PaginatedResponse<StatementItem>> => {
   if (!params.customerId) return { items: [], totalCount: 0, pageNumber: 1, pageSize: 20 };
 
-  return httpClient<PaginatedResponse<StatementItem>>("/reports/products/CustomarsStatement", { params: { CustomerId: params?.customerId, From: params?.from, To: params?.to } });
+  return httpClient<PaginatedResponse<StatementItem>>("/reports/products/CustomarsStatement", { 
+    params: { 
+      CustomerId: params?.customerId, 
+      From: params?.from, 
+      To: params?.to,
+      Type: params?.type,
+      Page: params?.page,
+      PageSize: params?.pageSize
+    } 
+  });
 };
 
 // ─── Expenses Report ───────────────────────────────────────────
