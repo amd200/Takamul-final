@@ -142,19 +142,11 @@ export default function A4Sales() {
   const zatcaStatusBodyTemplate = useCallback(
     (rowData: SalesOrder) => {
       const statusMap: Record<SalesOrder["zatcaStatus"], { label: string; className: string }> = {
-        InProgress: {
-          label: "قيد التنفيذ",
-          className: "text-[#b07d00] bg-[#facc151a]",
-        },
-        Submitted: {
-          label: "تم الإرسال",
-          className: "text-[#1d6fa4] bg-[#3b82f61a]",
-        },
-        Valid: {
+        Sent: {
           label: "تم الإرسال بنجاح",
           className: "text-[#09ad95] bg-[#00e6821a]",
         },
-        Invalid: {
+        NotSendYet: {
           label: "لم يتم الارسال ",
           className: "text-[#b40b09] bg-[#f50b0b1a]",
         },
@@ -162,17 +154,9 @@ export default function A4Sales() {
           label: "مرفوض",
           className: "text-[#b40b09] bg-[#f50b0b1a]",
         },
-        Cancelled: {
-          label: "ملغي",
-          className: "text-[#6b7280] bg-[#6b72801a]",
-        },
-        Unknown: {
-          label: "غير معروف",
-          className: "text-[#6b7280] bg-[#6b72801a]",
-        },
       };
-      const status = rowData?.zatcaStatus ?? "Unknown";
-      const { label, className } = statusMap[status] ?? statusMap.Unknown;
+      const status = rowData?.zatcaStatus ?? "Rejected";
+      const { label, className } = statusMap[status] ?? statusMap.Rejected;
 
       return <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${className}`}>{label}</span>;
     },
