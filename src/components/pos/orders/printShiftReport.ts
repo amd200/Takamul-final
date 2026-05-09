@@ -58,7 +58,7 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
     .map(
       (c) => `
       <div class="card-item bg-light border-gray">
-        <span class="card-label text-gray">${c.name}</span>
+        <span class="card-label text-black">${c.name}</span>
         <span class="card-value text-black">${fmt(c.amount)}</span>
       </div>`,
     )
@@ -68,7 +68,7 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
     .map(
       (t) => `
       <div class="card-item bg-light border-gray">
-        <span class="card-label text-gray">${t.name}</span>
+        <span class="card-label text-black">${t.name}</span>
         <span class="card-value text-black">${fmt(t.sales)}</span>
       </div>`,
     )
@@ -123,8 +123,8 @@ html, body {
 .lbl {
   display: block;
   font-size: 9px;
-  font-weight: 600;
-  color: #475569;
+  font-weight: 700;
+  color: #000;
   margin-bottom: 2px;
 }
 
@@ -132,10 +132,6 @@ html, body {
   display: block;
   font-size: 13px;
   font-weight: 700;
-  color: #000;
-}
-
-.val.highlight {
   color: #000;
 }
 
@@ -155,8 +151,8 @@ html, body {
   flex: 1;
 }
 
-.info-col .lbl { font-size: 8px; margin-bottom: 2px; }
-.info-col .val { font-size: 11px; }
+.info-col .lbl { font-size: 9px; font-weight: 700; color: #000; margin-bottom: 2px; }
+.info-col .val { font-size: 11px; color: #000; }
 
 .divider {
   width: 1px;
@@ -200,7 +196,7 @@ html, body {
 
 .tbl th {
   background-color: #f8fafc;
-  color: #475569;
+  color: #000;
   font-size: 10px;
   font-weight: 700;
   padding: 6px 4px;
@@ -217,7 +213,7 @@ html, body {
 
 .tbl tr:last-child td { border-bottom: none; }
 
-.td-num { width: 10%; color: #64748b !important; }
+.td-num { width: 10%; color: #000 !important; }
 .td-name { width: 35%; text-align: right !important; }
 .td-price { width: 15%; }
 .td-qty { width: 15%; }
@@ -241,8 +237,8 @@ html, body {
   margin-bottom: 8px;
   border-bottom: 1px dashed #cbd5e1;
   font-size: 11px;
-  font-weight: 600;
-  color: #475569;
+  font-weight: 700;
+  color: #000;
 }
 
 .t-row.no-border {
@@ -295,7 +291,6 @@ html, body {
 
 .bg-light { background-color: #f8fafc; }
 .border-gray { border: 1px solid #cbd5e1; }
-.text-gray { color: #475569; }
 .text-black { color: #000; }
 
 @media print {
@@ -390,11 +385,11 @@ html, body {
   <div class="section-title">المشتريات والمصروفات</div>
   <div class="cards-grid">
     <div class="card-item bg-light border-gray">
-      <span class="card-label text-gray">إجمالي المشتريات</span>
+      <span class="card-label text-black">إجمالي المشتريات</span>
       <span class="card-value text-black">${fmt(data.totalPurchases)}</span>
     </div>
     <div class="card-item bg-light border-gray">
-      <span class="card-label text-gray">إجمالي المصروفات</span>
+      <span class="card-label text-black">إجمالي المصروفات</span>
       <span class="card-value text-black">${fmt(data.totalExpenses)}</span>
     </div>
   </div>
