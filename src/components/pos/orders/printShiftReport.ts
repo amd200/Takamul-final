@@ -57,9 +57,9 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
   const deliveryRows = data.deliveryCompanies
     .map(
       (c) => `
-      <div class="card-item bg-light border-light">
-        <span class="card-label">${c.name}</span>
-        <span class="card-value">${fmt(c.amount)}</span>
+      <div class="card-item bg-light border-gray">
+        <span class="card-label text-gray">${c.name}</span>
+        <span class="card-value text-black">${fmt(c.amount)}</span>
       </div>`,
     )
     .join("");
@@ -67,9 +67,9 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
   const treasuryCards = data.treasuries
     .map(
       (t) => `
-      <div class="card-item bg-blue-light border-blue">
-        <span class="card-label text-blue">${t.name}</span>
-        <span class="card-value text-blue-dark">${fmt(t.sales)}</span>
+      <div class="card-item bg-light border-gray">
+        <span class="card-label text-gray">${t.name}</span>
+        <span class="card-value text-black">${fmt(t.sales)}</span>
       </div>`,
     )
     .join("");
@@ -92,7 +92,7 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
 
 html, body {
   width: 100%;
-  color: #1e293b;
+  color: #000;
   direction: rtl;
   background: #fff;
   font-size: 11px;
@@ -109,7 +109,7 @@ html, body {
 
 /* Header Area */
 .header-area {
-  border-bottom: 1px dashed #cbd5e1;
+  border-bottom: 1px dashed #94a3b8;
   padding-bottom: 15px;
   margin-bottom: 15px;
 }
@@ -124,7 +124,7 @@ html, body {
   display: block;
   font-size: 9px;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   margin-bottom: 2px;
 }
 
@@ -132,16 +132,16 @@ html, body {
   display: block;
   font-size: 13px;
   font-weight: 700;
-  color: #0f172a;
+  color: #000;
 }
 
 .val.highlight {
-  color: #000052;
+  color: #000;
 }
 
 .info-box {
   background-color: #f8fafc;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
@@ -161,14 +161,14 @@ html, body {
 .divider {
   width: 1px;
   height: 20px;
-  background-color: #e2e8f0;
+  background-color: #cbd5e1;
 }
 
 /* Sections */
 .section-title {
   font-size: 12px;
   font-weight: 700;
-  color: #334155;
+  color: #000;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -180,12 +180,12 @@ html, body {
   display: inline-block;
   width: 4px;
   height: 12px;
-  background-color: #000052;
+  background-color: #000;
   border-radius: 2px;
 }
 
 .box-container {
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 15px;
@@ -200,34 +200,34 @@ html, body {
 
 .tbl th {
   background-color: #f8fafc;
-  color: #64748b;
+  color: #475569;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 6px 4px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .tbl td {
   padding: 6px 4px;
   font-size: 11px;
-  font-weight: 500;
-  color: #334155;
-  border-bottom: 1px dashed #f1f5f9;
+  font-weight: 600;
+  color: #000;
+  border-bottom: 1px dashed #e2e8f0;
 }
 
 .tbl tr:last-child td { border-bottom: none; }
 
-.td-num { width: 10%; color: #94a3b8 !important; }
+.td-num { width: 10%; color: #64748b !important; }
 .td-name { width: 35%; text-align: right !important; }
 .td-price { width: 15%; }
 .td-qty { width: 15%; }
 .td-total { width: 25%; text-align: right !important; }
-.text-bold { font-weight: 700 !important; color: #0f172a !important; }
+.text-bold { font-weight: 700 !important; color: #000 !important; }
 
 /* Totals Box */
 .totals-box {
   background-color: #f8fafc;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 15px;
@@ -241,6 +241,7 @@ html, body {
   margin-bottom: 8px;
   border-bottom: 1px dashed #cbd5e1;
   font-size: 11px;
+  font-weight: 600;
   color: #475569;
 }
 
@@ -260,16 +261,16 @@ html, body {
 .grand-lbl {
   font-size: 13px;
   font-weight: 700;
-  color: #0f172a;
+  color: #000;
 }
 
 .grand-val {
   font-size: 16px;
   font-weight: 900;
-  color: #000052;
+  color: #000;
 }
 
-/* Cards Layout (Treasuries & Expenses) */
+/* Cards Layout */
 .cards-grid {
   display: flex;
   flex-wrap: wrap;
@@ -289,21 +290,13 @@ html, body {
   text-align: center;
 }
 
-.card-label { font-size: 9px; font-weight: 600; margin-bottom: 4px; }
-.card-value { font-size: 12px; font-weight: 700; }
-
-.bg-blue-light { background-color: #eff6ff; }
-.border-blue { border: 1px solid #dbeafe; }
-.text-blue { color: #3b82f6; }
-.text-blue-dark { color: #1d4ed8; }
-
-.bg-red-light { background-color: #fef2f2; }
-.border-red { border: 1px solid #fee2e2; }
-.text-red { color: #ef4444; }
-.text-red-dark { color: #b91c1c; }
+.card-label { font-size: 9px; font-weight: 700; margin-bottom: 4px; }
+.card-value { font-size: 12px; font-weight: 800; }
 
 .bg-light { background-color: #f8fafc; }
-.border-light { border: 1px solid #f1f5f9; }
+.border-gray { border: 1px solid #cbd5e1; }
+.text-gray { color: #475569; }
+.text-black { color: #000; }
 
 @media print {
   html, body { margin: 0; padding: 0; }
@@ -391,19 +384,18 @@ html, body {
   </div>
 
   <!-- المشتريات والمصروفات -->
- <!-- المشتريات والمصروفات -->
   ${
     data.totalPurchases > 0 || data.totalExpenses > 0
       ? `
   <div class="section-title">المشتريات والمصروفات</div>
   <div class="cards-grid">
-    <div class="card-item bg-red-light border-red">
-      <span class="card-label text-red">إجمالي المشتريات</span>
-      <span class="card-value text-red-dark">${fmt(data.totalPurchases)}</span>
+    <div class="card-item bg-light border-gray">
+      <span class="card-label text-gray">إجمالي المشتريات</span>
+      <span class="card-value text-black">${fmt(data.totalPurchases)}</span>
     </div>
-    <div class="card-item bg-red-light border-red">
-      <span class="card-label text-red">إجمالي المصروفات</span>
-      <span class="card-value text-red-dark">${fmt(data.totalExpenses)}</span>
+    <div class="card-item bg-light border-gray">
+      <span class="card-label text-gray">إجمالي المصروفات</span>
+      <span class="card-value text-black">${fmt(data.totalExpenses)}</span>
     </div>
   </div>
   `
