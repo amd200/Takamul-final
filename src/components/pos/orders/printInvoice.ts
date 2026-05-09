@@ -270,8 +270,8 @@ html, body {
   border-top: none;
 }
 #qr, .qr-wrap img {
-  width: 100px;
-  height: 100px;
+  width: 130px;
+  height: 130px;
   display: inline-block;
 }
 
