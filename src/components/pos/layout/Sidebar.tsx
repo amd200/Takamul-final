@@ -199,6 +199,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               notes: INSTITUTION_NOTES,
                             };
                             await printInvoice(invoiceData);
+                            onOpenChange(false);
                           }}
                           className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                         >
