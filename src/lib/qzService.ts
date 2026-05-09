@@ -73,7 +73,7 @@ async function printToPrinter(html: string, printerName: string) {
     copies: 1,
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
     scaleContent: true,
-    rasterize: false,
+    rasterize: true,
     size: { width: 80 },
     units: "mm",
   });
@@ -84,6 +84,7 @@ async function printToPrinter(html: string, printerName: string) {
       format: "html",
       flavor: "plain",
       data: html,
+      options: { altFontRendering: true },
     },
   ]);
 }
