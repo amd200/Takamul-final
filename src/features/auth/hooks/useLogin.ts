@@ -39,6 +39,6 @@ export const useLogin = () => {
       setAuth(token, expiresAt, decoded?.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId, decoded?.ShiftId);
     },
 
-    onError: (error) => handleApiError(error, notifyError),
+    // onError: (error) => handleApiError(error, notifyError),
   });
 };
