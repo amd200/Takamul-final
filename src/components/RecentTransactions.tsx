@@ -72,7 +72,7 @@ export default function RecentTransactions() {
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <DataTable value={salesOrders?.items?.slice(0, 5) || []} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" emptyMessage={t("no_data")}>
                   <Column header={t("code")} field="id" />
-                  <Column header={t("date")} body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
+                  <Column header={t("date")} body={(row) => formatDate(row.orderDate, "dateOnly")} />
                   <Column header={t("customer_name")} field="customerName" />
                   <Column header={t("cashier")} field="createdBy" />
                   <Column
@@ -91,7 +91,7 @@ export default function RecentTransactions() {
             {hasPermission(Permissions?.purchaseOrders?.view) && activeTab == "purchases" && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <DataTable value={purchases?.items?.slice(0, 5) || []} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" emptyMessage={t("no_data")}>
-                  <Column header={t("date")} body={(row) => formatDate(row.orderDate)} />
+                  <Column header={t("date")} body={(row) => formatDate(row.orderDate, "dateOnly")} />
                   <Column header={t("code")} field="id" />
                   <Column header={t("supplier_name")} field="supplierName" />
                   <Column
@@ -110,7 +110,7 @@ export default function RecentTransactions() {
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <DataTable value={quotations?.slice(0, 5) || []} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" emptyMessage={t("no_data")}>
                   <Column header={t("code")} field="id" />
-                  <Column header={t("date")} body={(row) => formatDate(row.quotationDate)} />
+                  <Column header={t("date")} body={(row) => formatDate(row.quotationDate, "dateOnly")} />
                   <Column header={t("customer_name")} field="customerName" />
                   <Column
                     header={t("quote_status")}

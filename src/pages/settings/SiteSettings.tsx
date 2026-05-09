@@ -27,9 +27,10 @@ export default function SiteSettings() {
       showItemCodeInSalesPrint: systemSettings.location.showItemCodeInSalesPrint,
       showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
       showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
-      postype: String(systemSettings.location.postype).toLowerCase() === "pos2" || Number(systemSettings.location.postype) === 2 ? "POS2" : "POS1",
-      posPurcherstype: String(systemSettings.location.posPurcherstype).toUpperCase() === "POS2" || String(systemSettings.location.posPurcherstype) === "Purchers2" || Number(systemSettings.location.posPurcherstype) === 2 ? "Purchers2" : "Purchers1",
+      postype: String(systemSettings.location.postype).toLowerCase().includes("2") ? "POS2" : "POS1",
+      posPurcherstype: String(systemSettings.location.posPurcherstype).toUpperCase().includes("2") ? "Purchers2" : "Purchers1",
       defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
+      purchesSetting: systemSettings.location.purchesSetting ?? true,
     },
   });
 
@@ -41,17 +42,19 @@ export default function SiteSettings() {
       showItemCodeInSalesPrint: systemSettings.location.showItemCodeInSalesPrint,
       showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
       showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
-      postype: String(systemSettings.location.postype).toLowerCase() === "pos2" || Number(systemSettings.location.postype) === 2 ? "POS2" : "POS1",
-      posPurcherstype: String(systemSettings.location.posPurcherstype).toUpperCase() === "POS2" || String(systemSettings.location.posPurcherstype) === "Purchers2" || Number(systemSettings.location.posPurcherstype) === 2 ? "Purchers2" : "Purchers1",
+      postype: String(systemSettings.location.postype).toLowerCase().includes("2") ? "POS2" : "POS1",
+      posPurcherstype: String(systemSettings.location.posPurcherstype).toUpperCase().includes("2") ? "Purchers2" : "Purchers1",
       defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
+      purchesSetting: systemSettings.location.purchesSetting ?? true,
     });
   }, [systemSettings.location, reset]);
 
   const onSubmit = (data: any) => {
     const payload = {
       ...data,
-      postype: data.postype === "POS1" ? 1 : 2,
-      posPurcherstype: data.posPurcherstype === "Purchers1" ? 1 : 2,
+      postype: data.postype === "POS1" ? "Pos1" : "Pos2",
+      posPurcherstype: data.posPurcherstype === "Purchers1" ? "POS1" : "POS2",
+      purchesSetting: data.purchesSetting ?? true,
     };
     updateSite(payload, { onSuccess: () => navigate("/settings/system") });
   };
@@ -213,6 +216,26 @@ export default function SiteSettings() {
                     <SelectContent>
                       <SelectItem value="Purchers1">{t("purchase_screen_1") || "شاشة مشتريات 1"}</SelectItem>
                       <SelectItem value="Purchers2">{t("purchase_screen_2") || "شاشة مشتريات 2"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            />
+
+            {/* purchesSetting - تغيير سعر الإجمالي */}
+            <Controller
+              name="purchesSetting"
+              control={control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel>{t("change_total_price") || "تغيير سعر الإجمالي"} *</FieldLabel>
+                  <Select value={booleanToString(field.value)} onValueChange={(val) => field.onChange(stringToBoolean(val))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                      <SelectItem value={disableStr}>{disableStr}</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>

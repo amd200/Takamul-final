@@ -149,7 +149,7 @@ const PointsForm: React.FC = () => {
 };
 
 
-const TobaccoForm: React.FC = () => {
+const TobaccoForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const { t } = useLanguage();
   const { mutate: updateTobaccoFees } = useUpdateTobaccoFees();
   const tobaccoStore = useSettingsStore((s) => s.settings.tobaccoFees);
@@ -161,7 +161,7 @@ const TobaccoForm: React.FC = () => {
 
   const onSubmit = (data: TobaccoFormValues) => {
     setTobaccoStore({ tobaccoFees: data.tobaccoFees });
-    updateTobaccoFees({ tobaccoFees: data.tobaccoFees });
+    updateTobaccoFees({ tobaccoFees: data.tobaccoFees }, { onSuccess });
   };
 
   return (
@@ -184,7 +184,7 @@ const TobaccoForm: React.FC = () => {
 };
 
 
-const ReportsForm: React.FC = () => {
+const ReportsForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const { t } = useLanguage();
   const { mutate: updateGeneral } = useUpdateGeneralSettings();
   const generalStore = useSettingsStore((s) => s.settings.general);
@@ -200,7 +200,7 @@ const ReportsForm: React.FC = () => {
   const onSubmit = (data: ReportsFormValues) => {
     const image = data.headerImage?.[0]?.name ?? generalStore.image ?? "";
     setGeneralStore({ topDataStatus: data.topDataStatus === "إظهار", image });
-    updateGeneral({ topDataStatus: data.topDataStatus === "إظهار", image });
+    updateGeneral({ topDataStatus: data.topDataStatus === "إظهار", image }, { onSuccess });
   };
 
   return (
@@ -278,7 +278,7 @@ const ReportsForm: React.FC = () => {
 };
 
 
-const TaxSystemForm: React.FC = () => {
+const TaxSystemForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const { t } = useLanguage();
   const { mutate: updateItems } = useUpdateItemsSettings();
   const { mutate: updateTax } = useUpdateTaxSettings();
@@ -305,7 +305,7 @@ const TaxSystemForm: React.FC = () => {
       enableSecondLanguageItemName: itemsStore.enableSecondLanguageItemName,
       showProductBalanceAtSale: itemsStore.showProductBalanceAtSale,
       allowPriceChangeOnSale: itemsStore.allowPriceChangeOnSale,
-    });
+    }, { onSuccess });
     updateTax({ taxSetting: data.taxPhase, itemTax: itemTaxBool });
   };
 
@@ -394,7 +394,7 @@ const SecretInput: React.FC<SecretInputProps> = ({ value, onChange, placeholder 
   );
 };
 
-const WhatsAppSettingsForm: React.FC = () => {
+const WhatsAppSettingsForm: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
   const { t } = useLanguage();
   const { mutate: updateWhatsApp, isPending } = useUpdateWhatsAppSettings();
   const whatsAppStore = useSettingsStore((s) => s.settings.whatsApp);
@@ -426,7 +426,7 @@ const WhatsAppSettingsForm: React.FC = () => {
   }, [whatsAppStore, reset]);
 
   const onSubmit = (data: WhatsAppFormValues) => {
-    updateWhatsApp(data);
+    updateWhatsApp(data, { onSuccess });
   };
 
   const FIELDS: {
@@ -576,9 +576,9 @@ export default function SystemSettings() {
           <div className="flex-1 w-full min-w-0">
             {activeSection === "points" && <PointsForm />}
 
-            {activeSection === "tobacco" && <TobaccoForm />}
+            {activeSection === "tobacco" && <TobaccoForm onSuccess={() => setActiveSection("points")} />}
 
-            {activeSection === "reports" && <ReportsForm />}
+            {activeSection === "reports" && <ReportsForm onSuccess={() => setActiveSection("points")} />}
 
             {activeSection === "print" && (
               <SettingSection id="print" title={t("print_settings", "إعدادات طباعة")} hideSave>
@@ -612,9 +612,9 @@ export default function SystemSettings() {
 
             {activeSection === "tables" && <TablesList />}
 
-            {activeSection === "tax_system" && <TaxSystemForm />}
+            {activeSection === "tax_system" && <TaxSystemForm onSuccess={() => setActiveSection("points")} />}
 
-            {activeSection === "whatsApp" && <WhatsAppSettingsForm />}
+            {activeSection === "whatsApp" && <WhatsAppSettingsForm onSuccess={() => setActiveSection("points")} />}
           </div>
         </div>
       </CardContent>

@@ -80,7 +80,7 @@ export interface CustomerStatementParams {
   customerId: number | string;
   from?: string;
   to?: string;
-  type?: string; // "Sales" | "Collections"
+  type?: string; // "Sales" | "Collections" | "Returns"
   page?: number;
   pageSize?: number;
 }

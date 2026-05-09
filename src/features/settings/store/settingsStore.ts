@@ -47,6 +47,7 @@ const defaultSettings: Settings = {
     showItemCodeInPurchases: false,
     postype: 1,
     posPurcherstype: 1,
+    purchesSetting: true,
   },
   items: {
     itemTax: true,
