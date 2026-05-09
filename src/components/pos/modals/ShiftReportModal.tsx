@@ -66,20 +66,20 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
       <DialogContent showCloseButton={false} className="max-w-[500px] p-0 overflow-hidden bg-slate-50 dark:bg-slate-900 border-none shadow-2xl rounded-3xl">
         {/* Top Header Area */}
         <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm relative z-20">
-          <Button onClick={handlePrint} disabled={isLoading || !report} className="bg-[#000052] hover:bg-[#000052]/90 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
+          <Button onClick={handlePrint} disabled={isLoading || !report} className="bg-slate-800 hover:bg-slate-900 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
             <Printer size={14} />
             طباعة
           </Button>
 
           <div className="flex items-center gap-3">
             {showCloseButton && onConfirmCloseShift && (
-              <Button onClick={onConfirmCloseShift} className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
+              <Button onClick={onConfirmCloseShift} className="bg-slate-800 hover:bg-slate-900 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
                 <Lock size={14} />
                 غلق الوردية
               </Button>
             )}
 
-            <button onClick={onClose} className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-red-50 hover:text-red-500 transition-all text-slate-500">
+            <button onClick={onClose} className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-slate-200 hover:text-slate-800 transition-all text-slate-500">
               <X size={18} />
             </button>
           </div>
@@ -94,48 +94,48 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
               <Skeleton className="h-24 w-full rounded-2xl" />
             </div>
           ) : report ? (
-            <div className="bg-white shadow-xl border border-slate-100 p-6 w-full max-w-[400px] text-right rounded-2xl relative" style={{ direction: "rtl", fontFamily: "Cairo, Tahoma, Arial, sans-serif" }}>
+            <div className="bg-white shadow-xl border border-slate-200 p-6 w-full max-w-[400px] text-right rounded-2xl relative" style={{ direction: "rtl", fontFamily: "Cairo, Tahoma, Arial, sans-serif" }}>
               {/* Header Box */}
               <div className="border-b border-dashed border-slate-300 pb-5 mb-5">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <span className="block text-[10px] font-semibold text-slate-400 mb-1">اسم المستخدم</span>
-                    <span className="text-sm font-bold text-slate-800">{report.employeeName}</span>
+                    <span className="block text-[10px] font-semibold text-slate-500 mb-1">اسم المستخدم</span>
+                    <span className="text-sm font-bold text-slate-900">{report.employeeName}</span>
                   </div>
                   <div className="text-left">
-                    <span className="block text-[10px] font-semibold text-slate-400 mb-1">رقم الوردية</span>
-                    <span className="text-sm font-bold text-[#000052]">#{report.shiftId}</span>
+                    <span className="block text-[10px] font-semibold text-slate-500 mb-1">رقم الوردية</span>
+                    <span className="text-sm font-bold text-slate-900">#{report.shiftId}</span>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 rounded-xl p-3 flex justify-between items-center border border-slate-100">
+                <div className="bg-slate-50 rounded-xl p-3 flex justify-between items-center border border-slate-200">
                   <div className="text-center w-1/3">
                     <span className="block text-[10px] text-slate-500 mb-1">تاريخ الوردية</span>
-                    <span className="text-xs font-bold text-slate-700">{report.shiftDate}</span>
+                    <span className="text-xs font-bold text-slate-800">{report.shiftDate}</span>
                   </div>
                   <div className="w-[1px] h-6 bg-slate-200"></div>
                   <div className="text-center w-1/3">
                     <span className="block text-[10px] text-slate-500 mb-1">من الساعة</span>
-                    <span className="text-xs font-bold text-slate-700">{report.startTime}</span>
+                    <span className="text-xs font-bold text-slate-800">{report.startTime}</span>
                   </div>
                   <div className="w-[1px] h-6 bg-slate-200"></div>
                   <div className="text-center w-1/3">
                     <span className="block text-[10px] text-slate-500 mb-1">إلى الساعة</span>
-                    <span className="text-xs font-bold text-slate-700">{report.endTime || "---"}</span>
+                    <span className="text-xs font-bold text-slate-800">{report.endTime || "---"}</span>
                   </div>
                 </div>
               </div>
 
               {/* بيان الوردية */}
               <div className="mb-6">
-                <div className="flex items-center gap-2 mb-3 text-slate-700">
-                  <FileText size={16} className="text-[#000052]" />
+                <div className="flex items-center gap-2 mb-3 text-slate-800">
+                  <FileText size={16} className="text-slate-800" />
                   <h3 className="text-sm font-bold">بيان الوردية</h3>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                   <table className="w-full text-xs text-right">
-                    <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                    <thead className="bg-slate-50 text-black font-semibold border-b border-slate-200">
                       <tr>
                         <th className="p-2.5 w-[10%] text-center">م</th>
                         <th className="p-2.5 w-[40%]">الصنف</th>
@@ -144,14 +144,14 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
                         <th className="p-2.5 w-[20%] text-left">الإجمالي</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-slate-100">
                       {report.soldItems.map((item, idx) => (
                         <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="p-2.5 text-center text-slate-400">{idx + 1}</td>
-                          <td className="p-2.5 font-medium text-slate-700 break-words">{item.productName}</td>
-                          <td className="p-2.5 text-center text-slate-600">{fmt(item.unitPrice)}</td>
-                          <td className="p-2.5 text-center text-slate-600">{fmt(item.quantity)}</td>
-                          <td className="p-2.5 text-left font-bold text-slate-800">{fmt(item.lineTotal)}</td>
+                          <td className="p-2.5 text-center text-slate-500">{idx + 1}</td>
+                          <td className="p-2.5 font-medium text-slate-800 break-words">{item.productName}</td>
+                          <td className="p-2.5 text-center text-slate-700">{fmt(item.unitPrice)}</td>
+                          <td className="p-2.5 text-center text-slate-700">{fmt(item.quantity)}</td>
+                          <td className="p-2.5 text-left font-bold text-slate-900">{fmt(item.lineTotal)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -160,55 +160,56 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
               </div>
 
               {/* TOTALS */}
-              <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
+              <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200">
                 {!isExempt && (
                   <div className="space-y-2 mb-3 border-b border-dashed border-slate-300 pb-3">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500">الإجمالي بدون ضريبة</span>
-                      <span className="font-semibold text-slate-700">{fmt(report.salesSubTotal)}</span>
+                      <span className="text-slate-600">الإجمالي بدون ضريبة</span>
+                      <span className="font-semibold text-slate-800">{fmt(report.salesSubTotal)}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500">إجمالي الضريبة</span>
-                      <span className="font-semibold text-slate-700">{fmt(report.salesTaxAmount)}</span>
+                      <span className="text-slate-600">إجمالي الضريبة</span>
+                      <span className="font-semibold text-slate-800">{fmt(report.salesTaxAmount)}</span>
                     </div>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-slate-800">الإجمالي النهائي</span>
-                  <span className="text-lg font-black text-[#000052]">{fmt(report.salesGrandTotal)}</span>
+                  <span className="text-sm font-bold text-slate-900">الإجمالي النهائي</span>
+                  <span className="text-lg font-black text-slate-900">{fmt(report.salesGrandTotal)}</span>
                 </div>
               </div>
 
               {/* يومية الخزائن */}
               <div className="mb-6">
-                <div className="flex items-center gap-2 mb-3 text-slate-700">
-                  <Wallet size={16} className="text-[#000052]" />
+                <div className="flex items-center gap-2 mb-3 text-slate-800">
+                  <Wallet size={16} className="text-slate-800" />
                   <h3 className="text-sm font-bold">يومية الخزائن</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {report.treasuries.map((t, idx) => (
-                    <div key={idx} className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
-                      <span className="text-[10px] font-semibold text-blue-600/70">{t.treasuryName}</span>
-                      <span className="text-sm font-bold text-blue-700">{fmt(t.totalSales)}</span>
+                    <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
+                      <span className="text-[10px] font-semibold text-slate-500">{t.treasuryName}</span>
+                      <span className="text-sm font-bold text-slate-900">{fmt(t.totalSales)}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* المشتريات والمصروفات */}
               {(report?.totalExpenses > 0 || report.totalPurchases > 0) && (
                 <div>
-                  <div className="flex items-center gap-2 mb-3 text-slate-700">
-                    <ReceiptText size={16} className="text-[#000052]" />
+                  <div className="flex items-center gap-2 mb-3 text-slate-800">
+                    <ReceiptText size={16} className="text-slate-800" />
                     <h3 className="text-sm font-bold">المشتريات والمصروفات</h3>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-red-50/50 border border-red-100 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
-                      <span className="text-[10px] font-semibold text-red-500/80">إجمالي المشتريات</span>
-                      <span className="text-sm font-bold text-red-600">{fmt(report.totalPurchases)}</span>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
+                      <span className="text-[10px] font-semibold text-slate-500">إجمالي المشتريات</span>
+                      <span className="text-sm font-bold text-slate-900">{fmt(report.totalPurchases)}</span>
                     </div>
-                    <div className="bg-red-50/50 border border-red-100 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
-                      <span className="text-[10px] font-semibold text-red-500/80">إجمالي المصروفات</span>
-                      <span className="text-sm font-bold text-red-600">{fmt(report.totalExpenses)}</span>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
+                      <span className="text-[10px] font-semibold text-slate-500">إجمالي المصروفات</span>
+                      <span className="text-sm font-bold text-slate-900">{fmt(report.totalExpenses)}</span>
                     </div>
                   </div>
                 </div>
@@ -221,7 +222,7 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
           )}
 
           <p className="text-[10px] text-slate-400 font-medium mt-2 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
             معاينة الفاتورة قبل الطباعة الحرارية
           </p>
         </div>
