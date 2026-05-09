@@ -195,7 +195,6 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
                 </div>
               </div>
 
-              {/* المشتريات والمصروفات */}
               {(report?.totalExpenses > 0 || report.totalPurchases > 0) && (
                 <div>
                   <div className="flex items-center gap-2 mb-3 text-slate-700">

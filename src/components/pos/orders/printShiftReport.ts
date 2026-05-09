@@ -427,7 +427,18 @@ html, body {
 </html>`;
 
   try {
-    await printInvoicePrinter(html);
+    // await printInvoicePrinter(html);
+    const win = window.open("", "_blank", "width=400,height=900");
+    if (!win) {
+      alert("يرجى السماح بالنوافذ المنبثقة لطباعة التقرير");
+      return;
+    }
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => {
+      win.focus();
+      win.print();
+    };
   } catch (err: any) {
     const win = window.open("", "_blank", "width=400,height=900");
     if (!win) {
