@@ -296,8 +296,8 @@ html, body {
   border-top: none;
 }
 #qr, .qr-wrap img {
-  width: 160px;
-  height: 160px;
+  width: 130px;
+  height: 130px;
   display: inline-block;
 }
 
