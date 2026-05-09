@@ -57,7 +57,7 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
   const deliveryRows = data.deliveryCompanies
     .map(
       (c) => `
-      <div class="card-item bg-light border-gray">
+      <div class="card-item bg-gray border-gray">
         <span class="card-label text-black">${c.name}</span>
         <span class="card-value text-black">${fmt(c.amount)}</span>
       </div>`,
@@ -67,7 +67,7 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
   const treasuryCards = data.treasuries
     .map(
       (t) => `
-      <div class="card-item bg-light border-gray">
+      <div class="card-item bg-gray border-gray">
         <span class="card-label text-black">${t.name}</span>
         <span class="card-value text-black">${fmt(t.sales)}</span>
       </div>`,
@@ -96,7 +96,7 @@ html, body {
   direction: rtl;
   background: #fff;
   font-size: 11px;
-  font-weight: 700; /* جعل الخط الأساسي عريض */
+  font-weight: 700;
 }
 
 .page {
@@ -110,7 +110,7 @@ html, body {
 
 /* Header Area */
 .header-area {
-  border-bottom: 2px dashed #94a3b8;
+  border-bottom: 2px dashed #9ca3af;
   padding-bottom: 15px;
   margin-bottom: 15px;
 }
@@ -137,8 +137,8 @@ html, body {
 }
 
 .info-box {
-  background-color: #f8fafc;
-  border: 2px solid #e2e8f0;
+  background-color: #e5e7eb; /* رصاصي واضح */
+  border: 2px solid #9ca3af;
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
@@ -158,7 +158,7 @@ html, body {
 .divider {
   width: 2px;
   height: 20px;
-  background-color: #cbd5e1;
+  background-color: #9ca3af;
 }
 
 /* Sections */
@@ -182,7 +182,7 @@ html, body {
 }
 
 .box-container {
-  border: 2px solid #e2e8f0;
+  border: 2px solid #9ca3af;
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 15px;
@@ -196,12 +196,12 @@ html, body {
 }
 
 .tbl th {
-  background-color: #f8fafc;
+  background-color: #e5e7eb; /* رصاصي واضح */
   color: #000;
   font-size: 11px;
   font-weight: 900;
   padding: 8px 4px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid #9ca3af;
 }
 
 .tbl td {
@@ -209,7 +209,7 @@ html, body {
   font-size: 12px;
   font-weight: 800;
   color: #000;
-  border-bottom: 2px dashed #e2e8f0;
+  border-bottom: 2px dashed #9ca3af;
 }
 
 .tbl tr:last-child td { border-bottom: none; }
@@ -223,8 +223,8 @@ html, body {
 
 /* Totals Box */
 .totals-box {
-  background-color: #f8fafc;
-  border: 2px solid #e2e8f0;
+  background-color: #e5e7eb; /* رصاصي واضح */
+  border: 2px solid #9ca3af;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 15px;
@@ -236,7 +236,7 @@ html, body {
   align-items: center;
   padding-bottom: 8px;
   margin-bottom: 8px;
-  border-bottom: 2px dashed #cbd5e1;
+  border-bottom: 2px dashed #9ca3af;
   font-size: 12px;
   font-weight: 800;
   color: #000;
@@ -290,8 +290,8 @@ html, body {
 .card-label { font-size: 11px; font-weight: 800; margin-bottom: 4px; }
 .card-value { font-size: 14px; font-weight: 900; }
 
-.bg-light { background-color: #f8fafc; }
-.border-gray { border: 2px solid #cbd5e1; }
+.bg-gray { background-color: #e5e7eb; /* رصاصي واضح */ }
+.border-gray { border: 2px solid #9ca3af; }
 .text-black { color: #000; }
 
 @media print {
@@ -385,11 +385,11 @@ html, body {
       ? `
   <div class="section-title">المشتريات والمصروفات</div>
   <div class="cards-grid">
-    <div class="card-item bg-light border-gray">
+    <div class="card-item bg-gray border-gray">
       <span class="card-label text-black">إجمالي المشتريات</span>
       <span class="card-value text-black">${fmt(data.totalPurchases)}</span>
     </div>
-    <div class="card-item bg-light border-gray">
+    <div class="card-item bg-gray border-gray">
       <span class="card-label text-black">إجمالي المصروفات</span>
       <span class="card-value text-black">${fmt(data.totalExpenses)}</span>
     </div>
