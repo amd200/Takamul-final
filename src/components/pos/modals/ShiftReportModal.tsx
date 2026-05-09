@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer, Lock, X } from "lucide-react";
+import { Printer, Lock, X, FileText, Wallet, ReceiptText } from "lucide-react";
 import { printShiftReport, ShiftReportData } from "../orders/printShiftReport";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +33,6 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
   const handlePrint = () => {
     if (!report) return;
 
-    // Map API report to ShiftReportData for printing
     const printData: ShiftReportData = {
       shiftNumber: report.shiftId,
       userName: report.employeeName,
@@ -64,7 +63,7 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="max-w-[500px] p-0 overflow-hidden bg-[#f8fafc] dark:bg-slate-900 border-none shadow-2xl rounded-3xl">
+      <DialogContent showCloseButton={false} className="max-w-[500px] p-0 overflow-hidden bg-slate-50 dark:bg-slate-900 border-none shadow-2xl rounded-3xl">
         {/* Top Header Area */}
         <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm relative z-20">
           <Button onClick={handlePrint} disabled={isLoading || !report} className="bg-[#000052] hover:bg-[#000052]/90 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
@@ -87,67 +86,72 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
         </div>
 
         {/* Report Preview Area */}
-        <div className="p-6 overflow-y-auto max-h-[80vh] flex flex-col items-center gap-4 bg-[#f1f5f9]">
+        <div className="p-6 overflow-y-auto max-h-[80vh] flex flex-col items-center gap-4">
           {isLoading ? (
-            <div className="w-full max-w-[380px] space-y-4">
-              <Skeleton className="h-40 w-full rounded-xl" />
-              <Skeleton className="h-60 w-full rounded-xl" />
-              <Skeleton className="h-20 w-full rounded-xl" />
+            <div className="w-full max-w-[400px] space-y-4">
+              <Skeleton className="h-32 w-full rounded-2xl" />
+              <Skeleton className="h-60 w-full rounded-2xl" />
+              <Skeleton className="h-24 w-full rounded-2xl" />
             </div>
           ) : report ? (
-            <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/60 p-6 w-full max-w-[380px] text-right rounded-xl" style={{ direction: "rtl", fontFamily: "Cairo, Tahoma, Arial, sans-serif" }}>
-              {/* TOP BOX */}
-              <div className="border-[2px] border-black mb-4 overflow-hidden rounded-sm">
-                <div className="flex justify-between p-3 border-b-[2px] border-black">
-                  <div className="flex flex-col items-start w-1/2">
-                    <span className="text-[7.5pt] font-medium text-gray-400">اسم المستخدم</span>
-                    <span className="text-[9.5pt] font-medium leading-tight">{report.employeeName}</span>
+            <div className="bg-white shadow-xl border border-slate-100 p-6 w-full max-w-[400px] text-right rounded-2xl relative" style={{ direction: "rtl", fontFamily: "Cairo, Tahoma, Arial, sans-serif" }}>
+              {/* Header Box */}
+              <div className="border-b border-dashed border-slate-300 pb-5 mb-5">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className="block text-[10px] font-semibold text-slate-400 mb-1">اسم المستخدم</span>
+                    <span className="text-sm font-bold text-slate-800">{report.employeeName}</span>
                   </div>
-                  <div className="flex flex-col items-end w-1/2">
-                    <span className="text-[7.5pt] font-medium text-gray-400">رقم الوردية</span>
-                    <span className="text-[9.5pt] font-medium leading-tight">{report.shiftId}</span>
+                  <div className="text-left">
+                    <span className="block text-[10px] font-semibold text-slate-400 mb-1">رقم الوردية</span>
+                    <span className="text-sm font-bold text-[#000052]">#{report.shiftId}</span>
                   </div>
                 </div>
-                <div className="text-center p-2.5 border-b-[2px] border-black bg-slate-50/50">
-                  <div className="text-[7.5pt] font-medium text-gray-400">تاريخ الوردية</div>
-                  <div className="text-[11pt] font-medium">{report.shiftDate}</div>
-                </div>
-                <div className="flex justify-between p-3">
-                  <div className="flex flex-col items-start w-1/2">
-                    <span className="text-[7.5pt] font-medium text-gray-400">من الساعه</span>
-                    <span className="text-[9.5pt] font-medium leading-tight">{report.startTime}</span>
+
+                <div className="bg-slate-50 rounded-xl p-3 flex justify-between items-center border border-slate-100">
+                  <div className="text-center w-1/3">
+                    <span className="block text-[10px] text-slate-500 mb-1">تاريخ الوردية</span>
+                    <span className="text-xs font-bold text-slate-700">{report.shiftDate}</span>
                   </div>
-                  <div className="flex flex-col items-end w-1/2">
-                    <span className="text-[7.5pt] font-medium text-gray-400">إلى الساعه</span>
-                    <span className="text-[9.5pt] font-medium leading-tight">{report.endTime || "---"}</span>
+                  <div className="w-[1px] h-6 bg-slate-200"></div>
+                  <div className="text-center w-1/3">
+                    <span className="block text-[10px] text-slate-500 mb-1">من الساعة</span>
+                    <span className="text-xs font-bold text-slate-700">{report.startTime}</span>
+                  </div>
+                  <div className="w-[1px] h-6 bg-slate-200"></div>
+                  <div className="text-center w-1/3">
+                    <span className="block text-[10px] text-slate-500 mb-1">إلى الساعة</span>
+                    <span className="text-xs font-bold text-slate-700">{report.endTime || "---"}</span>
                   </div>
                 </div>
               </div>
 
               {/* بيان الوردية */}
-              <div className="mb-4 w-full text-center">
-                <div className="relative z-10">
-                  <span className="inline-block border-[2px] border-black px-6 py-1 text-[10pt] font-bold bg-white uppercase">بيان الوردية</span>
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3 text-slate-700">
+                  <FileText size={16} className="text-[#000052]" />
+                  <h3 className="text-sm font-bold">بيان الوردية</h3>
                 </div>
-                <div className="border-[1.5px] border-black overflow-hidden">
-                  <table className="w-full border-collapse text-[8pt] font-medium table-fixed">
-                    <thead>
-                      <tr className="bg-slate-50">
-                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-[10%]">م</th>
-                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-[35%]">الصنف</th>
-                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-[18%]">السعر</th>
-                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-[15%]">الكمية</th>
-                        <th className="border-b-[1.5px] border-black p-1.5 text-center font-bold w-[22%]">الاجمالي</th>
+
+                <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
+                  <table className="w-full text-xs text-right">
+                    <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                      <tr>
+                        <th className="p-2.5 w-[10%] text-center">م</th>
+                        <th className="p-2.5 w-[40%]">الصنف</th>
+                        <th className="p-2.5 w-[15%] text-center">السعر</th>
+                        <th className="p-2.5 w-[15%] text-center">الكمية</th>
+                        <th className="p-2.5 w-[20%] text-left">الإجمالي</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-50">
                       {report.soldItems.map((item, idx) => (
-                        <tr key={idx}>
-                          <td className="border-b border-l border-black p-1.5 text-center break-words">.{idx + 1}</td>
-                          <td className="border-b border-l border-black p-1.5 text-center break-all">{item.productName}</td>
-                          <td className="border-b border-l border-black p-1.5 text-center font-bold">{fmt(item.unitPrice)}</td>
-                          <td className="border-b border-l border-black p-1.5 text-center font-bold">{fmt(item.quantity)}</td>
-                          <td className="border-b border-black p-1.5 text-center font-bold">{fmt(item.lineTotal)}</td>
+                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="p-2.5 text-center text-slate-400">{idx + 1}</td>
+                          <td className="p-2.5 font-medium text-slate-700 break-words">{item.productName}</td>
+                          <td className="p-2.5 text-center text-slate-600">{fmt(item.unitPrice)}</td>
+                          <td className="p-2.5 text-center text-slate-600">{fmt(item.quantity)}</td>
+                          <td className="p-2.5 text-left font-bold text-slate-800">{fmt(item.lineTotal)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -156,85 +160,71 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
               </div>
 
               {/* TOTALS */}
-              <div className="border-[1.5px] border-black mb-3 p-3 bg-slate-50/30">
+              <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
                 {!isExempt && (
-                  <>
-                    <div className="flex justify-between py-1.5 text-[8.5pt] font-medium">
-                      <span className="font-bold text-[9.5pt]">{fmt(report.salesSubTotal)}</span>
-                      <span className="text-gray-600">الاجمالي بدون الضريبة</span>
+                  <div className="space-y-2 mb-3 border-b border-dashed border-slate-300 pb-3">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500">الإجمالي بدون ضريبة</span>
+                      <span className="font-semibold text-slate-700">{fmt(report.salesSubTotal)}</span>
                     </div>
-                    <div className="flex justify-between py-1.5 text-[8.5pt] font-medium">
-                      <span className="font-bold text-[9.5pt]">{fmt(report.salesTaxAmount)}</span>
-                      <span className="text-gray-600">إجمالي الضريبة</span>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500">إجمالي الضريبة</span>
+                      <span className="font-semibold text-slate-700">{fmt(report.salesTaxAmount)}</span>
                     </div>
-                  </>
+                  </div>
                 )}
-                <div className="flex justify-between pt-2 mt-2 border-t-[1.5px] border-black text-[10pt] font-bold">
-                  <span className="text-[11pt]">{fmt(report.salesGrandTotal)}</span>
-                  <span>الاجمالي النهائي</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-800">الإجمالي النهائي</span>
+                  <span className="text-lg font-black text-[#000052]">{fmt(report.salesGrandTotal)}</span>
                 </div>
               </div>
 
               {/* يومية الخزائن */}
-              <div className="mb-3 w-full text-center">
-                <div className="relative z-10">
-                  <span className="inline-block border-[1.5px] border-black px-5 py-1 text-[9pt] font-bold bg-white uppercase">يومية الخزائن</span>
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3 text-slate-700">
+                  <Wallet size={16} className="text-[#000052]" />
+                  <h3 className="text-sm font-bold">يومية الخزائن</h3>
                 </div>
-                <div className="border-[1.5px] border-black overflow-hidden">
-                  <table className="w-full border-collapse text-[8.5pt] font-medium table-fixed">
-                    <thead>
-                      <tr className="bg-slate-50">
-                        {report.treasuries.map((t, idx) => (
-                          <th key={idx} className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold">
-                            {t.treasuryName}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        {report.treasuries.map((t, idx) => (
-                          <td key={idx} className="border-b border-l border-black p-1.5 text-center font-bold text-blue-700">
-                            {fmt(t.totalSales)}
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
+                <div className="grid grid-cols-2 gap-3">
+                  {report.treasuries.map((t, idx) => (
+                    <div key={idx} className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
+                      <span className="text-[10px] font-semibold text-blue-600/70">{t.treasuryName}</span>
+                      <span className="text-sm font-bold text-blue-700">{fmt(t.totalSales)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {(report.totalPurchases > 0 || report.totalExpenses > 0) && (
-                <div className="mb-3 mt-5 w-full text-center">
-                  <div className="relative z-10">
-                    <span className="inline-block border-[1.5px] border-black px-5 py-1 text-[9pt] font-bold bg-white uppercase">المشتريات و المصروفات</span>
+              {/* المشتريات والمصروفات */}
+              {(report?.totalExpenses > 0 || report.totalPurchases > 0) && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3 text-slate-700">
+                    <ReceiptText size={16} className="text-[#000052]" />
+                    <h3 className="text-sm font-bold">المشتريات والمصروفات</h3>
                   </div>
-                  <div className="border-[1.5px] border-black overflow-hidden">
-                    <table className="w-full border-collapse text-[8.5pt] font-medium table-fixed">
-                      <thead>
-                        <tr className="bg-slate-50">
-                          <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-1/2">إجمالي المشتريات</th>
-                          <th className="border-b-[1.5px] border-black p-1.5 text-center font-bold w-1/2">اجمالي المصروفات</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="border-l-[1.5px] border-black p-2 text-center font-bold text-red-600">{fmt(report.totalPurchases)}</td>
-                          <td className="p-2 text-center font-bold text-red-600">{fmt(report.totalExpenses)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-red-50/50 border border-red-100 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
+                      <span className="text-[10px] font-semibold text-red-500/80">إجمالي المشتريات</span>
+                      <span className="text-sm font-bold text-red-600">{fmt(report.totalPurchases)}</span>
+                    </div>
+                    <div className="bg-red-50/50 border border-red-100 rounded-xl p-3 flex flex-col items-center justify-center gap-1">
+                      <span className="text-[10px] font-semibold text-red-500/80">إجمالي المصروفات</span>
+                      <span className="text-sm font-bold text-red-600">{fmt(report.totalExpenses)}</span>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-center p-10 bg-white rounded-xl shadow-sm border border-slate-200">
+            <div className="text-center p-10 bg-white rounded-2xl shadow-sm border border-slate-200">
               <p className="text-slate-500 font-medium">لم يتم العثور على بيانات للوردية</p>
             </div>
           )}
 
-          <p className="text-[10px] text-slate-400 font-medium italic mt-2">معاينة التقرير الحراري قبل الطباعة</p>
+          <p className="text-[10px] text-slate-400 font-medium mt-2 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            معاينة الفاتورة قبل الطباعة الحرارية
+          </p>
         </div>
       </DialogContent>
     </Dialog>
