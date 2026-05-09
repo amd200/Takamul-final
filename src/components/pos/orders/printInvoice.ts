@@ -5,6 +5,8 @@ import QRCode from "qrcode/lib/browser.js";
 import { printInvoicePrinter } from "@/lib/qzService";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
+export type PrintMethod = "qz" | "browser";
+
 export interface InvoiceItem {
   productName: string;
   quantity: number;
@@ -30,7 +32,25 @@ export interface InvoiceData {
   paidAmount: number;
 }
 
-export async function printInvoice(data: InvoiceData): Promise<void> {
+function printWithBrowser(html: string): void {
+  const win = window.open("", "_blank", "width=440,height=980");
+  if (!win) {
+    alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+  win.onload = () => {
+    win.focus();
+    win.print();
+  };
+}
+
+async function printWithQZ(html: string): Promise<void> {
+  await printInvoicePrinter(html);
+}
+
+export async function printInvoice(data: InvoiceData, method: PrintMethod = "qz"): Promise<void> {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
   const riyal = `ر.س`;
@@ -38,6 +58,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
   const isExempt = taxSetting === "Exempt";
   const custAddress = [data?.branch?.cityName, data?.branch?.stateName, data?.branch?.district, data?.branch?.street].filter(Boolean).join(" / ") || "-";
+
   const fontBase64 = await fetch("/fonts/Rubik-Bold.ttf")
     .then((r) => r.arrayBuffer())
     .then((buf) => {
@@ -48,6 +69,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
       }
       return btoa(binary);
     });
+
   const itemRows = data.items
     .map(
       (item) => `
@@ -55,7 +77,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
         <td class="td-name">${item.productName ?? ""}</td>
         <td>${item.quantity ?? 0}</td>
         <td>${fmt(item.unitPrice)}</td>
-        ${!isExempt && `<td>${fmt(item.taxAmount)}</td> `}
+        ${!isExempt ? `<td>${fmt(item.taxAmount)}</td>` : ""}
         <td>${fmt(item.total)}</td>
       </tr>`,
     )
@@ -111,7 +133,7 @@ html, body {
   object-fit: contain;
 }
 
-/* ── HEADER INFO ROWS ── */
+/* ── HEADER ── */
 .header-wrap {
   border: 2px solid #000;
   border-top: none;
@@ -127,37 +149,43 @@ html, body {
   font-size: 7pt;
   font-weight: 700;
 }
-.hrow:last-child {
-  border-bottom: none;
-}
+.hrow:last-child { border-bottom: none; }
 
-/* AR label - RIGHT (first in RTL) */
 .hrow .h-ar {
-  flex: 0 0 30%;
+  flex: 0 0 32%;
   text-align: right;
   font-size: 7pt;
   font-weight: 700;
 }
-
-/* value - center */
 .hrow .h-val {
   flex: 1;
   text-align: center;
   font-size: 7pt;
   font-weight: 700;
 }
-
-/* EN label - LEFT (last in RTL) */
 .hrow .h-en {
-  flex: 0 0 30%;
+  flex: 0 0 32%;
   text-align: left;
-  font-size: 7pt;
+  font-size: 6pt;
   font-weight: 900;
+  white-space: nowrap;
 }
 
-/* institution name row */
-.hrow.inst-row .h-en { flex: 1; font-size: 8pt; font-weight: 900; text-align: left; }
-.hrow.inst-row .h-ar { flex: 1; font-size: 8pt; font-weight: 900; text-align: right; }
+/* inst row */
+.hrow.inst-row .h-ar {
+  flex: 1;
+  font-size: 8pt;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* date row */
+.date-row .h-val {
+  font-size: 6pt;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* ── ITEMS TABLE ── */
 .items-table {
@@ -170,30 +198,28 @@ html, body {
 }
 
 .items-table thead tr th {
-  font-weight: 700;
+  font-weight: 900;
   text-align: center;
   padding: 3px 1px;
   border: 1px solid #000;
   line-height: 1.3;
   vertical-align: middle;
+  background-color: #000 !important;
+  color: #fff !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
-.items-table thead tr th .th-ar { 
-  display: block; 
-  font-size: 6pt; 
-  font-weight: 900; 
-  color: #000;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
+.items-table thead tr th .th-ar,
+.items-table thead tr th .th-en {
+  display: block;
+  font-weight: 900;
+  color: #fff !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
-.items-table thead tr th .th-en { 
-  display: block; 
-  font-size: 5pt; 
-  font-weight: 900; 
-  color: #000;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
+.items-table thead tr th .th-ar { font-size: 6pt; }
+.items-table thead tr th .th-en { font-size: 5pt; }
 
 .items-table td {
   border: 1px solid #000;
@@ -225,34 +251,33 @@ html, body {
 
 .totals-table td {
   border: 1px solid #000;
-  padding: 4px 6px;
-  font-size: 7pt;
+  padding: 3px 2px;
+  font-size: 6.5pt;
   font-weight: 700;
   vertical-align: middle;
+  text-align: center;
 }
 
 .totals-table td.t-ar {
+  width: 42%;
   text-align: center;
-  width: 38%;
+  padding: 3px 2px;
 }
 
 .totals-table td.t-val {
-  text-align: center;
   width: 30%;
+  text-align: center;
 }
 
 .totals-table td.t-en {
+  width: 28%;
   text-align: center;
-  width: 32%;
   font-weight: 900;
+  font-size: 6pt;
+  white-space: nowrap;
 }
 
-// .totals-table tr:last-child td {
-//   font-size: 8pt;
-//   font-weight: 900;
-// }
-
-/* ── FOOTER ROWS ── */
+/* ── FOOTER ── */
 .frow {
   border: 2px solid #000;
   border-top: none;
@@ -265,13 +290,10 @@ html, body {
   font-weight: 700;
 }
 
-/* AR right (first in RTL) */
-.frow .f-ar { flex: 0 0 30%; text-align: right; }
+.frow .f-ar  { flex: 0 0 30%; text-align: right; }
 .frow .f-val { flex: 1; text-align: center; }
-/* EN left (last in RTL) */
-.frow .f-en { flex: 0 0 30%; text-align: left; font-weight: 900; }
+.frow .f-en  { flex: 0 0 30%; text-align: left; font-weight: 900; white-space: nowrap; }
 
-/* address - centered single line */
 .addr-row {
   border: 2px solid #000;
   border-top: none;
@@ -282,16 +304,6 @@ html, body {
   min-height: 20px;
 }
 
-/* notes header - bold centered */
-.notes-header {
-  border: 2px solid #000;
-  border-top: none;
-  text-align: center;
-  font-size: 9pt;
-  font-weight: 900;
-  padding: 6px 4px;
-}
-
 /* ── QR ── */
 .qr-wrap {
   text-align: center;
@@ -299,18 +311,12 @@ html, body {
   border: 2px solid #000;
   border-top: none;
 }
-#qr, .qr-wrap img {
+.qr-wrap img {
   width: 130px;
   height: 130px;
   display: inline-block;
 }
 
-.date-row .h-val {
-  font-size: 6pt;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 @media print {
   html, body { margin: 0; }
 }
@@ -324,52 +330,42 @@ html, body {
     ${data?.branch?.imageUrl ? `<img src="${data?.branch?.imageUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
   </div>
 
-  <!-- HEADER INFO ROWS -->
+  <!-- HEADER -->
   <div class="header-wrap">
 
-    <!-- Institution: AR right | EN left -->
     <div class="hrow inst-row">
-  <span class="h-ar" style="flex:1; text-align:center;">${data?.branch?.name}</span>
-</div>
-    <!-- VAT NO: AR | value | EN -->
- 
+      <span class="h-ar">${data?.branch?.name}</span>
+    </div>
 
-    <!-- Simplified Tax Invoice -->
     <div class="hrow">
-      <span class="h-ar">${data?.customer.taxNumber ? "فاتورة ضريبية" : "فاتورة ضريبية مبسطة"}</span>
+      <span class="h-ar">${data?.customer?.taxNumber ? "فاتورة ضريبية" : "فاتورة ضريبية مبسطة"}</span>
       <span class="h-val"></span>
       <span class="h-en">${data?.customer?.taxNumber ? "Tax Invoice" : "Simplified Tax Invoice"}</span>
     </div>
 
-    <!-- INV NO -->
     <div class="hrow">
       <span class="h-ar">رقم الفاتورة</span>
       <span class="h-val">${data.invoiceNumber}</span>
       <span class="h-en">INV NO</span>
     </div>
 
-    <!-- Date / Time -->
- <div class="hrow date-row">
-  <span class="h-ar">الوقت / التاريخ</span>
-  <span class="h-val">${data.invoiceDate}</span>
-  <span class="h-en">Date / Time</span>
-</div>
+    <div class="hrow date-row">
+      <span class="h-ar">الوقت / التاريخ</span>
+      <span class="h-val">${data.invoiceDate}</span>
+      <span class="h-en">Date / Time</span>
+    </div>
 
-    <!-- Customer Name -->
     <div class="hrow">
       <span class="h-ar">اسم العميل</span>
       <span class="h-val">${data.customer?.customerName ?? "—"}</span>
       <span class="h-en">Cust Name</span>
     </div>
 
-    <!-- Phone No -->
     <div class="hrow">
       <span class="h-ar">رقم الجوال</span>
       <span class="h-val">${data.customer?.phone ?? "—"}</span>
       <span class="h-en">Phone No</span>
     </div>
-
-   
 
   </div>
 
@@ -380,14 +376,14 @@ html, body {
         <th><span class="th-ar">بيان الصنف</span><span class="th-en">Item Des</span></th>
         <th><span class="th-ar">الكمية</span><span class="th-en">QTY</span></th>
         <th><span class="th-ar">الإجمالي الفرعي</span><span class="th-en">Sub Total</span></th>
-        ${!isExempt && `<th><span class="th-ar">الضريبة</span><span class="th-en">VAT Amount</span></th>`}
+        ${!isExempt ? `<th><span class="th-ar">الضريبة</span><span class="th-en">VAT Amount</span></th>` : ""}
         <th><span class="th-ar">الإجمالي النهائي</span><span class="th-en">Net Total</span></th>
       </tr>
     </thead>
     <tbody>${itemRows}</tbody>
   </table>
 
-  <!-- TOTALS TABLE: AR right | value center | EN left -->
+  <!-- TOTALS TABLE -->
   <table class="totals-table">
     <tr>
       <td class="t-ar">عدد المنتجات</td>
@@ -399,10 +395,10 @@ html, body {
       <td class="t-val">${fmt(data.discountAmount)} ${riyal}</td>
       <td class="t-en">Total Discount</td>
     </tr>
-   ${
-     !isExempt
-       ? `
-     <tr>
+    ${
+      !isExempt
+        ? `
+    <tr>
       <td class="t-ar">اجمالي السعر قبل الضريبة</td>
       <td class="t-val">${fmt(data.subTotal)} ${riyal}</td>
       <td class="t-en">Total Before Tax</td>
@@ -412,8 +408,8 @@ html, body {
       <td class="t-val">${fmt(data.taxAmount)} ${riyal}</td>
       <td class="t-en">Total VAT</td>
     </tr>`
-       : ""
-   }
+        : ""
+    }
     <tr>
       <td class="t-ar">الاجمالي النهائي</td>
       <td class="t-val">${fmt(data.grandTotal)} ${riyal}</td>
@@ -431,28 +427,24 @@ html, body {
     </tr>
   </table>
 
-  <!-- FOOTER: Phone -->
+  <!-- FOOTER -->
   <div class="frow">
     <span class="f-ar">رقم الجوال</span>
     <span class="f-val">${data.branch?.phone || "—"}</span>
     <span class="f-en">Phone NO</span>
   </div>
 
-  <!-- FOOTER: Address -->
   <div class="addr-row">${custAddress || "—"}</div>
 
-  <!-- FOOTER: Notes -->
-  
-  <div class="notes-content" style="border:2px solid #000; border-top:none; text-align:center; font-size:8pt; padding:8px 4px; font-weight:700;">
+  <div style="border:2px solid #000; border-top:none; text-align:center; font-size:8pt; padding:8px 4px; font-weight:700;">
     ${data.notes || "—"}
   </div>
 
-  <!-- QR -->
   ${
     !isExempt
       ? `
-    <div class="qr-wrap">
-      ${qrImageSrc && `<img src="${qrImageSrc}" alt="QR" />`}
+  <div class="qr-wrap">
+    ${qrImageSrc ? `<img src="${qrImageSrc}" alt="QR" />` : ""}
   </div>`
       : ""
   }
@@ -461,19 +453,14 @@ html, body {
 </body>
 </html>`;
 
+  if (method === "browser") {
+    printWithBrowser(html);
+    return;
+  }
+
   try {
-    await printInvoicePrinter(html);
-  } catch (err: any) {
-    const win = window.open("", "_blank", "width=440,height=980");
-    if (!win) {
-      alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-      return;
-    }
-    win.document.write(html);
-    win.document.close();
-    win.onload = () => {
-      win.focus();
-      win.print();
-    };
+    await printWithQZ(html);
+  } catch {
+    printWithBrowser(html);
   }
 }
