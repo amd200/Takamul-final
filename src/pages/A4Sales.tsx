@@ -145,7 +145,7 @@ export default function A4Sales() {
             {/* <Column header={t("remaining_amount")} sortable field="" /> */}
             <Column
               header={t("actions")}
-              body={(row) => (
+              body={(row: SalesOrder) => (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="btn-minimal-action btn-compact-action">
@@ -207,7 +207,8 @@ export default function A4Sales() {
                       onClick={async () => {
                         await sendWhatsAppTemplate({
                           data: {
-                            to: "201063751102",
+                            messaging_product: "whatsapp",
+                            to: row?.customerPhone,
                             type: "template",
                             template: {
                               name: "hello_world",

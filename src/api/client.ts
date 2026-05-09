@@ -67,8 +67,6 @@ apiClient.interceptors.response.use(
         .then(({ data }) => {
           const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
           useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId, decoded?.ShiftId);
-          apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
-          originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
           processQueue(null, data.accessToken);
           return apiClient(originalRequest);
         })
