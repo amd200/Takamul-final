@@ -63,7 +63,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   box-sizing: border-box;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
-  font-family: 'Cairo', Tahoma, Arial, sans-serif;
+  font-family: Tahoma, Arial, sans-serif;
 }
 
 html, body {
@@ -161,7 +161,7 @@ html, body {
   vertical-align: middle;
 }
 
-.items-table thead tr th .th-ar { display: block; font-size: 6pt; font-weight: 700; }
+.items-table thead tr th .th-ar { display: block; font-size: 6pt; font-weight: 900; }
 .items-table thead tr th .th-en { display: block; font-size: 5pt; font-weight: 500; color: #333; }
 
 .items-table td {
