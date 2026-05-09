@@ -161,8 +161,8 @@ html, body {
   vertical-align: middle;
 }
 
-.items-table thead tr th .th-ar { display: block; font-size: 6pt; font-weight: 900; }
-.items-table thead tr th .th-en { display: block; font-size: 5pt; font-weight: 500; color: #333; }
+.items-table thead tr th .th-ar { display: block; font-size: 6pt; font-weight: 900; color:#000 }
+.items-table thead tr th .th-en { display: block; font-size: 5pt; font-weight: 900; color: #000; }
 
 .items-table td {
   border: 1px solid #000;
