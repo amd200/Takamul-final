@@ -32,6 +32,7 @@ export default function PosSales() {
   const [currentPage, setCurrentPage] = useState(1);
   const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage, OrderType: "POS" });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const { mutateAsync: sendWhatsAppTemplate } = useSendWhatsAppTemplate();
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -102,6 +103,7 @@ export default function PosSales() {
   );
   const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
   const { mutateAsync: sendInvoiceSell } = useSendInvoiceSell();
+  const phoneNumberId = useSettingsStore((state) => state.settings.whatsApp.whatsAppPhoneNumberId);
 
   return (
     <div className="space-y-4 pb-12" dir={direction}>
@@ -204,7 +206,25 @@ export default function PosSales() {
                       {t("send_email")}
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        await sendWhatsAppTemplate({
+                          data: {
+                            messaging_product: "whatsapp",
+                            to: row?.customerPhone,
+                            type: "template",
+                            template: {
+                              name: "hello_world",
+                              language: {
+                                code: "en_US",
+                              },
+                            },
+                          },
+                          phoneNumberId: phoneNumberId,
+                        });
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md"
+                    >
                       <MessageCircle size={14} />
                       {t("send_whatsapp")}
                     </DropdownMenuItem>
