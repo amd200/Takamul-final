@@ -1,5 +1,5 @@
 export type LoginResponse = {
-  accessToken: string;
+  accessToken: string;  
   accessTokenExpiration: string;
   roles: string[];
 };
