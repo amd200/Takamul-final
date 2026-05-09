@@ -192,11 +192,11 @@ html, body {
 
 .td-name { text-align: center !important; font-size: 7pt; }
 
-.items-table th:nth-child(1), .items-table td:nth-child(1) { width: 30%; }
-.items-table th:nth-child(2), .items-table td:nth-child(2) { width: 10%; }
+.items-table th:nth-child(1), .items-table td:nth-child(1) { width: 28%; }
+.items-table th:nth-child(2), .items-table td:nth-child(2) { width: 14%; }
 .items-table th:nth-child(3), .items-table td:nth-child(3) { width: 20%; }
-.items-table th:nth-child(4), .items-table td:nth-child(4) { width: 20%; }
-.items-table th:nth-child(5), .items-table td:nth-child(5) { width: 20%; }
+.items-table th:nth-child(4), .items-table td:nth-child(4) { width: 16%; }
+.items-table th:nth-child(5), .items-table td:nth-child(5) { width: 22%; }
 
 /* ── TOTALS TABLE ── */
 .totals-table {
