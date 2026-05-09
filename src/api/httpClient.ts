@@ -9,11 +9,15 @@ type HttpClientOptions = {
   data?: any;
   headers?: Record<string, string>;
   responseType?: "json" | "blob";
+
+  baseURL?: string;
 };
 
 export async function httpClient<T>(url: string, options?: HttpClientOptions): Promise<T> {
   try {
     const response = await apiClient({
+      baseURL: options?.baseURL,
+
       url,
       method: options?.method ?? "GET",
       params: options?.params,

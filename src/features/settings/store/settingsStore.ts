@@ -3,76 +3,22 @@ import { Settings } from "../types/settings.types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface TobaccoFeesSettings {
-  tobaccoFees: number;
-}
+type TobaccoFeesSettings = Settings["tobaccoFees"];
 
-interface GeneralSettings {
-  topDataStatus: boolean;
-  image: string;
-  language: string;
-}
+type GeneralSettings = Settings["general"];
 
-interface LocationSettings {
-  rowsPerPage: number;
-  defaultPaymentCompany: number;
-  showActualBalance: boolean;
-  showCostGreaterThanSalePriceMessage: boolean;
-  showItemCodeInSalesPrint: boolean;
-  showItemCodeInQuotations: boolean;
-  showItemCodeInPurchases: boolean;
-  postype: number | string;
-  posPurcherstype: number | string;
-}
+type LocationSettings = Settings["location"];
 
-interface ItemsSettings {
-  itemTax: boolean;
-  itemExpiry: boolean;
-  showWarehouseItems: boolean;
-  enableSecondLanguageItemName: boolean;
-  showProductBalanceAtSale: boolean;
-  allowPriceChangeOnSale: boolean;
-  taxPhase: string;
-}
+type ItemsSettings = Settings["items"];
 
-interface SalesSettings {
-  allowSaleWithZeroStock: boolean;
-  defaultSalesVault: number;
-  defaultPurchasesVault: number;
-  showOrderDeviceNumber: boolean;
-  isTekawuy: boolean;
-  isTables: boolean;
-  isDelivary: boolean;
-  enableCursorOnAddProduct: boolean;
-  enableGlasses: boolean;
-}
+type SalesSettings = Settings["sales"];
 
-interface BarcodeScaleSettings {
-  barcodeType: number;
-  barcodeTotalCharacters: number;
-  barcodeFlagCharacters: number;
-  barcodeStartPosition: number;
-  barcodeCodeCharactersCount: number;
-  barcodeWeightStartPosition: number;
-  barcodeWeightCharactersCount: number;
-  barcodeDivideWeightBy: number;
-}
+type BarcodeScaleSettings = Settings["barcodeScale"];
 
-interface TaxSetting {
-  taxSetting: "Exempt" | "FirstStage" | "SecondStage";
-  itemTax: boolean;
-}
+type TaxSetting = NonNullable<Settings["taxSetting"]>;
 
-interface MoneySettings {
-  decimals: number;
-  quantityDecimals: number;
-  southAsiaFormat: boolean;
-  decimalSeparator: string;
-  thousandSeparator: string;
-  showCurrencySymbol: boolean;
-  currencySymbol: string;
-  a4InvoiceDecimals: number;
-}
+type MoneySettings = Settings["money"];
+type WhatsAppSettings = Settings["whatsApp"];
 
 interface PointsSettings {
   customerPointsPerSpend: number;
@@ -90,7 +36,6 @@ const defaultSettings: Settings = {
   general: {
     topDataStatus: true,
     image: "",
-    // language: "ar",
   },
   location: {
     rowsPerPage: 10,
@@ -146,6 +91,13 @@ const defaultSettings: Settings = {
     currencySymbol: "SAR",
     a4InvoiceDecimals: 2,
   },
+  whatsApp: {
+    whatsAppAccessToken: null,
+    whatsAppAppId: null,
+    whatsAppAppSecret: null,
+    whatsAppBusinessAccountId: null,
+    whatsAppPhoneNumberId: null,
+  },
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -160,8 +112,10 @@ interface SettingsStore {
   setItems: (data: Partial<ItemsSettings>) => void;
   setSales: (data: Partial<SalesSettings>) => void;
   setBarcodeScale: (data: Partial<BarcodeScaleSettings>) => void;
-  setTaxSetting: (data: Partial<TaxSetting>) => void; // ✅
-  setMoney: (data: Partial<MoneySettings>) => void; // ✅
+  setTaxSetting: (data: Partial<TaxSetting>) => void;
+  setMoney: (data: Partial<MoneySettings>) => void;
+
+  setWhatsApp: (data: Partial<WhatsAppSettings>) => void;
 
   setRowsPerPage: (value: number) => void;
   setDefaultPaymentCompany: (value: number) => void;
@@ -240,9 +194,7 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
       },
     })),
 
-  setMoney: (
-    data, // ✅
-  ) =>
+  setMoney: (data) =>
     set((state) => ({
       settings: {
         ...state.settings,
@@ -279,6 +231,16 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
       settings: {
         ...state.settings,
         sales: { ...state.settings.sales, defaultPurchasesVault: value },
+      },
+    })),
+  setWhatsApp: (data) =>
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        WhatsAppSettings: {
+          ...state.settings.whatsApp,
+          ...data,
+        },
       },
     })),
 

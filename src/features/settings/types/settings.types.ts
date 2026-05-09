@@ -67,4 +67,15 @@ export type Settings = {
     currencySymbol: string;
     a4InvoiceDecimals: number;
   };
+  whatsApp: {
+    whatsAppBusinessAccountId: string | null;
+
+    whatsAppPhoneNumberId: string | null;
+
+    whatsAppAccessToken: string | null;
+
+    whatsAppAppId: string | null;
+
+    whatsAppAppSecret: string | null;
+  };
 };

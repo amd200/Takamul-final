@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateGeneralSettings, updateSiteSettings, updateItemsSettings, updateSalesSettings, updateBarcodeSettings, updateTaxSettings } from "../services/settings";
+import { updateGeneralSettings, updateSiteSettings, updateItemsSettings, updateSalesSettings, updateBarcodeSettings, updateTaxSettings, updateWhatsAppSettings } from "../services/settings";
 import { settingsKeys } from "../keys/settings.keys";
 import useToast from "@/hooks/useToast";
 import { useLanguage } from "@/context/LanguageContext";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
+import { useSettingsStore } from "../store/settingsStore";
 
 export const useUpdateGeneralSettings = () => {
   const queryClient = useQueryClient();
@@ -84,6 +86,26 @@ export const useUpdateTaxSettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.all });
       notifySuccess(t("settings_saved_successfully") || "تم حفظ الإعداد");
+    },
+  });
+};
+export const useUpdateWhatsAppSettings = () => {
+  const queryClient = useQueryClient();
+
+  const { notifySuccess } = useToast();
+
+  const setWhatsAppStore = useSettingsStore((s) => s.setWhatsApp);
+
+  return useMutation({
+    mutationFn: updateWhatsAppSettings,
+
+    onSuccess: (response, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: settingsKeys.all,
+      });
+      setWhatsAppStore(variables);
+      
+      handleApiSuccess(response, notifySuccess);
     },
   });
 };

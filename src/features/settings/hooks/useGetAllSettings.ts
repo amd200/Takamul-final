@@ -16,6 +16,7 @@ export const useGetAllSettings = () => {
     enabled: !!accessToken,
   });
 
+
   useEffect(() => {
     if (query.data) setSettings(query.data);
   }, [query.data, setSettings]);

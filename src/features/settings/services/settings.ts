@@ -15,14 +15,14 @@ export const getAllSettings = async () => {
     const phaseSource = rawTaxSetting || rawItemsTaxPhase;
     const phaseStr = String(phaseSource || "");
 
-    let finalPhase = "FirstStage"; 
+    let finalPhase = "FirstStage";
     if (phaseStr === "2" || phaseStr === "SecondStage") finalPhase = "SecondStage";
     else if (phaseStr === "3" || phaseStr === "Exempt") finalPhase = "Exempt";
     else if (phaseStr === "1" || phaseStr === "FirstStage") finalPhase = "FirstStage";
     else if (phaseStr && phaseStr !== "undefined") finalPhase = phaseStr;
 
     response.items.taxPhase = finalPhase;
-    
+
     // Sync itemTax from taxSetting if it exists
     if (response.taxSetting && response.taxSetting.itemTax !== undefined) {
       response.items.itemTax = response.taxSetting.itemTax;
@@ -54,66 +54,36 @@ export const updateGeneralSettings = (data: { topDataStatus: boolean; image: str
     data,
   });
 
-export const updateSiteSettings = (data: {
-  rowsPerPage: number;
-  defaultPaymentCompany: number;
-  showActualBalance: boolean;
-  showCostGreaterThanSalePriceMessage: boolean;
-  showItemCodeInSalesPrint: boolean;
-  showItemCodeInQuotations: boolean;
-  showItemCodeInPurchases: boolean;
-  postype: number | string;
-  posPurcherstype: number | string;
-}) =>
+export const updateSiteSettings = (data: { rowsPerPage: number; defaultPaymentCompany: number; showActualBalance: boolean; showCostGreaterThanSalePriceMessage: boolean; showItemCodeInSalesPrint: boolean; showItemCodeInQuotations: boolean; showItemCodeInPurchases: boolean; postype: number | string; posPurcherstype: number | string }) =>
   httpClient("/Settings/Site", {
     method: "PUT",
     data,
   });
 
-export const updateItemsSettings = (data: {
-  itemTax: boolean;
-  itemExpiry: boolean;
-  showWarehouseItems: boolean;
-  enableSecondLanguageItemName: boolean;
-  showProductBalanceAtSale: boolean;
-  allowPriceChangeOnSale: boolean;
-}) =>
+export const updateItemsSettings = (data: { itemTax: boolean; itemExpiry: boolean; showWarehouseItems: boolean; enableSecondLanguageItemName: boolean; showProductBalanceAtSale: boolean; allowPriceChangeOnSale: boolean }) =>
   httpClient("/Settings/items", {
     method: "PUT",
     data,
   });
 
-export const updateSalesSettings = (data: {
-  allowSaleWithZeroStock: boolean;
-  defaultSalesVault: number;
-  defaultPurchasesVault: number;
-  showOrderDeviceNumber: boolean;
-  isTekawuy: boolean;
-  isTables: boolean;
-  isDelivary: boolean;
-  enableCursorOnAddProduct: boolean;
-}) =>
+export const updateSalesSettings = (data: { allowSaleWithZeroStock: boolean; defaultSalesVault: number; defaultPurchasesVault: number; showOrderDeviceNumber: boolean; isTekawuy: boolean; isTables: boolean; isDelivary: boolean; enableCursorOnAddProduct: boolean }) =>
   httpClient("/Settings/sales", {
     method: "PUT",
     data,
   });
 
-export const updateBarcodeSettings = (data: {
-  barcodeType: number;
-  barcodeTotalCharacters: number;
-  barcodeFlagCharacters: number;
-  barcodeStartPosition: number;
-  barcodeCodeCharactersCount: number;
-  barcodeWeightStartPosition: number;
-  barcodeWeightCharactersCount: number;
-  barcodeDivideWeightBy: number;
-}) =>
+export const updateBarcodeSettings = (data: { barcodeType: number; barcodeTotalCharacters: number; barcodeFlagCharacters: number; barcodeStartPosition: number; barcodeCodeCharactersCount: number; barcodeWeightStartPosition: number; barcodeWeightCharactersCount: number; barcodeDivideWeightBy: number }) =>
   httpClient("/Settings/barcode", {
     method: "PUT",
     data,
   });
 export const updateTaxSettings = (data: { taxSetting: string; itemTax: boolean }) =>
   httpClient("/Settings/tax", {
+    method: "PUT",
+    data,
+  });
+export const updateWhatsAppSettings = (data: Settings["whatsApp"]) =>
+  httpClient("/Settings/whatsapp", {
     method: "PUT",
     data,
   });

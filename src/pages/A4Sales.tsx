@@ -21,6 +21,7 @@ import { format } from "@/constants/data";
 import formatDate from "@/lib/formatDate";
 import { useSendInvoiceSell } from "@/features/zatcaInvoice/hooks/useSendInvoiceSell";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { useSendWhatsAppTemplate } from "@/features/whatsapp/hooks/useSendTemplateMessage";
 
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
@@ -31,6 +32,7 @@ export default function A4Sales() {
   const [currentPage, setCurrentPage] = useState(1);
   const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage, OrderType: "A4" });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const { mutateAsync: sendWhatsAppTemplate } = useSendWhatsAppTemplate();
   const { mutateAsync: sendInvoiceSell } = useSendInvoiceSell();
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -89,6 +91,7 @@ export default function A4Sales() {
     },
     [language, t],
   );
+  const phoneNumberId = useSettingsStore((state) => state.settings.whatsApp.whatsAppPhoneNumberId);
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
   const statusBodyTemplate = useCallback(
     (rowData: SalesOrder) => {
@@ -195,12 +198,29 @@ export default function A4Sales() {
 
                     <DropdownMenuSeparator />
 
-                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
                       <Mail size={14} />
                       {t("send_email")}
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        await sendWhatsAppTemplate({
+                          data: {
+                            to: "201063751102",
+                            type: "template",
+                            template: {
+                              name: "hello_world",
+                              language: {
+                                code: "en_US",
+                              },
+                            },
+                          },
+                          phoneNumberId: phoneNumberId,
+                        });
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md"
+                    >
                       <MessageCircle size={14} />
                       {t("send_whatsapp")}
                     </DropdownMenuItem>
