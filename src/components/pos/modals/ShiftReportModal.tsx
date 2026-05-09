@@ -65,21 +65,28 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent showCloseButton={false} className="max-w-[500px] p-0 overflow-hidden bg-gray-50 dark:bg-gray-900 border-none shadow-2xl rounded-3xl">
         {/* Top Header Area */}
-        <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm relative z-20">
-          <Button onClick={handlePrint} disabled={isLoading || !report} className="bg-gray-800 hover:bg-gray-900 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
+   <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm relative z-20">
+          <Button 
+            onClick={handlePrint}
+            disabled={isLoading || !report}
+            className="bg-[#000052] hover:bg-[#000052]/90 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs"
+          >
             <Printer size={14} />
             طباعة
           </Button>
 
           <div className="flex items-center gap-3">
             {showCloseButton && onConfirmCloseShift && (
-              <Button onClick={onConfirmCloseShift} className="bg-gray-800 hover:bg-gray-900 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
+              <Button 
+                onClick={onConfirmCloseShift}
+                className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs"
+              >
                 <Lock size={14} />
                 غلق الوردية
               </Button>
             )}
 
-            <button onClick={onClose} className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 hover:bg-gray-200 hover:text-black transition-all text-gray-500">
+            <button onClick={onClose} className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-red-50 hover:text-red-500 transition-all text-slate-500">
               <X size={18} />
             </button>
           </div>
