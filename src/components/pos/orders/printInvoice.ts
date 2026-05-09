@@ -38,14 +38,14 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
   const isExempt = taxSetting === "Exempt";
   const custAddress = [data?.branch?.cityName, data?.branch?.stateName, data?.branch?.district, data?.branch?.street].filter(Boolean).join(" / ") || "-";
-const fontBase64 = await fetch("/fonts/Cairo-Bold.ttf")
-  .then(r => r.arrayBuffer())
-  .then(buf => {
-    const bytes = new Uint8Array(buf);
-    let binary = "";
-    bytes.forEach(b => binary += String.fromCharCode(b));
-    return btoa(binary);
-  });
+  const fontBase64 = await fetch("/fonts/Cairo-Bold.ttf")
+    .then((r) => r.arrayBuffer())
+    .then((buf) => {
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      bytes.forEach((b) => (binary += String.fromCharCode(b)));
+      return btoa(binary);
+    });
   const itemRows = data.items
     .map(
       (item) => `
@@ -65,10 +65,7 @@ const fontBase64 = await fetch("/fonts/Cairo-Bold.ttf")
 <meta charset="UTF-8"/>
 <title>فاتورة ضريبية مبسطة</title>
 <style>
-@font-face {
-  font-family: 'Cairo';
-  src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
-}
+
 
 * {
   margin: 0;
