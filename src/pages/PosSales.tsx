@@ -22,6 +22,7 @@ import { Permissions } from "@/lib/permissions";
 import { format } from "@/constants/data";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { useSendInvoiceSell } from "@/features/zatcaInvoice/hooks/useSendInvoiceSell";
+import { useSendWhatsAppTemplate } from "@/features/whatsapp/hooks/useSendTemplateMessage";
 
 export default function PosSales() {
   type Payment = SalesOrder["payments"][number];
