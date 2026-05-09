@@ -36,33 +36,30 @@ export async function printOrderInvoice({ cart, discount, selectedCustomer, orde
       }, 0)
     : totals.discountAmount;
 
-  await printInvoice(
-    {
-      branch,
-      invoiceNumber: orderNumber || "—",
-      customer: selectedCustomer,
-      invoiceDate: formatDate(new Date()),
-      items: cart.map((item) => {
-        const base = itemBasePrice(item);
-        const tax = calcItemTax(item);
-        return {
-          productName: item.name,
-          quantity: item.qty,
-          unitPrice: Number(base.toFixed(2)),
-          taxAmount: Number(tax.toFixed(2)),
-          total: Number((base + tax).toFixed(2)),
-        };
-      }),
-      subTotal: Number(totals.sub.toFixed(2)),
-      discountAmount: Number(discountAmount),
-      taxAmount: totals.originalTax,
-      grandTotal: totals.total,
-      notes: orderNote,
-      paidAmount: paidAmount,
-      qrCode: qrCode,
-    },
-    "browser",
-  );
+  await printInvoice({
+    branch,
+    invoiceNumber: orderNumber || "—",
+    customer: selectedCustomer,
+    invoiceDate: formatDate(new Date()),
+    items: cart.map((item) => {
+      const base = itemBasePrice(item);
+      const tax = calcItemTax(item);
+      return {
+        productName: item.name,
+        quantity: item.qty,
+        unitPrice: Number(base.toFixed(2)),
+        taxAmount: Number(tax.toFixed(2)),
+        total: Number((base + tax).toFixed(2)),
+      };
+    }),
+    subTotal: Number(totals.sub.toFixed(2)),
+    discountAmount: Number(discountAmount),
+    taxAmount: totals.originalTax,
+    grandTotal: totals.total,
+    notes: orderNote,
+    paidAmount: paidAmount,
+    qrCode: qrCode,
+  });
 }
 
 export async function PrintKitchenBon({ cart, originalItems, selectedCustomer }: PrintKitchenBonParams): Promise<void> {

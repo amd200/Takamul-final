@@ -39,45 +39,46 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
   const taxSetting = useSettingsStore.getState().settings?.taxSetting?.taxSetting;
   const isExempt = taxSetting === "Exempt";
 
-  const fmt = (n: number | undefined | null) =>
-    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "00.00";
+  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "00.00");
 
   const itemRows = data.items
     .map(
       (item) => `
       <tr>
-        <td class="td-num">.${item.index}</td>
+        <td class="td-num">${item.index}</td>
         <td class="td-name">${item.productName ?? ""}</td>
         <td class="td-price">${fmt(item.price)}</td>
         <td class="td-qty">${fmt(item.quantity)}</td>
-        <td class="td-total">${fmt(item.total)}</td>
-      </tr>`
+        <td class="td-total text-bold">${fmt(item.total)}</td>
+      </tr>`,
     )
     .join("");
 
   const deliveryRows = data.deliveryCompanies
     .map(
       (c) => `
-      <tr>
-        <td class="dlv-name">${c.name}</td>
-        <td class="dlv-num">${fmt(c.amount)}</td>
-      </tr>`
+      <div class="card-item bg-light border-light">
+        <span class="card-label">${c.name}</span>
+        <span class="card-value">${fmt(c.amount)}</span>
+      </div>`,
     )
     .join("");
 
-  const treasuryHeaders = data.treasuries
-    .map((t) => `<th>${t.name}</th>`)
-    .join("");
-
-  const treasuryCells = data.treasuries
-    .map((t) => `<td style="font-weight:700; font-size:9pt">${fmt(t.sales)}</td>`)
+  const treasuryCards = data.treasuries
+    .map(
+      (t) => `
+      <div class="card-item bg-blue-light border-blue">
+        <span class="card-label text-blue">${t.name}</span>
+        <span class="card-value text-blue-dark">${fmt(t.sales)}</span>
+      </div>`,
+    )
     .join("");
 
   const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <title>تقرير الوردية</title>
 <style>
 * {
@@ -91,276 +92,335 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
 
 html, body {
   width: 100%;
-  font-size: 7.5pt;
-  color: #000;
+  color: #1e293b;
   direction: rtl;
   background: #fff;
+  font-size: 11px;
 }
 
 .page {
   width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  padding: 5px;
 }
 
-/* TOP BOX */
-.top-box {
-  border: 2px solid #000;
-  margin-bottom: 8px;
+/* Header Area */
+.header-area {
+  border-bottom: 1px dashed #cbd5e1;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
 }
 
-.top-row {
+.flex-between {
   display: flex;
   justify-content: space-between;
-  padding: 5px 8px;
-  border-bottom: 2px solid #000;
+  align-items: flex-start;
 }
 
-.top-row.last {
-  border-bottom: none;
+.lbl {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 2px;
 }
 
-.top-col { display: flex; flex-direction: column; width: 50%; }
-.top-col.r { align-items: flex-start; text-align: right; }
-.top-col.l { align-items: flex-end; text-align: left; }
-
-.lbl { font-size: 7pt; font-weight: 500; color: #777; }
-.val { font-size: 9.5pt; font-weight: 500; line-height: 1.2; }
-
-.date-row {
-  text-align: center;
-  padding: 6px 8px;
-  border-bottom: 2px solid #000;
-  background: #fcfcfc;
-}
-.date-row .val { font-size: 11pt; }
-
-/* SECTION */
-.section { margin-bottom: 8px; }
-
-.sec-header {
-  text-align: center;
-  width: 100%;
-  margin-bottom: -1px;
-  position: relative;
-  z-index: 10;
-}
-
-.sec-header span {
-  display: inline-block;
-  border: 2px solid #000;
-  padding: 3px 20px;
-  font-size: 8pt;
+.val {
+  display: block;
+  font-size: 13px;
   font-weight: 700;
-  background: #fff;
+  color: #0f172a;
 }
 
-.sec-body {
-  border: 2px solid #000;
-  margin-top: -1px;
+.val.highlight {
+  color: #000052;
 }
 
-/* TABLES */
+.info-box {
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin-top: 12px;
+}
+
+.info-col {
+  text-align: center;
+  flex: 1;
+}
+
+.info-col .lbl { font-size: 8px; margin-bottom: 2px; }
+.info-col .val { font-size: 11px; }
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background-color: #e2e8f0;
+}
+
+/* Sections */
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-title::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 12px;
+  background-color: #000052;
+  border-radius: 2px;
+}
+
+.box-container {
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+/* Tables */
 .tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 7.5pt;
-  font-weight: 500;
-  table-layout: fixed;
+  text-align: center;
 }
 
 .tbl th {
-  border-bottom: 2px solid #000;
-  border-left: 1px solid #000;
-  padding: 4px 2px;
-  text-align: center;
-  font-size: 8pt;
-  font-weight: 700;
-  background: #f0f0f0;
+  background-color: #f8fafc;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 4px;
+  border-bottom: 1px solid #f1f5f9;
 }
-.tbl th:last-child { border-left: none; }
 
 .tbl td {
-  border-bottom: 1px solid #000;
-  border-left: 1px solid #000;
-  padding: 5px 2px;
-  text-align: center;
-  font-size: 8pt;
+  padding: 6px 4px;
+  font-size: 11px;
   font-weight: 500;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-all;
+  color: #334155;
+  border-bottom: 1px dashed #f1f5f9;
 }
-.tbl td:last-child { border-left: none; }
+
 .tbl tr:last-child td { border-bottom: none; }
 
-.td-num { width: 8%; }
-.td-name { width: 37%; text-align: center !important; }
-.td-price { width: 18%; }
+.td-num { width: 10%; color: #94a3b8 !important; }
+.td-name { width: 35%; text-align: right !important; }
+.td-price { width: 15%; }
 .td-qty { width: 15%; }
-.td-total { width: 22%; }
+.td-total { width: 25%; text-align: right !important; }
+.text-bold { font-weight: 700 !important; color: #0f172a !important; }
 
-/* TOTALS BOX */
+/* Totals Box */
 .totals-box {
-  border: 2px solid #000;
-  margin-bottom: 8px;
-  padding: 6px 10px;
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 15px;
 }
 
 .t-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 3px 0;
-  font-size: 7.5pt;
-  font-weight: 500;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #cbd5e1;
+  font-size: 11px;
+  color: #475569;
 }
-.t-num { font-weight: 700; font-size: 8.5pt; }
 
-.t-row.grand {
-  border-top: 2px solid #000;
-  margin-top: 3px;
-  padding-top: 4px;
-  font-size: 8.5pt;
-  font-weight: 700;
+.t-row.no-border {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
 }
+
+.grand-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.grand-lbl {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.grand-val {
+  font-size: 16px;
+  font-weight: 900;
+  color: #000052;
+}
+
+/* Cards Layout (Treasuries & Expenses) */
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.card-item {
+  flex: 1;
+  min-width: 45%;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.card-label { font-size: 9px; font-weight: 600; margin-bottom: 4px; }
+.card-value { font-size: 12px; font-weight: 700; }
+
+.bg-blue-light { background-color: #eff6ff; }
+.border-blue { border: 1px solid #dbeafe; }
+.text-blue { color: #3b82f6; }
+.text-blue-dark { color: #1d4ed8; }
+
+.bg-red-light { background-color: #fef2f2; }
+.border-red { border: 1px solid #fee2e2; }
+.text-red { color: #ef4444; }
+.text-red-dark { color: #b91c1c; }
+
+.bg-light { background-color: #f8fafc; }
+.border-light { border: 1px solid #f1f5f9; }
 
 @media print {
-  html, body { margin: 0; }
+  html, body { margin: 0; padding: 0; }
+  .page { padding: 0; max-width: 100%; }
 }
 </style>
 </head>
 <body>
 <div class="page">
 
-  <!-- TOP BOX -->
-  <div class="top-box">
-    <div class="top-row">
-      <div class="top-col r">
+  <!-- Header Area -->
+  <div class="header-area">
+    <div class="flex-between">
+      <div>
         <span class="lbl">اسم المستخدم</span>
         <span class="val">${data.userName}</span>
       </div>
-      <div class="top-col l">
+      <div style="text-align: left;">
         <span class="lbl">رقم الوردية</span>
-        <span class="val">${data.shiftNumber}</span>
+        <span class="val highlight">#${data.shiftNumber}</span>
       </div>
     </div>
-    <div class="date-row">
-      <div class="lbl">تاريخ الوردية</div>
-      <div class="val">${data.shiftDate}</div>
-    </div>
-    <div class="top-row last">
-      <div class="top-col r">
-        <span class="lbl">من الساعه</span>
+    
+    <div class="info-box">
+      <div class="info-col">
+        <span class="lbl">تاريخ الوردية</span>
+        <span class="val">${data.shiftDate}</span>
+      </div>
+      <div class="divider"></div>
+      <div class="info-col">
+        <span class="lbl">من الساعة</span>
         <span class="val">${data.fromTime}</span>
       </div>
-      <div class="top-col l">
-        <span class="lbl">إلى الساعه</span>
-        <span class="val">${data.toTime}</span>
+      <div class="divider"></div>
+      <div class="info-col">
+        <span class="lbl">إلى الساعة</span>
+        <span class="val">${data.toTime || "---"}</span>
       </div>
     </div>
   </div>
 
   <!-- بيان الوردية -->
-  <div class="section">
-    <div class="sec-header"><span>بيان الوردية</span></div>
-    <div class="sec-body">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th class="td-num">م</th>
-            <th class="td-name">الصنف</th>
-            <th class="td-price">السعر</th>
-            <th class="td-qty">الكمية</th>
-            <th class="td-total">الاجمالي</th>
-          </tr>
-        </thead>
-        <tbody>${itemRows}</tbody>
-      </table>
-    </div>
+  <div class="section-title">بيان الوردية</div>
+  <div class="box-container">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th class="td-num">م</th>
+          <th class="td-name">الصنف</th>
+          <th class="td-price">السعر</th>
+          <th class="td-qty">الكمية</th>
+          <th class="td-total">الإجمالي</th>
+        </tr>
+      </thead>
+      <tbody>${itemRows}</tbody>
+    </table>
   </div>
 
   <!-- TOTALS -->
   <div class="totals-box">
-    ${!isExempt ? `
+    ${
+      !isExempt
+        ? `
     <div class="t-row">
-      <span class="t-num">${fmt(data.totalBeforeTax)}</span>
-      <span>الاجمالي بدون الضريبة</span>
+      <span>الإجمالي بدون ضريبة</span>
+      <span class="text-bold">${fmt(data.totalBeforeTax)}</span>
     </div>
     <div class="t-row">
-      <span class="t-num">${fmt(data.totalTax)}</span>
       <span>إجمالي الضريبة</span>
+      <span class="text-bold">${fmt(data.totalTax)}</span>
     </div>
-    ` : ""}
-    <div class="t-row grand">
-      <span class="t-num">${fmt(data.grandTotal)}</span>
-      <span>الاجمالي النهائي</span>
+    `
+        : ""
+    }
+    <div class="grand-row">
+      <span class="grand-lbl">الإجمالي النهائي</span>
+      <span class="grand-val">${fmt(data.grandTotal)}</span>
     </div>
   </div>
 
   <!-- يومية الخزائن -->
-  <div class="section">
-    <div class="sec-header"><span>يومية الخزائن</span></div>
-    <div class="sec-body">
-      <table class="tbl">
-        <thead>
-          <tr>
-            ${treasuryHeaders}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            ${treasuryCells}
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="section-title">يومية الخزائن</div>
+  <div class="cards-grid">
+    ${treasuryCards}
   </div>
 
-  <div style="height:10px;"></div>
-
-  <!-- المشتريات و المصروفات -->
-  <div class="section">
-    <div class="sec-header"><span>المشتريات و المصروفات</span></div>
-    <div class="sec-body">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th style="border-left:1px solid #000">إجمالي المشتريات</th>
-            <th>اجمالي المصروفات</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="border-left:1px solid #000; font-weight:700; font-size:9pt; color:#FF0000">${fmt(data.totalPurchases)}</td>
-            <td style="font-weight:700; font-size:9pt; color:#FF0000">${fmt(data.totalExpenses)}</td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- المشتريات والمصروفات -->
+ <!-- المشتريات والمصروفات -->
+  ${
+    data.totalPurchases > 0 || data.totalExpenses > 0
+      ? `
+  <div class="section-title">المشتريات والمصروفات</div>
+  <div class="cards-grid">
+    <div class="card-item bg-red-light border-red">
+      <span class="card-label text-red">إجمالي المشتريات</span>
+      <span class="card-value text-red-dark">${fmt(data.totalPurchases)}</span>
+    </div>
+    <div class="card-item bg-red-light border-red">
+      <span class="card-label text-red">إجمالي المصروفات</span>
+      <span class="card-value text-red-dark">${fmt(data.totalExpenses)}</span>
     </div>
   </div>
-
-  <div style="height:10px;"></div>
+  `
+      : ""
+  }
 
   <!-- شركات التوصيل -->
-  ${data.deliveryCompanies.length > 0 ? `
-  <div class="section">
-    <div class="sec-header"><span>شركات التوصيل</span></div>
-    <div class="sec-body">
-      <table class="tbl">
-        <tbody>
-          ${data.deliveryCompanies.map(c => `
-            <tr>
-              <td class="border-l">${c.name}</td>
-              <td>${fmt(c.amount)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
+  ${
+    data.deliveryCompanies.length > 0
+      ? `
+  <div class="section-title">شركات التوصيل</div>
+  <div class="cards-grid">
+    ${deliveryRows}
   </div>
-  ` : ''}
+  `
+      : ""
+  }
 
 </div>
 </body>
@@ -369,7 +429,7 @@ html, body {
   try {
     await printInvoicePrinter(html);
   } catch (err: any) {
-    const win = window.open("", "_blank", "width=440,height=900");
+    const win = window.open("", "_blank", "width=400,height=900");
     if (!win) {
       alert("يرجى السماح بالنوافذ المنبثقة لطباعة التقرير");
       return;

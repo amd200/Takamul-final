@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog, RefreshCw } from "lucide-react";
+import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog, RefreshCw, Send } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
@@ -22,7 +22,94 @@ import formatDate from "@/lib/formatDate";
 import { useSendInvoiceSell } from "@/features/zatcaInvoice/hooks/useSendInvoiceSell";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { useSendWhatsAppTemplate } from "@/features/whatsapp/hooks/useSendTemplateMessage";
+import { useForm } from "react-hook-form";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface FormValues {
+  phone: string;
+}
+
+interface SendWhatsAppDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  defaultPhone?: string;
+  phoneNumberId: string;
+  onSend: (phone: string) => Promise<void>;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export const SendWhatsAppDialog: React.FC<SendWhatsAppDialogProps> = ({ open, onOpenChange, defaultPhone = "", phoneNumberId, onSend }) => {
+  const { t } = useLanguage();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    defaultValues: { phone: defaultPhone },
+  });
+
+  React.useEffect(() => {
+    if (open) reset({ phone: defaultPhone });
+  }, [open, defaultPhone, reset]);
+
+  const onSubmit = async (values: FormValues) => {
+    await onSend(values.phone);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageCircle size={20} className="text-green-500" />
+            إرسال رسالة واتساب
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="pb-1">
+            <Field>
+              <FieldLabel>
+                رقم الجوال
+                <span className="text-red-500 mr-1">*</span>
+              </FieldLabel>
+              <Input
+                {...register("phone", {
+                  required: "رقم الجوال مطلوب",
+                  pattern: {
+                    value: /^[0-9+]{7,15}$/,
+                    message: "رقم الجوال غير صحيح",
+                  },
+                })}
+                placeholder="مثال : 966xxxxx"
+                className={errors.phone ? "border-red-500" : ""}
+              />
+              {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
+              <p className="text-xs text-[var(--text-muted)] mt-1">أدخل الرقم مع كود الدولة بدون + مثال: 966xxxxxx</p>
+            </Field>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button size="2xl" type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              إلغاء
+            </Button>
+            <Button size="2xl" type="submit" disabled={isSubmitting} className="-700 text-white flex items-center gap-2">
+              <Send size={15} />
+              {isSubmitting ? "جاري الإرسال..." : "إرسال"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction, language } = useLanguage();
@@ -100,6 +187,7 @@ export default function A4Sales() {
     },
     [language, t],
   );
+  const [whatsAppOpen, setWhatsAppOpen] = React.useState(false);
 
   const hasPermission = useAuthStore((state) => state.hasPermission);
   return (
@@ -203,28 +291,11 @@ export default function A4Sales() {
                       {t("send_email")}
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        await sendWhatsAppTemplate({
-                          data: {
-                            messaging_product: "whatsapp",
-                            to: row?.customerPhone,
-                            type: "template",
-                            template: {
-                              name: "hello_world",
-                              language: {
-                                code: "en_US",
-                              },
-                            },
-                          },
-                          phoneNumberId: phoneNumberId,
-                        });
-                      }}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md"
-                    >
+                    <DropdownMenuItem onClick={() => setWhatsAppOpen(true)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
                       <MessageCircle size={14} />
                       {t("send_whatsapp")}
                     </DropdownMenuItem>
+
                     {taxSetting == "SecondStage" && (
                       <>
                         <DropdownMenuSeparator />
@@ -249,6 +320,23 @@ export default function A4Sales() {
           <p>Card Footer</p>
         </CardFooter> */}
       </Card>
+      <SendWhatsAppDialog
+        open={whatsAppOpen}
+        onOpenChange={setWhatsAppOpen}
+        defaultPhone={""}
+        phoneNumberId={phoneNumberId}
+        onSend={async (phone) => {
+          await sendWhatsAppTemplate({
+            data: {
+              messaging_product: "whatsapp",
+              to: phone,
+              type: "template",
+              template: { name: "hello_world", language: { code: "en_US" } },
+            },
+            phoneNumberId,
+          });
+        }}
+      />
     </div>
   );
 }

@@ -21,7 +21,7 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
   const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
   const isExempt = taxSetting === "Exempt";
   const { data: report, isLoading, refetch } = useGetShiftReport(shiftId);
-  
+
   React.useEffect(() => {
     if (isOpen) {
       refetch();
@@ -32,7 +32,7 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
 
   const handlePrint = () => {
     if (!report) return;
-    
+
     // Map API report to ShiftReportData for printing
     const printData: ShiftReportData = {
       shiftNumber: report.shiftId,
@@ -45,18 +45,18 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
         productName: item.productName,
         price: item.unitPrice,
         quantity: item.quantity,
-        total: item.lineTotal
+        total: item.lineTotal,
       })),
       totalBeforeTax: report.salesSubTotal,
       totalTax: report.salesTaxAmount,
       grandTotal: report.salesGrandTotal,
-      treasuries: report.treasuries.map(t => ({
+      treasuries: report.treasuries.map((t) => ({
         name: t.treasuryName,
-        sales: t.totalSales
+        sales: t.totalSales,
       })),
       totalPurchases: report.totalPurchases,
       totalExpenses: report.totalExpenses,
-      deliveryCompanies: [] 
+      deliveryCompanies: [],
     };
 
     printShiftReport(printData);
@@ -67,21 +67,14 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
       <DialogContent showCloseButton={false} className="max-w-[500px] p-0 overflow-hidden bg-[#f8fafc] dark:bg-slate-900 border-none shadow-2xl rounded-3xl">
         {/* Top Header Area */}
         <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm relative z-20">
-          <Button 
-            onClick={handlePrint}
-            disabled={isLoading || !report}
-            className="bg-[#000052] hover:bg-[#000052]/90 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs"
-          >
+          <Button onClick={handlePrint} disabled={isLoading || !report} className="bg-[#000052] hover:bg-[#000052]/90 text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
             <Printer size={14} />
             طباعة
           </Button>
 
           <div className="flex items-center gap-3">
             {showCloseButton && onConfirmCloseShift && (
-              <Button 
-                onClick={onConfirmCloseShift}
-                className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs"
-              >
+              <Button onClick={onConfirmCloseShift} className="bg-[#22c55e] hover:bg-[#16a34a] text-white font-medium h-9 px-4 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 text-xs">
                 <Lock size={14} />
                 غلق الوردية
               </Button>
@@ -102,7 +95,7 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
               <Skeleton className="h-20 w-full rounded-xl" />
             </div>
           ) : report ? (
-            <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/60 p-6 w-full max-w-[380px] text-right rounded-xl" style={{ direction: 'rtl', fontFamily: 'Cairo, Tahoma, Arial, sans-serif' }}>
+            <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/60 p-6 w-full max-w-[380px] text-right rounded-xl" style={{ direction: "rtl", fontFamily: "Cairo, Tahoma, Arial, sans-serif" }}>
               {/* TOP BOX */}
               <div className="border-[2px] border-black mb-4 overflow-hidden rounded-sm">
                 <div className="flex justify-between p-3 border-b-[2px] border-black">
@@ -211,28 +204,29 @@ export default function ShiftReportModal({ isOpen, onClose, shiftId, onConfirmCl
                 </div>
               </div>
 
-              {/* المشتريات و المصروفات */}
-              <div className="mb-3 mt-5 w-full text-center">
-                <div className="relative z-10">
-                  <span className="inline-block border-[1.5px] border-black px-5 py-1 text-[9pt] font-bold bg-white uppercase">المشتريات و المصروفات</span>
+              {(report.totalPurchases > 0 || report.totalExpenses > 0) && (
+                <div className="mb-3 mt-5 w-full text-center">
+                  <div className="relative z-10">
+                    <span className="inline-block border-[1.5px] border-black px-5 py-1 text-[9pt] font-bold bg-white uppercase">المشتريات و المصروفات</span>
+                  </div>
+                  <div className="border-[1.5px] border-black overflow-hidden">
+                    <table className="w-full border-collapse text-[8.5pt] font-medium table-fixed">
+                      <thead>
+                        <tr className="bg-slate-50">
+                          <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-1/2">إجمالي المشتريات</th>
+                          <th className="border-b-[1.5px] border-black p-1.5 text-center font-bold w-1/2">اجمالي المصروفات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="border-l-[1.5px] border-black p-2 text-center font-bold text-red-600">{fmt(report.totalPurchases)}</td>
+                          <td className="p-2 text-center font-bold text-red-600">{fmt(report.totalExpenses)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div className="border-[1.5px] border-black overflow-hidden">
-                  <table className="w-full border-collapse text-[8.5pt] font-medium table-fixed">
-                    <thead>
-                      <tr className="bg-slate-50">
-                        <th className="border-b-[1.5px] border-l-[1.5px] border-black p-1.5 text-center font-bold w-1/2">إجمالي المشتريات</th>
-                        <th className="border-b-[1.5px] border-black p-1.5 text-center font-bold w-1/2">اجمالي المصروفات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="border-l-[1.5px] border-black p-2 text-center font-bold text-red-600">{fmt(report.totalPurchases)}</td>
-                        <td className="p-2 text-center font-bold text-red-600">{fmt(report.totalExpenses)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              )}
             </div>
           ) : (
             <div className="text-center p-10 bg-white rounded-xl shadow-sm border border-slate-200">
