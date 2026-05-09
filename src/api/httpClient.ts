@@ -27,8 +27,6 @@ export async function httpClient<T>(url: string, options?: HttpClientOptions): P
 
     return response.data as T;
   } catch (error) {
-    console.log(error.response);
-    console.log(error.data);
     if (axios.isAxiosError(error)) {
       throw error.response?.data ?? new Error("حدث خطأ أثناء الاتصال بالسيرفر");
     }

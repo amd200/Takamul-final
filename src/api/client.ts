@@ -30,11 +30,17 @@ const logout = () => {
 };
 
 apiClient.interceptors.request.use((config) => {
-  const { accessToken } = useAuthStore.getState();
+  const isExternal = config.baseURL && !config.baseURL.startsWith(import.meta.env.VITE_API_BASE_URL);
+
+  if (!isExternal) {
+    const { accessToken } = useAuthStore.getState();
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+  }
 
   return config;
 });
-
 apiClient.interceptors.response.use(
   (response) => response,
   async (err) => {
@@ -65,6 +71,8 @@ apiClient.interceptors.response.use(
         .then(({ data }) => {
           const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
           useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId, decoded?.ShiftId);
+          apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
+          originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
           processQueue(null, data.accessToken);
           return apiClient(originalRequest);
         })

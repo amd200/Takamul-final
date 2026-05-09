@@ -21,6 +21,6 @@ export function useSendWhatsAppTemplate() {
       handleApiSuccess(response, notifySuccess);
     },
 
-    onError: (error) => handleApiError(error, notifyError),
+    onError: (error) => notifyError("حدث خطأ اثناء إرسال الرسالة"),
   });
 }
