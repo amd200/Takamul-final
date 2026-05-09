@@ -78,7 +78,7 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <title>تقرير الوردية</title>
 <style>
 * {
@@ -96,6 +96,7 @@ html, body {
   direction: rtl;
   background: #fff;
   font-size: 11px;
+  font-weight: 700; /* جعل الخط الأساسي عريض */
 }
 
 .page {
@@ -109,7 +110,7 @@ html, body {
 
 /* Header Area */
 .header-area {
-  border-bottom: 1px dashed #94a3b8;
+  border-bottom: 2px dashed #94a3b8;
   padding-bottom: 15px;
   margin-bottom: 15px;
 }
@@ -122,22 +123,22 @@ html, body {
 
 .lbl {
   display: block;
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   color: #000;
   margin-bottom: 2px;
 }
 
 .val {
   display: block;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 900;
   color: #000;
 }
 
 .info-box {
   background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
@@ -151,19 +152,19 @@ html, body {
   flex: 1;
 }
 
-.info-col .lbl { font-size: 9px; font-weight: 700; color: #000; margin-bottom: 2px; }
-.info-col .val { font-size: 11px; color: #000; }
+.info-col .lbl { font-size: 10px; font-weight: 800; color: #000; margin-bottom: 2px; }
+.info-col .val { font-size: 12px; font-weight: 900; color: #000; }
 
 .divider {
-  width: 1px;
+  width: 2px;
   height: 20px;
   background-color: #cbd5e1;
 }
 
 /* Sections */
 .section-title {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 900;
   color: #000;
   margin-bottom: 8px;
   display: flex;
@@ -174,14 +175,14 @@ html, body {
 .section-title::before {
   content: "";
   display: inline-block;
-  width: 4px;
-  height: 12px;
+  width: 5px;
+  height: 14px;
   background-color: #000;
   border-radius: 2px;
 }
 
 .box-container {
-  border: 1px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 15px;
@@ -197,18 +198,18 @@ html, body {
 .tbl th {
   background-color: #f8fafc;
   color: #000;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 6px 4px;
-  border-bottom: 1px solid #e2e8f0;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 8px 4px;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .tbl td {
-  padding: 6px 4px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 800;
   color: #000;
-  border-bottom: 1px dashed #e2e8f0;
+  border-bottom: 2px dashed #e2e8f0;
 }
 
 .tbl tr:last-child td { border-bottom: none; }
@@ -218,12 +219,12 @@ html, body {
 .td-price { width: 15%; }
 .td-qty { width: 15%; }
 .td-total { width: 25%; text-align: right !important; }
-.text-bold { font-weight: 700 !important; color: #000 !important; }
+.text-bold { font-weight: 900 !important; color: #000 !important; }
 
 /* Totals Box */
 .totals-box {
   background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 15px;
@@ -235,9 +236,9 @@ html, body {
   align-items: center;
   padding-bottom: 8px;
   margin-bottom: 8px;
-  border-bottom: 1px dashed #cbd5e1;
-  font-size: 11px;
-  font-weight: 700;
+  border-bottom: 2px dashed #cbd5e1;
+  font-size: 12px;
+  font-weight: 800;
   color: #000;
 }
 
@@ -255,13 +256,13 @@ html, body {
 }
 
 .grand-lbl {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 900;
   color: #000;
 }
 
 .grand-val {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
   color: #000;
 }
@@ -278,7 +279,7 @@ html, body {
   flex: 1;
   min-width: 45%;
   border-radius: 8px;
-  padding: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -286,15 +287,15 @@ html, body {
   text-align: center;
 }
 
-.card-label { font-size: 9px; font-weight: 700; margin-bottom: 4px; }
-.card-value { font-size: 12px; font-weight: 800; }
+.card-label { font-size: 11px; font-weight: 800; margin-bottom: 4px; }
+.card-value { font-size: 14px; font-weight: 900; }
 
 .bg-light { background-color: #f8fafc; }
-.border-gray { border: 1px solid #cbd5e1; }
+.border-gray { border: 2px solid #cbd5e1; }
 .text-black { color: #000; }
 
 @media print {
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; font-weight: 700; }
   .page { padding: 0; max-width: 100%; }
 }
 </style>
