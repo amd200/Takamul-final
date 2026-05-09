@@ -68,11 +68,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 <title>فاتورة ضريبية مبسطة</title>
 <style>
 
-@font-face {
-  font-family: 'Rubik';
-  src: url('data:font/ttf;base64,${fontBase64}') format('truetype');
-  font-weight: 700;
-}
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 
 * {
   margin: 0;
