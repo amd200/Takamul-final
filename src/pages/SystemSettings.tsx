@@ -22,9 +22,6 @@ import { useUpdateGeneralSettings, useUpdateItemsSettings, useUpdateTaxSettings,
 import { useSettingsStore, selectItems } from "@/features/settings/store/settingsStore";
 import { wareHousesKeys } from "@/features/wareHouse/keys/wareHouse.keys";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
 
 type PointsFormValues = {
   customerSpend: number;
@@ -55,15 +52,11 @@ type WhatsAppFormValues = {
   whatsAppAppSecret: string;
 };
 
-// ─────────────────────────────────────────────
-// Shared SettingSection wrapper
-// ─────────────────────────────────────────────
 
 interface SettingSectionProps {
   id: string;
   title: string;
   children: React.ReactNode;
-  /** Pass onSave to show the Save button; omit (or pass hideSave) to hide it */
   onSave?: () => void;
   hideSave?: boolean;
 }
@@ -93,9 +86,7 @@ const SettingSection: React.FC<SettingSectionProps> = ({ id, title, children, on
   );
 };
 
-// ─────────────────────────────────────────────
-// Points Form
-// ─────────────────────────────────────────────
+
 
 const PointsForm: React.FC = () => {
   const { register, handleSubmit } = useForm<PointsFormValues>({
@@ -157,9 +148,6 @@ const PointsForm: React.FC = () => {
   );
 };
 
-// ─────────────────────────────────────────────
-// Tobacco Form
-// ─────────────────────────────────────────────
 
 const TobaccoForm: React.FC = () => {
   const { t } = useLanguage();
@@ -195,9 +183,6 @@ const TobaccoForm: React.FC = () => {
   );
 };
 
-// ─────────────────────────────────────────────
-// Reports Form
-// ─────────────────────────────────────────────
 
 const ReportsForm: React.FC = () => {
   const { t } = useLanguage();
@@ -292,9 +277,6 @@ const ReportsForm: React.FC = () => {
   );
 };
 
-// ─────────────────────────────────────────────
-// Tax System Form
-// ─────────────────────────────────────────────
 
 const TaxSystemForm: React.FC = () => {
   const { t } = useLanguage();
@@ -490,7 +472,6 @@ const WhatsAppSettingsForm: React.FC = () => {
 
   return (
     <section className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden mb-8">
-      {/* ── Header ── */}
       <div className="p-4 border-b border-[var(--border)] bg-[var(--bg-main)]/50 flex items-center gap-3">
         <div className="w-1 h-6 bg-[var(--primary)] rounded-full" />
         <MessageCircle size={20} className="text-green-500" />
@@ -509,7 +490,6 @@ const WhatsAppSettingsForm: React.FC = () => {
         </p>
       </div>
 
-      {/* ── Form ── */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           {FIELDS.map(({ name, label, placeholder, secret, hint }) => (
@@ -539,9 +519,6 @@ const WhatsAppSettingsForm: React.FC = () => {
   );
 };
 
-// ─────────────────────────────────────────────
-// Main SystemSettings page
-// ─────────────────────────────────────────────
 
 export default function SystemSettings() {
   const { t, direction } = useLanguage();
