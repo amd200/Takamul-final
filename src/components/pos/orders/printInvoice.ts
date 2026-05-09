@@ -37,6 +37,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   const qrImageSrc = data?.qrCode ? await QRCode.toDataURL(data?.qrCode) : null;
   const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
   const isExempt = taxSetting === "Exempt";
+  const custAddress = [data?.branch?.cityName, data?.branch?.stateName, data?.branch?.district, data?.branch?.street].filter(Boolean).join(" / ") || "-";
 
   const itemRows = data.items
     .map(
@@ -161,8 +162,22 @@ html, body {
   vertical-align: middle;
 }
 
-.items-table thead tr th .th-ar { display: block; font-size: 6pt; font-weight: 900; color:#000 }
-.items-table thead tr th .th-en { display: block; font-size: 5pt; font-weight: 900; color: #000; }
+.items-table thead tr th .th-ar { 
+  display: block; 
+  font-size: 6pt; 
+  font-weight: 900; 
+  color: #000;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.items-table thead tr th .th-en { 
+  display: block; 
+  font-size: 5pt; 
+  font-weight: 900; 
+  color: #000;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
 
 .items-table td {
   border: 1px solid #000;
@@ -274,6 +289,12 @@ html, body {
   display: inline-block;
 }
 
+.date-row .h-val {
+  font-size: 6pt;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 @media print {
   html, body { margin: 0; }
 }
@@ -314,11 +335,11 @@ html, body {
     </div>
 
     <!-- Date / Time -->
-    <div class="hrow">
-      <span class="h-ar">الوقت / التاريخ</span>
-      <span class="h-val">${data.invoiceDate}</span>
-      <span class="h-en">Date / Time</span>
-    </div>
+ <div class="hrow date-row">
+  <span class="h-ar">الوقت / التاريخ</span>
+  <span class="h-val">${data.invoiceDate}</span>
+  <span class="h-en">Date / Time</span>
+</div>
 
     <!-- Customer Name -->
     <div class="hrow">
@@ -404,7 +425,7 @@ html, body {
   </div>
 
   <!-- FOOTER: Address -->
-  <div class="addr-row">${data.branch?.address || "—"}</div>
+  <div class="addr-row">${custAddress || "—"}</div>
 
   <!-- FOOTER: Notes -->
   
