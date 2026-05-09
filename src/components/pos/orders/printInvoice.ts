@@ -38,23 +38,14 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
   const isExempt = taxSetting === "Exempt";
   const custAddress = [data?.branch?.cityName, data?.branch?.stateName, data?.branch?.district, data?.branch?.street].filter(Boolean).join(" / ") || "-";
-
-  const loadFont = async () => {
-    try {
-      const res = await fetch("/fonts/Cairo-Regular.ttf");
-      const buf = await res.arrayBuffer();
-      const bytes = new Uint8Array(buf);
-      let binary = "";
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
-    } catch {
-      return null;
-    }
-  };
-
-  const fontBase64 = await loadFont();
+const fontBase64 = await fetch("/fonts/Cairo-Bold.ttf")
+  .then(r => r.arrayBuffer())
+  .then(buf => {
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    return btoa(binary);
+  });
   const itemRows = data.items
     .map(
       (item) => `
@@ -74,27 +65,18 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 <meta charset="UTF-8"/>
 <title>فاتورة ضريبية مبسطة</title>
 <style>
-<style>
-${
-  fontBase64
-    ? `
 @font-face {
   font-family: 'Cairo';
-  src: url('data:font/ttf;base64,${fontBase64}') format('truetype');
+  src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
 }
-* { font-family: 'Cairo', Tahoma, sans-serif; }
-`
-    : `
-* { font-family: Tahoma, Arial, sans-serif; }
-`
-}
-</style>
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
+  font-family: 'Cairo', Tahoma, sans-serif;
 }
 
 html, body {
