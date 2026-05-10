@@ -381,7 +381,7 @@ const SecretInput: React.FC<SecretInputProps> = ({ value, onChange, placeholder 
 
   return (
     <div className="relative flex items-center">
-      <Input type={visible ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="font-mono text-sm" />
+      <Input type={visible ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="font-mono pe-18 text-sm" />
       <div className="absolute left-2 flex items-center gap-1">
         <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-main)]" onClick={handleCopy} title="نسخ">
           {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}

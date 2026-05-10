@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { apiClient } from "@/api/client";
 import { httpClient } from "@/api/httpClient";
 import { ApiError } from "@/lib/ApiError";
+import { getDeviceId } from "@/utils/deviceId";
 
 type Lang = "ar" | "en" | "ur";
 
@@ -109,15 +110,15 @@ export default function Login() {
     setError("");
     setIsDeviceConflict(false);
     try {
-      await login({ identifier: username, password });
+      await login({ identifier: username, password, deviceIdentifier: getDeviceId() });
       navigate("/");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        setError(err.message); 
+        setError(err.message);
         notifyError(err.message);
 
         if (err.status === 409 && err.code === "DEVICE_CONFLICT") {
-          setIsDeviceConflict(true); 
+          setIsDeviceConflict(true);
         }
       }
     } finally {

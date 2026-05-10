@@ -1,5 +1,5 @@
 export type LoginResponse = {
-  accessToken: string;  
+  accessToken: string;
   accessTokenExpiration: string;
   roles: string[];
 };
@@ -7,4 +7,5 @@ export type LoginResponse = {
 export type LoginPayload = {
   identifier: string;
   password: string;
+  deviceIdentifier: string;
 };
