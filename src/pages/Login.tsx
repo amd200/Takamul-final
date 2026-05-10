@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/api/client";
 import { httpClient } from "@/api/httpClient";
+import { ApiError } from "@/lib/ApiError";
 
 type Lang = "ar" | "en" | "ur";
 
@@ -111,22 +112,13 @@ export default function Login() {
       await login({ identifier: username, password });
       navigate("/");
     } catch (err: unknown) {
-    
-      if (axios.isAxiosError(err)) {
-        const data = err.response?.data;
-        const message = data?.message || data?.title || "فشل تسجيل الدخول";
-        setError(message);
-        notifyError(message);
-
-        if (err.response?.status === 409 && data?.code === "DEVICE_CONFLICT") {
-          setIsDeviceConflict(true);
-        }
-      } else if (err instanceof Error) {
-        setError(err.message);
+      if (err instanceof ApiError) {
+        setError(err.message); 
         notifyError(err.message);
-      } else {
-        setError("حدث خطأ غير متوقع");
-        notifyError("حدث خطأ غير متوقع");
+
+        if (err.status === 409 && err.code === "DEVICE_CONFLICT") {
+          setIsDeviceConflict(true); 
+        }
       }
     } finally {
       setLoading(false);
