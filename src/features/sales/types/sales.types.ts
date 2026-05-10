@@ -49,6 +49,7 @@ export interface SalesOrder {
   orderStatus: "Confirmed" | "UnConfirmed" | "InProgress" | "Cancelled";
   paymentStatus: string;
   zatcaStatus: "NotSendYet" | "Sent" | "Rejected";
+  zatcaResponse: string;
   notes: string;
   items: OrderItem[];
   payments: OrderPayment[];

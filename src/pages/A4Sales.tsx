@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog, RefreshCw, Send } from "lucide-react";
+import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog, RefreshCw, Send, ScrollText } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Field, FieldLabel } from "@/components/ui/field";
 import { useUploadFile } from "@/features/sales/hooks/useUploadFile";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ZatcaResponseDialog } from "@/components/modals/ZatcaResponseDialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -135,7 +136,7 @@ export const SendWhatsAppDialog: React.FC<SendWhatsAppDialogProps> = ({ open, on
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction, language } = useLanguage();
-  const { printInvoice, exportPDF, exportExcel, exportCSV, generateInvoiceFile, generateRollFile } = usePrint();
+  const { printInvoice, exportPDF, exportExcel, exportCSV, generateInvoiceFile } = usePrint();
   const navigate = useNavigate();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -153,6 +154,8 @@ export default function A4Sales() {
     setCurrentPage(1);
   };
   const taxSetting = useSettingsStore((state) => state.settings?.taxSetting?.taxSetting);
+  const [zatcaDialogOpen, setZatcaDialogOpen] = useState(false);
+  const [zatcaResponseData, setZatcaResponseData] = useState(null);
   const renderHeader = () => {
     return (
       <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -357,6 +360,16 @@ export default function A4Sales() {
                           <RefreshCw size={14} />
                           إعادة الإرسال للهيئة
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={ () => {
+                            setSelectedRow(row);
+                            setZatcaResponseData(row?.zatcaResponse);
+                            setZatcaDialogOpen(true);
+                          }}
+                        >
+                          <ScrollText size={14} />
+                          رد هيئة الزكاة والضريبة
+                        </DropdownMenuItem>
                       </>
                     )}
                   </DropdownMenuContent>
@@ -369,6 +382,7 @@ export default function A4Sales() {
           <p>Card Footer</p>
         </CardFooter> */}
       </Card>
+      <ZatcaResponseDialog open={zatcaDialogOpen} onOpenChange={setZatcaDialogOpen} invoiceNumber={selectedRow?.orderNumber} zatcaResponse={zatcaResponseData} />
       <SendWhatsAppDialog open={whatsAppOpen} onOpenChange={setWhatsAppOpen} defaultPhone={""} phoneNumberId={phoneNumberId} onSend={handleSendWhatsApp} />
       {/* <SendWhatsAppDialog
         open={whatsAppOpen}

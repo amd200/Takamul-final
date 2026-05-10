@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Upload, X } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
@@ -244,7 +244,7 @@ export default function AddBranch() {
     appendStr("SubNumber", values.subNumber);
     appendStr("PostalCode", values.postalCode);
     appendStr("District", values.district);
-    appendStr("OrganizationName", values.OrganizationName);
+    appendStr("OrganizationName", values.name);
     appendStr("OrganizationUnitName", values.OrganizationUnitName);
     appendStr("LocationAddress", values.LocationAddress);
     appendStr("IndustryBusinessCategory", values.IndustryBusinessCategory);
@@ -275,6 +275,50 @@ export default function AddBranch() {
   // ─── UI ─────────────────────────────────────────────────────────────────────
 
   const BackIcon = direction === "rtl" ? ArrowRight : ArrowLeft;
+
+  // ─── OTP-Style Input Component ────────────────────────────────────────────────
+
+  function OTPStyleInput({ value = "", onChange, disabled = false, maxLength = 8 }: { value?: string; onChange?: (val: string) => void; disabled?: boolean; maxLength?: number }) {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [focused, setFocused] = useState(false);
+
+    const activeIndex = focused ? Math.min(value.length, maxLength - 1) : -1;
+
+    return (
+      <>
+        {/* Blink animation */}
+        <style>{`
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .cursor-blink { animation: blink 1s step-end infinite; }
+      `}</style>
+
+        <div className="relative flex gap-1.5 w-fit cursor-text" onClick={() => inputRef.current?.focus()}>
+          {Array.from({ length: maxLength }).map((_, i) => {
+            const isActive = i === activeIndex;
+            const hasValue = !!value?.[i];
+
+            return (
+              <div
+                key={i}
+                className={`
+                w-10 h-10 border rounded-md flex items-center justify-center
+                text-sm font-mono font-medium transition-all select-none
+                ${isActive ? "border-[var(--primary)] ring-1 ring-[var(--primary)]" : ""}
+                ${hasValue && !isActive ? "border-gray-400 text-gray-800" : ""}
+                ${!hasValue && !isActive ? "border-gray-200" : ""}
+                ${disabled ? "bg-gray-50 opacity-70" : ""}
+              `}
+              >
+                {hasValue ? value[i] : isActive ? <span className="cursor-blink w-px h-5 bg-gray-700 block" /> : null}
+              </div>
+            );
+          })}
+
+          <input ref={inputRef} value={value} disabled={disabled} maxLength={maxLength} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onChange={(e) => onChange?.(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))} className="absolute inset-0 opacity-0 w-full h-full cursor-text" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <div dir={direction} className="space-y-6">
@@ -307,7 +351,7 @@ export default function AddBranch() {
                   <CardTitle>{t("basic_info") || "المعلومات الأساسية"}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {/* Name */}
                     <Controller
                       name="name"
@@ -350,9 +394,23 @@ export default function AddBranch() {
                         </Field>
                       )}
                     />
+                    <Controller
+                      name="OrganizationUnitName"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            اسم الوحدة
+                            <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <Input {...field} placeholder="أدخل اسم الوحدة" readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
                   </div>
 
-                  <div className="grid md:grid-cols-3 gap-4">
+                  <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {/* Code */}
                     <Controller
                       name="code"
@@ -393,6 +451,20 @@ export default function AddBranch() {
                         <Field data-invalid={fieldState.invalid}>
                           <FieldLabel>{t("commercial_register") || "السجل التجاري"}</FieldLabel>
                           <Input {...field} placeholder="ادخل السجل التجاري" readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="IndustryBusinessCategory"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            القطاع / النشاط التجاري
+                            <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <Input {...field} placeholder="أدخل القطاع أو النشاط التجاري" readOnly={isViewMode} />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -467,74 +539,163 @@ export default function AddBranch() {
               </Card>
 
               {/* ── Address ────────────────────────────────────────────────── */}
-              <Controller
-                name="LocationAddress"
-                control={control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel>{t("short_address") || "العنوان المختصر"}</FieldLabel>
-                  </Field>
-                )}
-              />
-              <InputOTP dir="rtl" maxLength={8}  disabled={isViewMode}>
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                  <InputOTPSlot index={6} />
-                  <InputOTPSlot index={7} />
-                </InputOTPGroup>
-              </InputOTP>
-
-              {/* المعلومات الضريبية */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">{"المعلومات الضريبية"}</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2">{t("address_settings") || "إعدادات العنوان"}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    {/* Country */}
                     <Controller
-                      name="OrganizationName"
+                      name="countryId"
                       control={control}
+                      rules={{ required: t("country_required") || "البلد مطلوب" }}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
                           <FieldLabel>
-                            اسم المنشأة
-                            <span className="text-red-500">*</span>
+                            {t("country") || "البلد"}
+                            <span className="text-red-500 ms-1">*</span>
                           </FieldLabel>
-                          <Input {...field} placeholder="أدخل اسم المنشأة" readOnly={isViewMode} />
+                          <ComboboxField
+                            value={field.value ?? undefined}
+                            onChange={(val) => {
+                              field.onChange(val ? Number(val) : null);
+                              setValue("cityId", null);
+                              setValue("stateId", null);
+                            }}
+                            items={countries ?? []}
+                            valueKey="id"
+                            labelKey="countryName"
+                            placeholder={t("select_country")}
+                            disabled={isViewMode}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    {/* City (labeled as Region) */}
+                    <Controller
+                      name="cityId"
+                      control={control}
+                      rules={{ required: t("region_required") || "المنطقة مطلوبة" }}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            {t("region") || "المنطقة"}
+                            <span className="text-red-500 ms-1">*</span>
+                          </FieldLabel>
+                          <ComboboxField
+                            value={field.value ?? undefined}
+                            onChange={(val) => {
+                              field.onChange(val ? Number(val) : null);
+                              setValue("stateId", null);
+                            }}
+                            items={cities ?? []}
+                            valueKey="id"
+                            labelKey="cityName"
+                            placeholder={!countryId ? t("select_country_first") : t("اختر المنطقة")}
+                            disabled={!countryId || isViewMode}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    {/* Region (labeled as City) */}
+                    <Controller
+                      name="stateId"
+                      control={control}
+                      rules={{ required: t("city_required") || "المدينة مطلوبة" }}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            {t("city") || "المدينة"}
+                            <span className="text-red-500 ms-1">*</span>
+                          </FieldLabel>
+                          <ComboboxField value={field.value ?? undefined} onChange={(val) => field.onChange(val ? Number(val) : null)} items={states ?? []} valueKey="id" labelKey="statesName" placeholder={!cityId ? t("select_region_first") : t("اختر المدينة")} disabled={!cityId || isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    {/* Neighborhood (New District Textbox) */}
+                    <Controller
+                      name="district"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>{t("district") || "الحي"}</FieldLabel>
+                          <Input {...field} placeholder={t("district_placeholder") || "الحي"} readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    {/* Street */}
+                    <Controller
+                      name="street"
+                      control={control}
+                      rules={{ required: t("street_required") || "اسم الشارع مطلوب" }}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            {t("street_name") || "اسم الشارع"}
+                            <span className="text-red-500 ms-1">*</span>
+                          </FieldLabel>
+                          <Input {...field} placeholder={t("street_placeholder") || "الشارع"} readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Postal Code */}
+                    <Controller
+                      name="postalCode"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>{t("postal_code") || "الرمز البريدي"} (ex:12345)</FieldLabel>
+                          <Input {...field} placeholder="00000" readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    {/* Building Number */}
+                    <Controller
+                      name="buildingNumber"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>{t("building_number") || "رقم المبنى"} (ex:1234)</FieldLabel>
+                          <Input {...field} placeholder="0000" readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    {/* Sub Number */}
+                    <Controller
+                      name="subNumber"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>{t("sub_number") || "الرقم الفرعي"} (ex:1234)</FieldLabel>
+                          <Input {...field} placeholder="0000" readOnly={isViewMode} />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
                     />
                     <Controller
-                      name="OrganizationUnitName"
+                      name="LocationAddress"
                       control={control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>
-                            اسم الوحدة
-                            <span className="text-red-500">*</span>
-                          </FieldLabel>
-                          <Input {...field} placeholder="أدخل اسم الوحدة" readOnly={isViewMode} />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-                    <Controller
-                      name="IndustryBusinessCategory"
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>
-                            القطاع / النشاط التجاري
-                            <span className="text-red-500">*</span>
-                          </FieldLabel>
-                          <Input {...field} placeholder="أدخل القطاع أو النشاط التجاري" readOnly={isViewMode} />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      render={({ field }) => (
+                        <Field>
+                          <FieldLabel>{"العنوان المختصر"}</FieldLabel>
+                          <OTPStyleInput value={field.value ?? ""} onChange={field.onChange} disabled={isViewMode} maxLength={8} />
                         </Field>
                       )}
                     />
