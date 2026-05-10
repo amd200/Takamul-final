@@ -467,159 +467,27 @@ export default function AddBranch() {
               </Card>
 
               {/* ── Address ────────────────────────────────────────────────── */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">{t("address_settings") || "إعدادات العنوان"}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {/* Country */}
-                    <Controller
-                      name="countryId"
-                      control={control}
-                      rules={{ required: t("country_required") || "البلد مطلوب" }}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>
-                            {t("country") || "البلد"}
-                            <span className="text-red-500 ms-1">*</span>
-                          </FieldLabel>
-                          <ComboboxField
-                            value={field.value ?? undefined}
-                            onChange={(val) => {
-                              field.onChange(val ? Number(val) : null);
-                              setValue("cityId", null);
-                              setValue("stateId", null);
-                            }}
-                            items={countries ?? []}
-                            valueKey="id"
-                            labelKey="countryName"
-                            placeholder={t("select_country")}
-                            disabled={isViewMode}
-                          />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-
-                    {/* City (labeled as Region) */}
-                    <Controller
-                      name="cityId"
-                      control={control}
-                      rules={{ required: t("region_required") || "المنطقة مطلوبة" }}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>
-                            {t("region") || "المنطقة"}
-                            <span className="text-red-500 ms-1">*</span>
-                          </FieldLabel>
-                          <ComboboxField
-                            value={field.value ?? undefined}
-                            onChange={(val) => {
-                              field.onChange(val ? Number(val) : null);
-                              setValue("stateId", null);
-                            }}
-                            items={cities ?? []}
-                            valueKey="id"
-                            labelKey="cityName"
-                            placeholder={!countryId ? t("select_country_first") : t("اختر المنطقة")}
-                            disabled={!countryId || isViewMode}
-                          />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-
-                    {/* Region (labeled as City) */}
-                    <Controller
-                      name="stateId"
-                      control={control}
-                      rules={{ required: t("city_required") || "المدينة مطلوبة" }}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>
-                            {t("city") || "المدينة"}
-                            <span className="text-red-500 ms-1">*</span>
-                          </FieldLabel>
-                          <ComboboxField value={field.value ?? undefined} onChange={(val) => field.onChange(val ? Number(val) : null)} items={states ?? []} valueKey="id" labelKey="statesName" placeholder={!cityId ? t("select_region_first") : t("اختر المدينة")} disabled={!cityId || isViewMode} />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-
-                    {/* Neighborhood (New District Textbox) */}
-                    <Controller
-                      name="district"
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>{t("district") || "الحي"}</FieldLabel>
-                          <Input {...field} placeholder={t("district_placeholder") || "الحي"} readOnly={isViewMode} />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-
-                    {/* Street */}
-                    <Controller
-                      name="street"
-                      control={control}
-                      rules={{ required: t("street_required") || "اسم الشارع مطلوب" }}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>
-                            {t("street_name") || "اسم الشارع"}
-                            <span className="text-red-500 ms-1">*</span>
-                          </FieldLabel>
-                          <Input {...field} placeholder={t("street_placeholder") || "الشارع"} readOnly={isViewMode} />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Postal Code */}
-                    <Controller
-                      name="postalCode"
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>{t("postal_code") || "الرمز البريدي"} (ex:12345)</FieldLabel>
-                          <Input {...field} placeholder="00000" readOnly={isViewMode} />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-
-                    {/* Building Number */}
-                    <Controller
-                      name="buildingNumber"
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>{t("building_number") || "رقم المبنى"} (ex:1234)</FieldLabel>
-                          <Input {...field} placeholder="0000" readOnly={isViewMode} />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-
-                    {/* Sub Number */}
-                    <Controller
-                      name="subNumber"
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>{t("sub_number") || "الرقم الفرعي"} (ex:1234)</FieldLabel>
-                          <Input {...field} placeholder="0000" readOnly={isViewMode} />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                              <Controller
+  name="LocationAddress"
+  control={control}
+  render={({ field }) => (
+    <Field>
+      <FieldLabel>{t("short_address") || "العنوان المختصر"}</FieldLabel>
+      <InputOTP dir="rtl" maxLength={8} value={field.value ?? ""} onChange={field.onChange} disabled={isViewMode}>
+        <InputOTPGroup>
+          <InputOTPSlot index={0} />
+          <InputOTPSlot index={1} />
+          <InputOTPSlot index={2} />
+          <InputOTPSlot index={3} />
+          <InputOTPSlot index={4} />
+          <InputOTPSlot index={5} />
+          <InputOTPSlot index={6} />
+          <InputOTPSlot index={7} />
+        </InputOTPGroup>
+      </InputOTP>
+    </Field>
+  )}
+/>
 
               {/* المعلومات الضريبية */}
               <Card>
@@ -671,28 +539,7 @@ export default function AddBranch() {
                       )}
                     />
                   </div>
-                  <Controller
-                    name="LocationAddress"
-                    control={control}
-                    render={({ field }) => (
-                      <Field>
-                        <FieldLabel>{t("short_address") || "العنوان المختصر"}</FieldLabel>
-                        <InputOTP dir="rtl" maxLength={8} value={field.value ?? ""} onChange={field.onChange} disabled={isViewMode}>
-                          <InputOTPGroup>
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                            <InputOTPSlot index={6} />
-                            <InputOTPSlot index={7} />
-                            <InputOTPSlot index={8} />
-                          </InputOTPGroup>
-                        </InputOTP>
-                      </Field>
-                    )}
-                  />
+
                 </CardContent>
               </Card>
 

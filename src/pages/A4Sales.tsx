@@ -206,32 +206,32 @@ export default function A4Sales() {
     formData.append("File", file);
     const response = await uploadFile(formData);
 
-    // await sendWhatsAppTemplate({
-    //   data: {
-    //     messaging_product: "whatsapp",
-    //     to: phone,
-    //     type: "template",
-    //     template: {
-    //       name: "invoice_receipt_1",
-    //       language: { code: "ar" },
-    //       components: [
-    //         {
-    //           type: "header",
-    //           parameters: [
-    //             {
-    //               type: "document",
-    //               document: {
-    //                 link: response?.data?.url,
-    //                 filename: "invoice.pdf",
-    //               },
-    //             },
-    //           ],
-    //         },
-    //       ],
-    //     },
-    //   },
-    //   phoneNumberId,
-    // });
+    await sendWhatsAppTemplate({
+      data: {
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "template",
+        template: {
+          name: "invoice_receipt_1",
+          language: { code: "ar" },
+          components: [
+            {
+              type: "header",
+              parameters: [
+                {
+                  type: "document",
+                  document: {
+                    link: response?.data?.url,
+                    filename: "invoice.pdf",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+      phoneNumberId,
+    });
   };
   return (
     <div className="space-y-4 pb-12" dir={direction}>

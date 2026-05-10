@@ -30,10 +30,9 @@ export async function httpClient<T>(url: string, options?: HttpClientOptions): P
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const data = error.response?.data;
-      const message = data?.message  || "حدث خطأ أثناء الاتصال بالسيرفر";
       const status = error.response?.status ?? 500;
 
-      throw new ApiError(message, status, data?.code, data?.errors);
+      throw new ApiError(data.message ?? data.errorMessage ?? "حدث خطأ غير متوقع", status, data.code, data.errors);
     }
 
     if (error instanceof Error) {
