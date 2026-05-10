@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const AUTH_API_BASE = import.meta.env.VITE_API_BASE;
+export const AUTH_API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 /** In dev uses '' so Vite proxy forwards /api; in prod uses full API URL. Use for Products/Categories etc. */
 export const getProductsApiBase = () => (import.meta.env.DEV ? "" : "http://takamulerp.runasp.net");
