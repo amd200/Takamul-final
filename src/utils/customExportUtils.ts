@@ -112,7 +112,7 @@ export const generatePDFBlob = async (htmlString: string, orientation: "portrait
     iframe.style.height = `${actualHeight}px`;
 
     const canvas = await html2canvas(iframeBody, {
-      scale: window.devicePixelRatio > 1 ? 2 : 1,
+      scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
@@ -181,11 +181,14 @@ const waitForImages = (doc: Document): Promise<void[]> => {
   const imgPromises = imgs.map(
     (img) =>
       new Promise<void>((resolve) => {
-        if (img.complete) return resolve();
+        if (img.complete && img.naturalWidth !== 0) return resolve();
         img.onload = () => resolve();
-        img.onerror = () => resolve();
+        img.onerror = () => {
+          console.warn("Failed to load image in PDF:", img.src);
+          resolve();
+        };
         // Individual image timeout
-        setTimeout(resolve, 1500);
+        setTimeout(resolve, 3000);
       }),
   );
   return Promise.all(imgPromises);

@@ -132,37 +132,37 @@ export const getA4PrintHTML = (data: ExtendedData, type: PrintType, t: any, pass
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; font-weight: 500; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { background: #fff; width: 100%; min-height: 277mm; display: flex; flex-direction: column; color: #1a1a1a; font-size: 10px; line-height: 1.4; padding: 10mm 15mm; }
     .main-content { flex: 1; }
-    .header-grid { display: grid; grid-template-columns: 1fr 0.8fr 1fr; gap: 8px; margin-bottom: 8px; }
-    .header-col { display: flex; flex-direction: column; justify-content: space-between; gap: 4px; align-self: stretch; }
+    .header-grid { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .header-col { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; align-self: stretch; flex: 1; }
     .company-title { flex: 1; font-size: 11px; font-weight: 700; text-align: center; padding: 4px; color: #000; background: #f2f2f2; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
     .meta-row { flex: 1; display: flex; width: 100%; gap: 4px; }
-    .meta-label-ar { flex: 1.2; font-size: 9.5px; padding: 6px 4px; background: #f2f2f2; border-radius: 3px; display: flex; align-items: center; justify-content: center; text-align: center; color: #000; font-weight: 600; white-space: nowrap; }
-    .meta-value { flex: 2; font-size: 11px; padding: 6px 4px; background: #f2f2f2; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #000; white-space: nowrap; font-weight: 700; }
+    .meta-label-ar { flex: 1.2; font-size: 10px; padding: 10px 8px; background: #f2f2f2; border-radius: 3px; display: flex; align-items: center; justify-content: center; text-align: center; color: #000; font-weight: 700; white-space: nowrap; word-spacing: 2px; }
+    .meta-value { flex: 2; font-size: 12px; padding: 10px 8px; background: #f2f2f2; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #000; white-space: nowrap; font-weight: 700; letter-spacing: 0.5px; }
     .meta-label-en { flex: 1; font-size: 7.5px; padding: 6px 4px; color: #000; background: #f2f2f2; border-radius: 3px; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 600; white-space: nowrap; }
     .logo-container { border: none; border-radius: 3px; display: flex; align-items: center; justify-content: center; min-height: 90px; background: #f2f2f2; align-self: stretch; }
     
-    .doc-type-container { display: grid; grid-template-columns: 1.8fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .doc-type-item { background: #f2f2f2; border-radius: 3px; padding: 8px; font-size: 11px; color: #000; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .doc-type-container { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .doc-type-item { background: #f2f2f2; border-radius: 4px; padding: 12px 15px; font-size: 13px; color: #000; display: flex; align-items: center; justify-content: center; font-weight: 700; flex: 1; text-align: center; word-spacing: 3px; }
 
     .section-header { background: #f0f0f0; padding: 3px 12px; font-size: 11px; font-weight: 600; border: 1.5px solid #000; border-bottom: none; display: inline-block; border-radius: 3px 3px 0 0; color: #000; }
     .customer-box { border: none; margin-bottom: 10px; border-radius: 0 3px 3px 3px; overflow: hidden; }
     .cust-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .cust-tbl td { border: 1px solid #000; vertical-align: middle; }
-    .cust-lbl { width: 20%; background: #f8f8f8; padding: 10px 8px; font-size: 10px; color: #444; text-align: right; border-left: 1.5px solid #000; white-space: nowrap; }
-    .cust-val { width: 30%; padding: 10px 10px; font-size: 10px; color: #000; text-align: right; }
+    .cust-tbl td { border: 1px solid #000; vertical-align: middle; padding: 12px 10px; }
+    .cust-lbl { width: 20%; background: #f8f8f8; padding: 12px 10px; font-size: 10px; color: #444; text-align: right; border-left: 1.5px solid #000; white-space: nowrap; }
+    .cust-val { width: 30%; padding: 12px 10px; font-size: 10px; color: #000; text-align: right; }
     
     .items-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-    .items-table th { background: #f0f0f0; border: 1px solid #000; padding: 6px 4px; font-size: 10px; font-weight: 600; text-align: center; color: #1a1a1a; }
+    .items-table th { background: #f0f0f0; border: 1px solid #000; padding: 10px 6px; font-size: 11px; font-weight: 600; text-align: center; color: #1a1a1a; vertical-align: middle; }
     .items-table th .en-sub { display: block; font-size: 7.5px; color: #555; margin-top: 1px; }
-    .items-table td { border: 1px solid #000; padding: 7px 4px; text-align: center; font-size: 10px; color: #000; }
+    .items-table td { border: 1px solid #000; padding: 10px 6px; text-align: center; font-size: 11px; color: #000; vertical-align: middle; }
 
     .footer-section { display: flex; gap: 10px; margin-top: 15px; align-items: stretch; width: 100%; }
     .totals-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
-    .totals-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 10px; color: #000; vertical-align: middle; }
+    .totals-table td { border: 1px solid #000; padding: 8px 10px; text-align: center; font-size: 11px; color: #000; vertical-align: middle; }
     .totals-table .lbl-en { background: #fff; font-weight: 600; width: 33.33%; }
-    .totals-table .val-cell { font-weight: 700; font-size: 11px; width: 33.33%; }
+    .totals-table .val-cell { font-weight: 700; font-size: 12px; width: 33.33%; }
     .totals-table .lbl-ar { background: #fafafa; font-weight: 600; width: 33.33%; }
-    .totals-table .net-total-row td { background: #f2f2f2; font-weight: 700; font-size: 12px; }
+    .totals-table .net-total-row td { background: #f2f2f2; font-weight: 700; font-size: 13px; }
 
     .full-width-bar { border: 1.5px solid #000; background: #f2f2f2; padding: 8px; margin-top: 10px; text-align: center; font-weight: 600; font-size: 11px; color: #000; }
     .notes-box { background: #fafafa; padding: 8px 12px; border: 1.5px solid #000; margin-top: 10px; font-size: 11px; color: #000; display: flex; justify-content: center; gap: 8px; }
@@ -174,12 +174,12 @@ export const getA4PrintHTML = (data: ExtendedData, type: PrintType, t: any, pass
     <div class="header-col">
       <div class="company-title">${branch?.name || "-"}</div>
       <div class="meta-row">
-        <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
+        <div class="meta-label-ar">${t("vat_number", "الرقم&nbsp;الضريبي")}</div>
         <div class="meta-value">${branch?.taxNumber || "-"}</div>
         <div class="meta-label-en">VAT No.</div>
       </div>
       <div class="meta-row">
-        <div class="meta-label-ar">${t("document_no", "رقم المستند")}</div>
+        <div class="meta-label-ar">${t("document_no", "رقم&nbsp;المستند")}</div>
         <div class="meta-value">${docNo}</div>
         <div class="meta-label-en">Doc No.</div>
       </div>
@@ -189,6 +189,7 @@ export const getA4PrintHTML = (data: ExtendedData, type: PrintType, t: any, pass
         branchLogo
           ? `
         <img src="${branchLogo}" alt="Logo" 
+             crossOrigin="anonymous"
              style="max-height: 85px; max-width: 100%; object-fit: contain;"
              onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
         />
@@ -206,7 +207,7 @@ export const getA4PrintHTML = (data: ExtendedData, type: PrintType, t: any, pass
     <div class="header-col">
       <div class="company-title">${branch?.nameEn || "-"}</div>
       <div class="meta-row">
-        <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
+        <div class="meta-label-ar">${t("commercial_register", "سجل&nbsp;التجاري")}</div>
         <div class="meta-value">${branch?.commercialRegister || "-"}</div>
         <div class="meta-label-en">Comm. No.</div>
       </div>
@@ -220,7 +221,7 @@ export const getA4PrintHTML = (data: ExtendedData, type: PrintType, t: any, pass
 
   <div class="doc-type-container">
     <div class="doc-type-item">${docTitleAr}</div>
-    <div class="doc-type-item">${t("seller_name", "اسم البائع")} : ${data.createdBy || "-"}</div>
+    <div class="doc-type-item">${t("seller_name", "اسم&nbsp;البائع")} : ${data.createdBy || "-"}</div>
   </div>
 
   <div style="margin-bottom:10px;">

@@ -169,15 +169,15 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     .header-grid {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
     .header-col {
       flex: 1 0 0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 4px;
+      gap: 6px;
       align-self: stretch;
     }
     .company-title {
@@ -204,8 +204,8 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     }
     .meta-label-ar {
       flex: 1.2;
-      font-size: 9.5px;
-      padding: 6px 4px;
+      font-size: 10px;
+      padding: 10px 8px;
       background: #f2f2f2;
       border-radius: 3px;
       display: flex;
@@ -213,13 +213,14 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
       justify-content: center;
       text-align: center;
       color: #000;
-      font-weight: 600;
+      font-weight: 700;
       white-space: nowrap;
+      word-spacing: 2px;
     }
     .meta-value {
       flex: 2;
-      font-size: 11px;
-      padding: 6px 4px;
+      font-size: 12px;
+      padding: 10px 8px;
       background: #f2f2f2;
       border-radius: 3px;
       display: flex;
@@ -228,6 +229,7 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
       color: #000;
       white-space: nowrap;
       font-weight: 700;
+      letter-spacing: 0.5px;
     }
     .meta-label-en {
       flex: 1;
@@ -259,26 +261,28 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     .doc-type-container {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
     .doc-type-item {
       background: #f2f2f2;
       border: none;
-      border-radius: 3px;
-      padding: 8px;
-      font-size: 11px;
+      border-radius: 4px;
+      padding: 12px 15px;
+      font-size: 13px;
       color: #000;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
+      text-align: center;
+      word-spacing: 3px;
     }
     .doc-type-item:nth-child(1), .doc-type-item:nth-child(3) {
-      flex: 1 0 0;
+      flex: 1.2 0 0;
     }
     .doc-type-item:nth-child(2) {
-      flex: 0.8 0 0;
+      flex: 1 0 0;
     }
 
     /* ══ CUSTOMER BOX ══ */
@@ -307,6 +311,7 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     .cust-tbl td {
       border: 1px solid #000;
       vertical-align: middle;
+      padding: 12px 10px;
     }
     .cust-lbl {
       width: 20%;
@@ -342,11 +347,12 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     .items-table th {
       background: #f0f0f0;
       border: 1px solid #000;
-      padding: 6px 4px;
-      font-size: 10px;
+      padding: 10px 6px;
+      font-size: 11px;
       font-weight: 600;
       text-align: center;
       color: #1a1a1a;
+      vertical-align: middle;
     }
     .items-table th .en-sub {
       display: block;
@@ -356,10 +362,11 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     }
     .items-table td {
       border: 1px solid #000;
-      padding: 7px 4px;
+      padding: 10px 6px;
       text-align: center;
-      font-size: 10px;
+      font-size: 11px;
       color: #000;
+      vertical-align: middle;
     }
 
     /* ══ FOOTER SECTION ══ */
@@ -377,9 +384,9 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     }
     .totals-table td {
       border: 1px solid #000;
-      padding: 5px;
+      padding: 8px 10px;
       text-align: center;
-      font-size: 10px;
+      font-size: 11px;
       color: #000;
       vertical-align: middle;
     }
@@ -467,12 +474,12 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
     <div class="header-col">
       <div class="company-title">${branch.name || "-"}</div>
       <div class="meta-row">
-        <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
+        <div class="meta-label-ar">${t("vat_number", "الرقم&nbsp;الضريبي")}</div>
         <div class="meta-value">${branch.taxNumber || "-"}</div>
         <div class="meta-label-en">VAT No.</div>
       </div>
       <div class="meta-row">
-        <div class="meta-label-ar">${t("invoice_no", "فاتورة رقم")}</div>
+        <div class="meta-label-ar">${t("invoice_no", "فاتورة&nbsp;رقم")}</div>
         <div class="meta-value">${invoiceNo}</div>
         <div class="meta-label-en">INV No.</div>
       </div>
@@ -482,6 +489,7 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
         branchLogo
           ? `
         <img src="${branchLogo}" alt="Logo" 
+             crossOrigin="anonymous"
              style="max-height: 85px; max-width: 100%; object-fit: contain;"
              onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
         />
@@ -513,9 +521,9 @@ export const getA4InvoiceHTML = async (order: any, t: any, generateQR: (data: Ge
 
   <!-- ══ DOC TYPE SECTION ══ -->
   <div class="doc-type-container">
-    <div class="doc-type-item">${order.purchaseOrderNumber ? t("purchase_invoice", "فاتورة مشتريات") : t("cash_sales_invoice", "فاتورة مبيعات نقدية")}</div>
-    <div class="doc-type-item">${t("tax_invoice", "فاتورة ضريبية")} ${custTaxNo ? "" : "مبسطة"}</div>
-    <div class="doc-type-item">${t("seller_name", "اسم البائع")} : ${order.createdBy || order.sellerName || order.cashier || order.employeeName || "-"}</div>
+    <div class="doc-type-item">${order.purchaseOrderNumber ? t("purchase_invoice", "فاتورة&nbsp;مشتريات") : t("cash_sales_invoice", "فاتورة&nbsp;مبيعات&nbsp;نقدية")}</div>
+    <div class="doc-type-item">${t("tax_invoice", "فاتورة&nbsp;ضريبية")} ${custTaxNo ? "" : "مبسطة"}</div>
+    <div class="doc-type-item">${t("seller_name", "اسم&nbsp;البائع")} : ${order.createdBy || order.sellerName || order.cashier || order.employeeName || "-"}</div>
   </div>
 
   <!-- ══ CUSTOMER/SUPPLIER INFO ══ -->
