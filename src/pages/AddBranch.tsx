@@ -467,27 +467,27 @@ export default function AddBranch() {
               </Card>
 
               {/* ── Address ────────────────────────────────────────────────── */}
-                              <Controller
-  name="LocationAddress"
-  control={control}
-  render={({ field }) => (
-    <Field>
-      <FieldLabel>{t("short_address") || "العنوان المختصر"}</FieldLabel>
-      <InputOTP dir="rtl" maxLength={8} value={field.value ?? ""} onChange={field.onChange} disabled={isViewMode}>
-        <InputOTPGroup>
-          <InputOTPSlot index={0} />
-          <InputOTPSlot index={1} />
-          <InputOTPSlot index={2} />
-          <InputOTPSlot index={3} />
-          <InputOTPSlot index={4} />
-          <InputOTPSlot index={5} />
-          <InputOTPSlot index={6} />
-          <InputOTPSlot index={7} />
-        </InputOTPGroup>
-      </InputOTP>
-    </Field>
-  )}
-/>
+              <Controller
+                name="LocationAddress"
+                control={control}
+                render={({ field }) => (
+                  <Field>
+                    <FieldLabel>{t("short_address") || "العنوان المختصر"}</FieldLabel>
+                  </Field>
+                )}
+              />
+              <InputOTP dir="rtl" maxLength={8}  disabled={isViewMode}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                  <InputOTPSlot index={6} />
+                  <InputOTPSlot index={7} />
+                </InputOTPGroup>
+              </InputOTP>
 
               {/* المعلومات الضريبية */}
               <Card>
@@ -539,7 +539,6 @@ export default function AddBranch() {
                       )}
                     />
                   </div>
-
                 </CardContent>
               </Card>
 

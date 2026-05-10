@@ -115,8 +115,6 @@ export default function Login() {
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
-        notifyError(err.message);
-
         if (err.status === 409 && err.code === "DEVICE_CONFLICT") {
           setIsDeviceConflict(true);
         }
@@ -138,9 +136,9 @@ export default function Login() {
       });
       setIsDeviceConflict(false);
       setError("");
-      notifySuccess("تم تسجيل الخروج من جميع الأجهزة، أعد تسجيل الدخول");
+      // notifySuccess("تم تسجيل الخروج من جميع الأجهزة، أعد تسجيل الدخول");
     } catch {
-      notifyError("فشل تسجيل الخروج من الأجهزة");
+      // notifyError("فشل تسجيل الخروج من الأجهزة");
     } finally {
       setLogoutAllLoading(false);
     }

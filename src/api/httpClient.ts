@@ -32,7 +32,9 @@ export async function httpClient<T>(url: string, options?: HttpClientOptions): P
       const data = error.response?.data;
       const status = error.response?.status ?? 500;
 
-      throw new ApiError(data.message ?? data.errorMessage ?? "حدث خطأ غير متوقع", status, data.code, data.errors);
+      const message = data?.message ?? data?.errorMessage ?? data?.error ?? "حدث خطأ غير متوقع";
+
+      throw new ApiError(message, status, data?.code, data?.errors);
     }
 
     if (error instanceof Error) {
