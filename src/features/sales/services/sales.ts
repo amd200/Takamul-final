@@ -1,27 +1,11 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateSalesOrder, GetAllSalesOrderResponse, SalesOrder } from "../types/sales.types";
+import type { CreateSalesOrder, GetAllSalesOrderResponse, SalesOrder, UploadFileResponse } from "../types/sales.types";
 
 // ===================
 // GET
 // ===================
 
-export const getAllSalesOrders = ({ 
-  page = 1, 
-  limit = 5, 
-  OrderType, 
-  SearchTerm,
-  branchId,
-  from,
-  to
-}: { 
-  page: number; 
-  limit: number; 
-  SearchTerm?: string; 
-  OrderType?: "POS" | "A4";
-  branchId?: string;
-  from?: string;
-  to?: string;
-}) =>
+export const getAllSalesOrders = ({ page = 1, limit = 5, OrderType, SearchTerm, branchId, from, to }: { page: number; limit: number; SearchTerm?: string; OrderType?: "POS" | "A4"; branchId?: string; from?: string; to?: string }) =>
   httpClient<GetAllSalesOrderResponse>(`/sales-orders`, {
     params: {
       Page: page,
@@ -30,7 +14,7 @@ export const getAllSalesOrders = ({
       SearchTerm: SearchTerm,
       branchid: branchId,
       From: from,
-      To: to
+      To: to,
     },
   });
 // export const getCategoryClient = (idOrSlug: string | number) =>
@@ -42,6 +26,11 @@ export const getAllSalesOrders = ({
 
 export const createSalesOrders = (data: CreateSalesOrder) =>
   httpClient<{ message: string }>("/sales-orders/a4", {
+    method: "POST",
+    data,
+  });
+export const uploadFile = (data: FormData) =>
+  httpClient<UploadFileResponse>("/sales-orders/upload", {
     method: "POST",
     data,
   });

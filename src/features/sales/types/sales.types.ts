@@ -1,4 +1,4 @@
-import type { PaginationMeta } from "@/types";
+import type { ApiResponse, PaginationMeta } from "@/types";
 
 export interface OrderItem {
   id: number;
@@ -55,6 +55,10 @@ export interface SalesOrder {
   isHolding: boolean;
   holdingOrderId: number;
 }
+
+export type UploadFileResponse = ApiResponse<{
+  url: string;
+}>;
 
 export type CreateSalesOrder = {
   customerId: number;

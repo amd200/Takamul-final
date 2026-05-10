@@ -22,22 +22,25 @@ import formatDate from "@/lib/formatDate";
 import { useSendInvoiceSell } from "@/features/zatcaInvoice/hooks/useSendInvoiceSell";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { useSendWhatsAppTemplate } from "@/features/whatsapp/hooks/useSendTemplateMessage";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { useUploadFile } from "@/features/sales/hooks/useUploadFile";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-interface FormValues {
-  phone: string;
-}
 
 interface SendWhatsAppDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultPhone?: string;
   phoneNumberId: string;
-  onSend: (phone: string) => Promise<void>;
+  onSend: (phone: string, invoiceType: "a4" | "roll") => Promise<void>; // ← عدّل
+}
+
+interface FormValues {
+  phone: string;
+  invoiceType: "a4" | "roll"; // ← أضف
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -49,9 +52,10 @@ export const SendWhatsAppDialog: React.FC<SendWhatsAppDialogProps> = ({ open, on
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
-    defaultValues: { phone: defaultPhone },
+    defaultValues: { phone: defaultPhone, invoiceType: "a4" },
   });
 
   React.useEffect(() => {
@@ -59,7 +63,7 @@ export const SendWhatsAppDialog: React.FC<SendWhatsAppDialogProps> = ({ open, on
   }, [open, defaultPhone, reset]);
 
   const onSubmit = async (values: FormValues) => {
-    await onSend(values.phone);
+    await onSend(values.phone, values.invoiceType);
     onOpenChange(false);
   };
 
@@ -94,6 +98,24 @@ export const SendWhatsAppDialog: React.FC<SendWhatsAppDialogProps> = ({ open, on
               {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
               <p className="text-xs text-[var(--text-muted)] mt-1">أدخل الرقم مع كود الدولة بدون + مثال: 966xxxxxx</p>
             </Field>
+            <Field>
+              <FieldLabel>نوع الفاتورة</FieldLabel>
+              <Controller
+                control={control}
+                name="invoiceType"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر نوع الفاتورة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="a4">A4</SelectItem>
+                      <SelectItem value="roll">رول</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </Field>
           </div>
 
           <DialogFooter className="gap-2">
@@ -113,13 +135,17 @@ export const SendWhatsAppDialog: React.FC<SendWhatsAppDialogProps> = ({ open, on
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction, language } = useLanguage();
-  const { printInvoice, exportPDF, exportExcel, exportCSV } = usePrint();
+  const { printInvoice, exportPDF, exportExcel, exportCSV, generateInvoiceFile, generateRollFile } = usePrint();
   const navigate = useNavigate();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage, OrderType: "A4" });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const { mutateAsync: sendWhatsAppTemplate } = useSendWhatsAppTemplate();
+  const { mutateAsync: uploadFile } = useUploadFile();
+
+  const [selectedRow, setSelectedRow] = useState<SalesOrder | null>(null);
+
   const { mutateAsync: sendInvoiceSell } = useSendInvoiceSell();
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -174,6 +200,39 @@ export default function A4Sales() {
   const [whatsAppOpen, setWhatsAppOpen] = React.useState(false);
 
   const hasPermission = useAuthStore((state) => state.hasPermission);
+  const handleSendWhatsApp = async (phone: string, invoiceType: "a4" | "roll") => {
+    const file = invoiceType === "a4" ? await generateInvoiceFile(selectedRow!) : await generateRollFile(selectedRow!);
+    const formData = new FormData();
+    formData.append("File", file);
+    const response = await uploadFile(formData);
+
+    // await sendWhatsAppTemplate({
+    //   data: {
+    //     messaging_product: "whatsapp",
+    //     to: phone,
+    //     type: "template",
+    //     template: {
+    //       name: "invoice_receipt_1",
+    //       language: { code: "ar" },
+    //       components: [
+    //         {
+    //           type: "header",
+    //           parameters: [
+    //             {
+    //               type: "document",
+    //               document: {
+    //                 link: response?.data?.url,
+    //                 filename: "invoice.pdf",
+    //               },
+    //             },
+    //           ],
+    //         },
+    //       ],
+    //     },
+    //   },
+    //   phoneNumberId,
+    // });
+  };
   return (
     <div className="space-y-4 pb-12" dir={direction}>
       <Card>
@@ -275,7 +334,13 @@ export default function A4Sales() {
                       {t("send_email")}
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => setWhatsAppOpen(true)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedRow(row);
+                        setWhatsAppOpen(true);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md"
+                    >
                       <MessageCircle size={14} />
                       {t("send_whatsapp")}
                     </DropdownMenuItem>
@@ -304,7 +369,8 @@ export default function A4Sales() {
           <p>Card Footer</p>
         </CardFooter> */}
       </Card>
-      <SendWhatsAppDialog
+      <SendWhatsAppDialog open={whatsAppOpen} onOpenChange={setWhatsAppOpen} defaultPhone={""} phoneNumberId={phoneNumberId} onSend={handleSendWhatsApp} />
+      {/* <SendWhatsAppDialog
         open={whatsAppOpen}
         onOpenChange={setWhatsAppOpen}
         defaultPhone={""}
@@ -320,7 +386,7 @@ export default function A4Sales() {
             phoneNumberId,
           });
         }}
-      />
+      /> */}
     </div>
   );
 }

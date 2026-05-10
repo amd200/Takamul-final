@@ -1,5 +1,5 @@
 import React, { useContext, ReactNode, useCallback, createContext } from "react";
-import { printVoucher, getClaimReceiptHTML, exportCustomPDF, exportToExcel, exportToCSV } from "@/utils/customExportUtils";
+import { printVoucher, getClaimReceiptHTML, exportCustomPDF, exportToExcel, exportToCSV, generatePDFBlob } from "@/utils/customExportUtils";
 import { useLanguage } from "./LanguageContext";
 import { getStockReceiptHTML } from "@/print/stockReceiptHTML";
 import { getAllSuppliers, getSupplierById } from "@/features/suppliers/services/suppliers";
@@ -16,6 +16,7 @@ import { Customer } from "@/features/customers/types/customers.types";
 import { Supplier } from "@/features/suppliers/types/suppliers.types";
 import { Quotation } from "@/features/quotation/types/quotations.types";
 import { useGenerateQR } from "@/features/zatcaInvoice/hooks/useGenerateQR";
+import { useUploadFile } from "@/features/sales/hooks/useUploadFile";
 
 const toNum = (v: any, fallback = 0): number => Number(v ?? fallback);
 
@@ -61,11 +62,13 @@ export interface PrintContextType {
   exportPDF: (data: InvoiceData) => Promise<void>;
   exportExcel: (data: InvoiceData) => Promise<void>;
   exportCSV: (data: InvoiceData) => Promise<void>;
+  generateInvoiceFile: (data: PrintableData) => Promise<File>;
 }
 const PrintContext = createContext<PrintContextType | null>(null);
 export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useLanguage();
   const { data: branchInfo } = useBranch();
+  const { mutateAsync: uploadFile } = useUploadFile();
   const { mutateAsync: generateQR } = useGenerateQR();
   const prepareExtendedData = useCallback(
     async (data: PrintableData): Promise<ExtendedData> => {
@@ -120,7 +123,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     const discVal = Number(ext.discountAmount);
     const discount = discVal > 0 ? { type: "flat" as const, value: discVal } : { type: "pct" as const, value: 0 };
     const totals = calcTotals(cart, discount);
-    const total = ext?.payments.reduce((sum, p) => sum + p.amount, 0);
+    const total = ext?.payments?.reduce((sum, p) => sum + p.amount, 0) ?? 0;
     let qrCode: string | undefined;
     try {
       const res = await generateQR({ invoiceId: ext?.id });
@@ -188,7 +191,16 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     async (data: PrintableData) => {
       const ext = await prepareExtendedData(data);
       const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
-      await exportCustomPDF(`Invoice_${(ext as any).invoiceNo || (ext as any).orderNumber || (ext as any).id}`, await getA4InvoiceHTML(ext, t, apiBase));
+      const title = `Invoice_${(ext as any).invoiceNo || (ext as any).orderNumber || (ext as any).id}`;
+      const blob = await exportCustomPDF(title, await getA4InvoiceHTML(ext, t, generateQR, apiBase));
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${title}_${Date.now()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     },
     [prepareExtendedData, t],
   );
@@ -238,7 +250,20 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     [prepareExtendedData],
   );
 
-  return <PrintContext.Provider value={{ printInvoice, printRoll, exportPDF, exportExcel, exportCSV }}>{children}</PrintContext.Provider>;
+  const generateInvoiceFile = useCallback(
+    async (data: PrintableData): Promise<File> => {
+      const ext = await prepareExtendedData(data);
+      const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
+      const html = await getA4InvoiceHTML(ext, t, generateQR, apiBase);
+      const fileName = `Invoice_${(ext as any).invoiceNo || (ext as any).orderNumber || (ext as any).id}`;
+
+      const blob = await exportCustomPDF(fileName, html);
+      return new File([blob], `${fileName}.pdf`, { type: "application/pdf" });
+    },
+    [prepareExtendedData, t, generateQR],
+  );
+
+  return <PrintContext.Provider value={{ printInvoice, printRoll, exportPDF, exportExcel, exportCSV, generateInvoiceFile }}>{children}</PrintContext.Provider>;
 };
 
 export const usePrint = () => useContext(PrintContext);

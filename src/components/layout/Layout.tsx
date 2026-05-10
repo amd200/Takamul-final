@@ -18,6 +18,7 @@ import { Permissions } from "@/lib/permissions";
 import ChangePasswordDialog from "../modals/Changepassworddialog";
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { Toaster } from "../ui/sonner";
+import { DirectionProvider } from "../ui/direction";
 
 interface SidebarItemProps {
   icon: LucideIcon;
@@ -344,7 +345,7 @@ export default function Layout() {
           <AnimatePresence>
             {openSubmenu === "shifts" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-               {hasPermission(Permissions?.shifts?.view) && <SubmenuItem label={t("shifts_list")} icon={List} path="/shifts" />}
+                {hasPermission(Permissions?.shifts?.view) && <SubmenuItem label={t("shifts_list")} icon={List} path="/shifts" />}
               </motion.div>
             )}
           </AnimatePresence>

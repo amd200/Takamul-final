@@ -112,7 +112,7 @@ export default function Login() {
     try {
       await login({ identifier: username, password, deviceIdentifier: getDeviceId() });
       navigate("/");
-    } catch (err: unknown) {
+    } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
         notifyError(err.message);

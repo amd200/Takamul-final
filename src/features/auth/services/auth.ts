@@ -20,7 +20,6 @@ export const login = async (credentials: LoginPayload) => {
   return await httpClient<LoginResponse>("/Auth/login", {
     method: "POST",
     data: credentials,
-    withCredentials:false
   });
 };
 // export const getCategoryClient = (idOrSlug: string | number) =>

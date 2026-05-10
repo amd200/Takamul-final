@@ -34,8 +34,6 @@ export const useLogin = () => {
 
       const decoded = jwtDecode<AppJwtPayload>(token);
 
-      const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-      const role = Array.isArray(roleClaim) ? roleClaim[0] : roleClaim || "";
       setAuth(token, expiresAt, decoded?.Permission, decoded?.UserId, decoded?.email, decoded?.username, decoded?.BranchId, decoded?.ShiftId);
     },
 

@@ -17,6 +17,7 @@ import { useCreateBranch } from "@/features/Branches/hooks/Usecreatebranch";
 import { useUpdateBranch } from "@/features/Branches/hooks/Useupdatebranch";
 import { useGetBranchById } from "@/features/Branches/hooks/Usegetbranchbyid";
 import z from "zod";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -673,10 +674,22 @@ export default function AddBranch() {
                   <Controller
                     name="LocationAddress"
                     control={control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>العنوان</FieldLabel>
-                        <textarea {...field} placeholder="أدخل العنوان بالتفصيل..." rows={3} readOnly={isViewMode} className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] resize-none disabled:bg-gray-50" />
+                    render={({ field }) => (
+                      <Field>
+                        <FieldLabel>{t("short_address") || "العنوان المختصر"}</FieldLabel>
+                        <InputOTP dir="rtl" maxLength={8} value={field.value ?? ""} onChange={field.onChange} disabled={isViewMode}>
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                            <InputOTPSlot index={6} />
+                            <InputOTPSlot index={7} />
+                            <InputOTPSlot index={8} />
+                          </InputOTPGroup>
+                        </InputOTP>
                       </Field>
                     )}
                   />

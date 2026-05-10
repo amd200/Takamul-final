@@ -7,7 +7,7 @@ import { saveAs } from "file-saver";
 // =============================================
 // PDF Export - للتقارير (جداول وكشوفات)
 // =============================================
-export const exportCustomPDF = async (title: string, htmlString: string, orientation: "portrait" | "landscape" = "portrait", width: number = 794) => {
+export const exportCustomPDF = async (title: string, htmlString: string, orientation: "portrait" | "landscape" = "portrait", width: number = 794): Promise<Blob> => {
   const iframe = document.createElement("iframe");
   Object.assign(iframe.style, {
     position: "fixed",
@@ -64,17 +64,95 @@ export const exportCustomPDF = async (title: string, htmlString: string, orienta
     pageCount++;
   }
 
-  const blob = pdf.output("blob");
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${title}_${Date.now()}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return pdf.output("blob");
 };
 
+export const generatePDFBlob = async (htmlString: string, orientation: "portrait" | "landscape" = "portrait", width: number = 794): Promise<Blob> => {
+  const iframe = document.createElement("iframe");
+
+  try {
+    Object.assign(iframe.style, {
+      position: "fixed",
+      top: "-9999px",
+      left: "-9999px",
+      width: `${width}px`,
+      height: "2000px",
+      border: "none",
+      visibility: "hidden",
+      pointerEvents: "none",
+      zIndex: "-1",
+    });
+
+    document.body.appendChild(iframe);
+
+    await new Promise<void>((resolve) => {
+      iframe.onload = () => resolve();
+
+      iframe.srcdoc = injectPrintCSS(htmlString);
+    });
+
+    const iframeDoc = iframe.contentDocument;
+
+    if (!iframeDoc) {
+      throw new Error("Failed to access iframe document");
+    }
+
+    if (iframeDoc.fonts?.ready) {
+      await iframeDoc.fonts.ready;
+    }
+
+    await waitForImages(iframeDoc);
+
+    await new Promise((r) => setTimeout(r, 300));
+
+    const iframeBody = iframeDoc.body;
+
+    const actualHeight = iframeBody.scrollHeight;
+
+    iframe.style.height = `${actualHeight}px`;
+
+    const canvas = await html2canvas(iframeBody, {
+      scale: window.devicePixelRatio > 1 ? 2 : 1,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      windowWidth: width,
+      width,
+      height: actualHeight,
+    });
+
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+    const pdf = new jsPDF({
+      orientation,
+      unit: "px",
+      format: "a4",
+      compress: true,
+    });
+
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+
+    const imgH = (canvas.height * pdfW) / canvas.width;
+
+    let yPos = 0;
+
+    while (yPos < imgH) {
+      if (yPos > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(imgData, "JPEG", 0, -yPos, pdfW, imgH, undefined, "FAST");
+
+      yPos += pdfH;
+    }
+
+    return pdf.output("blob");
+  } finally {
+    iframe.remove();
+  }
+};
 // =============================================
 // Print Voucher - سند قبض / صرف (ورقة واحدة A4)
 // =============================================
@@ -125,8 +203,6 @@ export const printVoucher = (htmlString: string): void => {
     visibility: "hidden",
   });
 
-
-
   document.body.appendChild(iframe);
 
   const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
@@ -149,9 +225,9 @@ export const printVoucher = (htmlString: string): void => {
   };
 
   const fontsReady = (doc as any).fonts?.ready || Promise.resolve();
-  
+
   // Timeout for the whole preparation (fonts + images)
-  const timeoutPromise = new Promise(r => setTimeout(r, 1500));
+  const timeoutPromise = new Promise((r) => setTimeout(r, 1500));
 
   Promise.race([fontsReady, timeoutPromise]).then(triggerPrint);
 };
@@ -711,20 +787,11 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
   const tableRows = lines
     .map((row, i) => {
       const type = row.operationType || row.type;
-      const typeTranslated =
-        type === "Add" || type === "IN"
-          ? t("add", "إضافة")
-          : type === "Remove" || type === "remove" || type === "OUT"
-          ? t("remove_minus", "طرح")
-          : t(type?.toLowerCase() || "", type || "-");
-          
+      const typeTranslated = type === "Add" || type === "IN" ? t("add", "إضافة") : type === "Remove" || type === "remove" || type === "OUT" ? t("remove_minus", "طرح") : t(type?.toLowerCase() || "", type || "-");
+
       const afterQty = row.quantityAfter !== undefined && row.quantityAfter !== 0 ? row.quantityAfter : Number(row.quantity || 0);
       const opQty = Number(row.quantityChanged || 0);
-      const beforeQty = row.quantityBefore !== undefined && row.quantityBefore !== 0 
-        ? row.quantityBefore 
-        : (type === "Add" || type === "IN") 
-          ? afterQty - opQty 
-          : afterQty + opQty;
+      const beforeQty = row.quantityBefore !== undefined && row.quantityBefore !== 0 ? row.quantityBefore : type === "Add" || type === "IN" ? afterQty - opQty : afterQty + opQty;
 
       return `
       <tr>
@@ -1060,7 +1127,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
   let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
   if (!dateVal) {
     for (const key in order) {
-      if (key.toLowerCase().includes('date') && order[key]) {
+      if (key.toLowerCase().includes("date") && order[key]) {
         dateVal = order[key];
         break;
       }
@@ -1071,10 +1138,10 @@ export const getStockReceiptHTML = (order: any, t: any) => {
   if (dateVal) {
     if (dateVal instanceof Date) {
       formattedDate = dateVal.toLocaleDateString("en-GB"); // ✅ English date
-    } else if (typeof dateVal === 'string') {
-      const cleanDate = dateVal.split(' ')[0].split('T')[0];
+    } else if (typeof dateVal === "string") {
+      const cleanDate = dateVal.split(" ")[0].split("T")[0];
       formattedDate = cleanDate;
-      const p = cleanDate.includes('/') ? cleanDate.split('/') : cleanDate.includes('-') ? cleanDate.split('-') : [];
+      const p = cleanDate.includes("/") ? cleanDate.split("/") : cleanDate.includes("-") ? cleanDate.split("-") : [];
       if (p.length === 3) {
         const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
         if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("en-GB"); // ✅ English date
@@ -1278,15 +1345,15 @@ export const getStockReceiptHTML = (order: any, t: any) => {
     </div>
     
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.nameEn || "-" }</div>
+      <div class="company-title">${order.branchInfo?.nameEn || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo  }</div>
+        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo}</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("issue", "إصدار")}</div>
-        <div class="meta-value" style="font-size: 7.5px;">${formattedDate} | ${new Date().toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}</div>
+        <div class="meta-value" style="font-size: 7.5px;">${formattedDate} | ${new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</div>
         <div class="meta-label-en">Release D/T</div>
       </div>
     </div>
@@ -1308,7 +1375,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
       <div class="v-separator"></div>
       <div class="info-group">
         <span class="info-label">${t("phone", "رقم الجوال")} :</span>
-        <span class="info-val">${order.customerPhone && order.customerPhone !== '-' ? order.customerPhone : "-"}</span>
+        <span class="info-val">${order.customerPhone && order.customerPhone !== "-" ? order.customerPhone : "-"}</span>
       </div>
     </div>
   </div>
