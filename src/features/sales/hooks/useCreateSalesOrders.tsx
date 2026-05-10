@@ -18,10 +18,11 @@ export function useCreateSalesOrders() {
       console.log(response);
       queryClient.invalidateQueries({ queryKey: salesKeys.all });
       queryClient.invalidateQueries({ queryKey: shiftsKeys.all });
-      notifySuccess(response?.message)
+      notifySuccess(response?.message);
     },
-       onError: (error) => handleApiError(error, notifyError),
-
-   
+    onError: (error) => {
+      console.log(error);
+      return  handleApiError(error, notifyError);
+    },
   });
 }

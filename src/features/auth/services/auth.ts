@@ -17,10 +17,11 @@ export const logout = () =>
   });
 
 export const login = async (credentials: LoginPayload) => {
-  const response = await apiClient.post<LoginResponse>("/Auth/login", credentials, {
-    skipAuthRefresh: true,
-  } as AxiosAuthRefreshRequestConfig);
-  return response.data;
+  return await httpClient<LoginResponse>("/Auth/login", {
+    method: "POST",
+    data: credentials,
+    withCredentials:false
+  });
 };
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);

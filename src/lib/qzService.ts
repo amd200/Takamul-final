@@ -72,10 +72,12 @@ async function printToPrinter(html: string, printerName: string) {
   const config = qz.configs.create(printer, {
     copies: 1,
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
-    scaleContent: true,
-    rasterize: true,
-    size: { width: 80 },
+    scaleContent: false,
+    rasterize: true, 
+    size: { width: 80, height: null },
     units: "mm",
+    density: 203, 
+    colorType: "blackwhite",
   });
 
   await qz.print(config, [
@@ -84,7 +86,9 @@ async function printToPrinter(html: string, printerName: string) {
       format: "html",
       flavor: "plain",
       data: html,
-      options: { altFontRendering: true },
+      options: {
+        altFontRendering: true, 
+      },
     },
   ]);
 }

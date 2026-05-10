@@ -24,6 +24,7 @@ import { calcVat } from "@/utils/calcVat";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
 import z from "zod";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { ApiError } from "@/lib/ApiError";
 
 const SalesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -267,38 +268,40 @@ const CreateSalesInvoice: React.FC = () => {
   };
 
   const handleSubmit = async (data: SalesInvoiceType) => {
-    const payload: CreateSalesOrder = {
-      customerId: data.customerId,
-      warehouseId: data.warehouseId,
-      notes: data.notes || "",
-      description: "",
-      globalDiscountPercentage: data.invoiceDiscountType === "percentage" ? (data.invoiceDiscountValue ?? 0) : 0,
-      globalDiscountValue: data.invoiceDiscountType === "fixed" ? (data.invoiceDiscountValue ?? 0) : 0,
-      items: data.items.map((item) => {
-        const product = products?.items?.find((p) => p.id === Number(item.productId));
-        const price = item?.price || 0;
-        const taxCalc = product?.taxCalculation ?? 0;
-        const taxPercentage = product?.taxPercentage || 0;
-        const unitPrice = taxCalc === 1 ? price : isExempt && taxCalc === 3 ? price / (1 + taxPercentage / 100) : price / (1 + taxPercentage / 100);
-        return {
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: unitPrice,
-          discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
-          discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
-        };
-      }),
-      payments: data.payments.map((p) => ({
-        amount: p.amount,
-        treasuryId: p.treasuryId,
-        paymentMethod: "Cash",
-        notes: "",
-      })),
-    };
+    try {
+      const payload: CreateSalesOrder = {
+        customerId: data.customerId,
+        warehouseId: data.warehouseId,
+        notes: data.notes || "",
+        description: "",
+        globalDiscountPercentage: data.invoiceDiscountType === "percentage" ? (data.invoiceDiscountValue ?? 0) : 0,
+        globalDiscountValue: data.invoiceDiscountType === "fixed" ? (data.invoiceDiscountValue ?? 0) : 0,
+        items: data.items.map((item) => {
+          const product = products?.items?.find((p) => p.id === Number(item.productId));
+          const price = item?.price || 0;
+          const taxCalc = product?.taxCalculation ?? 0;
+          const taxPercentage = product?.taxPercentage || 0;
+          const unitPrice = taxCalc === 1 ? price : isExempt && taxCalc === 3 ? price / (1 + taxPercentage / 100) : price / (1 + taxPercentage / 100);
+          return {
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: unitPrice,
+            discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
+            discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
+          };
+        }),
+        payments: data.payments.map((p) => ({
+          amount: p.amount,
+          treasuryId: p.treasuryId,
+          paymentMethod: "Cash",
+          notes: "",
+        })),
+      };
 
-    await createSalesOrders(payload);
-    form.reset();
-    navigate("/sales/a4-invoices");
+      await createSalesOrders(payload);
+      form.reset();
+      navigate("/sales/a4-invoices");
+    } catch (error) {}
   };
 
   const allowPriceChangeOnSale = useSettingsStore((s) => s.settings?.items?.allowPriceChangeOnSale);

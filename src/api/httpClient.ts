@@ -1,5 +1,6 @@
 import axios from "axios";
 import { apiClient } from "./client";
+import { ApiError } from "@/lib/ApiError";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type HttpClientOptions = {
@@ -28,7 +29,11 @@ export async function httpClient<T>(url: string, options?: HttpClientOptions): P
     return response.data as T;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw error.response?.data ?? new Error("حدث خطأ أثناء الاتصال بالسيرفر");
+      const data = error.response?.data;
+      const message = data?.message  || "حدث خطأ أثناء الاتصال بالسيرفر";
+      const status = error.response?.status ?? 500;
+
+      throw new ApiError(message, status, data?.code, data?.errors);
     }
 
     if (error instanceof Error) {

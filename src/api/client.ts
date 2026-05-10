@@ -46,7 +46,7 @@ apiClient.interceptors.response.use(
   async (err) => {
     const originalRequest = err.config;
 
-    const isAuthRoute = originalRequest.url?.includes("/Auth/login") || originalRequest.url?.includes("/Auth/register") || originalRequest.url?.includes("/Auth/refresh-token");
+    const isAuthRoute = originalRequest.url?.includes("/Auth/login") || originalRequest.url?.includes("/Auth/refresh-token");
 
     if (isAuthRoute) return Promise.reject(err);
 
