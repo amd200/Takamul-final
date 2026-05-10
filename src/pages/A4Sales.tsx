@@ -193,6 +193,7 @@ export default function A4Sales() {
   );
   const phoneNumberId = useSettingsStore((state) => state.settings.whatsApp.whatsAppPhoneNumberId);
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
+  
   const statusBodyTemplate = useCallback(
     (rowData: SalesOrder) => {
       const isActive = rowData?.orderStatus == "Confirmed";
