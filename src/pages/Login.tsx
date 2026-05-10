@@ -227,7 +227,7 @@ export default function Login() {
             {error && <p className="text-sm text-red-500 py-1 text-center">{error}</p>}
 
             {isDeviceConflict && (
-              <button type="button" onClick={handleLogoutAllDevices} disabled={logoutAllLoading} className="w-full text-xs font-medium text-[#4b5563] dark:text-white cursor-pointer hover:text-red-600 underline underline-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <button type="button" onClick={handleLogoutAllDevices} disabled={logoutAllLoading} className="w-full text-xs font-medium text-[#4b5563]! dark:text-white cursor-pointer underline underline-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {logoutAllLoading ? <span className="inline-block w-4 h-4 border-2 border-red-400/30 border-t-red-500 rounded-full animate-spin" /> : t.logoutAll}
               </button>
             )}
