@@ -9,7 +9,7 @@ import { localizeAuthError, AUTH_API_BASE } from '@/lib/utils';
 
 import { Input } from "@/components/ui/input";
 
-const AUTH_API = `${AUTH_API_BASE}/api/Auth`;
+const AUTH_API = `${AUTH_API_BASE}/Auth`;
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
