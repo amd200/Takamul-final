@@ -18,11 +18,11 @@ const ProtectedRoute = () => {
     }
     const timer = setTimeout(() => clearAuth(), timeout);
     return () => clearTimeout(timer);
-  }, [token, expiresAt, clearAuth]); 
+  }, [token, expiresAt, clearAuth]);
 
   if (!isInitialized) return null;
 
-  if (!token || isExpired()) return <Navigate to="/" replace />;
+  if (!token || isExpired()) return <Navigate to="/login" replace />;
 
   return <Outlet />;
 };
