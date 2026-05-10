@@ -27,7 +27,7 @@ import { useSendWhatsAppTemplate } from "@/features/whatsapp/hooks/useSendTempla
 export default function PosSales() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction, language } = useLanguage();
-  const { printInvoice, exportPDF, exportExcel, exportCSV } = usePrint();
+  const { printInvoice, exportPDF, exportRollPDF, exportExcel, exportCSV } = usePrint();
   const navigate = useNavigate();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -176,7 +176,12 @@ export default function PosSales() {
 
                     <DropdownMenuItem onClick={() => exportPDF(row)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <FileDown size={14} />
-                      {t("download_pdf")}
+                      {t("download_pdf")} (A4)
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => exportRollPDF(row)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
+                      <Printer size={14} />
+                      {t("download_pdf")} (رول)
                     </DropdownMenuItem>
 
                     <DropdownMenuItem onClick={() => exportExcel(row)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">

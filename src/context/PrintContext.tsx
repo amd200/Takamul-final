@@ -27,6 +27,23 @@ const buildInvoiceDateStr = (data: any): string => {
   return raw ? new Date(raw).toLocaleString("en-GB") : new Date().toLocaleString("en-GB");
 };
 
+const getBase64FromUrl = async (url: string): Promise<string | null> => {
+  if (!url) return null;
+  if (url.startsWith("data:")) return url;
+  try {
+    const response = await fetch(url, { mode: "cors" });
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    console.warn("Failed to convert image to base64:", url, e);
+    return null;
+  }
+};
+
 type PrintableData = SalesOrder | Purchase | InvoiceData | Quotation;
 export type PrintType = "invoice" | "stock" | "claim" | "roll" | "quotation" | "purchase";
 
@@ -58,10 +75,11 @@ export type ExtendedData = Partial<SalesOrder & Purchase & Quotation> & {
 
 export interface PrintContextType {
   printInvoice: (data: PrintableData, type?: PrintType) => Promise<void>;
-  printRoll: (data: InvoiceData) => Promise<void>;
-  exportPDF: (data: InvoiceData) => Promise<void>;
-  exportExcel: (data: InvoiceData) => Promise<void>;
-  exportCSV: (data: InvoiceData) => Promise<void>;
+  printRoll: (data: PrintableData) => Promise<void>;
+  exportPDF: (data: PrintableData) => Promise<void>;
+  exportRollPDF: (data: PrintableData) => Promise<void>;
+  exportExcel: (data: PrintableData) => Promise<void>;
+  exportCSV: (data: PrintableData) => Promise<void>;
   generateInvoiceFile: (data: PrintableData) => Promise<File>;
 }
 const PrintContext = createContext<PrintContextType | null>(null);
@@ -73,6 +91,15 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const prepareExtendedData = useCallback(
     async (data: PrintableData): Promise<ExtendedData> => {
       const ext: ExtendedData = { ...(data as any), branchInfo: branchInfo! };
+
+      // Convert branch logo to base64 for better PDF rendering
+      if (ext.branchInfo?.imageUrl) {
+        const base64 = await getBase64FromUrl(ext.branchInfo.imageUrl);
+        if (base64) {
+          ext.branchInfo = { ...ext.branchInfo, imageUrl: base64 };
+        }
+      }
+
       if (ext.customer || ext.supplier) return ext;
       const cId = "customerId" in data || "customerid" in data ? ((data as any).customerId ?? (data as any).customerid) : undefined;
       const sId = "supplierId" in data ? data.supplierId : undefined;
@@ -202,7 +229,34 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     },
-    [prepareExtendedData, t],
+    [prepareExtendedData, t, generateQR],
+  );
+
+  const exportRollPDF = useCallback(
+    async (data: PrintableData) => {
+      const ext = await prepareExtendedData(data);
+      const branch = ext.branchInfo;
+      const thermalData = await buildThermalData(ext, branch);
+      const { useSettingsStore } = await import("@/features/settings/store/settingsStore");
+      const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
+      const isExempt = taxSetting === "Exempt";
+
+      const { getThermalInvoiceHTML } = await import("@/components/pos/orders/printInvoice");
+      const html = await getThermalInvoiceHTML(thermalData, isExempt);
+
+      const title = `Receipt_${thermalData.invoiceNumber || (ext as any).id}`;
+      const blob = await generatePDFBlob(html, "portrait", 302);
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${title}_${Date.now()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    },
+    [prepareExtendedData, buildThermalData],
   );
 
   const exportExcel = useCallback(
@@ -263,7 +317,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     [prepareExtendedData, t, generateQR],
   );
 
-  return <PrintContext.Provider value={{ printInvoice, printRoll, exportPDF, exportExcel, exportCSV, generateInvoiceFile }}>{children}</PrintContext.Provider>;
+  return <PrintContext.Provider value={{ printInvoice, printRoll, exportPDF, exportRollPDF, exportExcel, exportCSV, generateInvoiceFile }}>{children}</PrintContext.Provider>;
 };
 
 export const usePrint = () => useContext(PrintContext);

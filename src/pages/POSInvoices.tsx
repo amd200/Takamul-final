@@ -47,7 +47,7 @@ const mockSales: SaleRecord[] = [
 
 export default function POSSales() {
   const { t, direction } = useLanguage();
-  const { printInvoice, exportPDF, exportExcel, exportCSV } = usePrint();
+  const { printInvoice, exportPDF, exportRollPDF, exportExcel, exportCSV } = usePrint();
   const navigate = useNavigate();
 
   // الحماية من الـ Context الفارغ
@@ -455,7 +455,16 @@ export default function POSSales() {
                                 }}
                                 className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                               >
-                                <Download size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تحميل بصيغة PDF</span>
+                                <Download size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تحميل بصيغة PDF (A4)</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  exportRollPDF(sale);
+                                  setActiveActionMenu(null);
+                                }}
+                                className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
+                              >
+                                <Printer size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تحميل بصيغة PDF (رول)</span>
                               </button>
                               {/* 10 */}
                               <button

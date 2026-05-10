@@ -4,7 +4,6 @@ import { Supplier } from "@/features/suppliers/types/suppliers.types";
 import QRCode from "qrcode/lib/browser.js";
 import { printInvoicePrinter } from "@/lib/qzService";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
-import { exportCustomPDF } from "@/utils/customExportUtils";
 
 export interface InvoiceItem {
   productName: string;
@@ -33,24 +32,32 @@ export interface InvoiceData {
 
 export type PrintMethod = "qz" | "browser";
 
-export async function printInvoice(data: InvoiceData, method: PrintMethod = "qz"): Promise<void> {
-  const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
+/**
+ * Generates the HTML for the thermal invoice.
+ * Extracted from printInvoice to allow reuse in PDF export.
+ */
+export async function getThermalInvoiceHTML(data: InvoiceData, isExempt: boolean): Promise<string> {
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
   const riyal = `ر.س`;
-  const qrImageSrc = data?.qrCode ? await QRCode.toDataURL(data?.qrCode) : null;
-  const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
-  const isExempt = taxSetting === "Exempt";
+  const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
   const custAddress = [data?.branch?.cityName, data?.branch?.stateName, data?.branch?.district, data?.branch?.street].filter(Boolean).join(" / ") || "-";
-  const fontBase64 = await fetch("/fonts/Rubik-Bold.ttf")
-    .then((r) => r.arrayBuffer())
-    .then((buf) => {
-      const bytes = new Uint8Array(buf);
-      let binary = "";
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
-    });
+  const qrImageSrc = data?.qrCode ? await QRCode.toDataURL(data?.qrCode) : null;
+
+  // Load font as Base64 to ensure it works in PDF exports and different environments
+  let fontBase64 = "";
+  try {
+    const response = await fetch("/fonts/Rubik-Bold.ttf");
+    const buf = await response.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    fontBase64 = btoa(binary);
+  } catch (err) {
+    console.error("Failed to load font for thermal invoice:", err);
+  }
+
   const itemRows = data.items
     .map(
       (item) => `
@@ -58,13 +65,13 @@ export async function printInvoice(data: InvoiceData, method: PrintMethod = "qz"
         <td class="td-name">${item.productName ?? ""}</td>
         <td>${item.quantity ?? 0}</td>
         <td>${fmt(item.unitPrice)}</td>
-        ${!isExempt && `<td>${fmt(item.taxAmount)}</td> `}
+        ${!isExempt ? `<td>${fmt(item.taxAmount)}</td> ` : ""}
         <td>${fmt(item.total)}</td>
       </tr>`,
     )
     .join("");
 
-  const html = `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
@@ -73,7 +80,7 @@ export async function printInvoice(data: InvoiceData, method: PrintMethod = "qz"
 
 @font-face {
   font-family: 'Rubik';
-  src: url('data:font/ttf;base64,${fontBase64}') format('truetype');
+  ${fontBase64 ? `src: url('data:font/ttf;base64,${fontBase64}') format('truetype');` : "src: local('Arial');"}
   font-weight: 700;
 }
 
@@ -186,16 +193,12 @@ html, body {
   font-size: 6pt; 
   font-weight: 900; 
   color: #000;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
 }
 .items-table thead tr th .th-en { 
   display: block; 
   font-size: 5pt; 
   font-weight: 900; 
   color: #000;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
 }
 
 .items-table td {
@@ -250,11 +253,6 @@ html, body {
   font-weight: 900;
 }
 
-// .totals-table tr:last-child td {
-//   font-size: 8pt;
-//   font-weight: 900;
-// }
-
 /* ── FOOTER ROWS ── */
 .frow {
   border: 2px solid #000;
@@ -283,16 +281,6 @@ html, body {
   font-weight: 700;
   padding: 4px 6px;
   min-height: 20px;
-}
-
-/* notes header - bold centered */
-.notes-header {
-  border: 2px solid #000;
-  border-top: none;
-  text-align: center;
-  font-size: 9pt;
-  font-weight: 900;
-  padding: 6px 4px;
 }
 
 /* ── QR ── */
@@ -324,56 +312,44 @@ html, body {
 
   <!-- LOGO -->
   <div class="logo">
-    ${data?.branch?.imageUrl ? `<img src="${data?.branch?.imageUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
+    ${data?.branch?.imageUrl ? `<img src="${data?.branch?.imageUrl}" alt="logo" crossOrigin="anonymous"/>` : `<span>اللوجو</span>`}
   </div>
 
   <!-- HEADER INFO ROWS -->
   <div class="header-wrap">
-
-    <!-- Institution: AR right | EN left -->
     <div class="hrow inst-row">
-  <span class="h-ar" style="flex:1; text-align:center;">${data?.branch?.name}</span>
-</div>
-    <!-- VAT NO: AR | value | EN -->
- 
+      <span class="h-ar" style="flex:1; text-align:center;">${data?.branch?.name}</span>
+    </div>
 
-    <!-- Simplified Tax Invoice -->
     <div class="hrow">
       <span class="h-ar">${data?.customer.taxNumber ? "فاتورة ضريبية" : "فاتورة ضريبية مبسطة"}</span>
       <span class="h-val"></span>
       <span class="h-en">${data?.customer?.taxNumber ? "Tax Invoice" : "Simplified Tax Invoice"}</span>
     </div>
 
-    <!-- INV NO -->
     <div class="hrow">
       <span class="h-ar">رقم الفاتورة</span>
       <span class="h-val">${data.invoiceNumber}</span>
       <span class="h-en">INV NO</span>
     </div>
 
-    <!-- Date / Time -->
- <div class="hrow date-row">
-  <span class="h-ar">الوقت / التاريخ</span>
-  <span class="h-val">${data.invoiceDate}</span>
-  <span class="h-en">Date / Time</span>
-</div>
+    <div class="hrow date-row">
+      <span class="h-ar">الوقت / التاريخ</span>
+      <span class="h-val">${data.invoiceDate}</span>
+      <span class="h-en">Date / Time</span>
+    </div>
 
-    <!-- Customer Name -->
     <div class="hrow">
       <span class="h-ar">اسم العميل</span>
       <span class="h-val">${data.customer?.customerName ?? "—"}</span>
       <span class="h-en">Cust Name</span>
     </div>
 
-    <!-- Phone No -->
     <div class="hrow">
       <span class="h-ar">رقم الجوال</span>
       <span class="h-val">${data.customer?.phone ?? "—"}</span>
       <span class="h-en">Phone No</span>
     </div>
-
-   
-
   </div>
 
   <!-- ITEMS TABLE -->
@@ -383,14 +359,14 @@ html, body {
         <th><span class="th-ar">بيان الصنف</span><span class="th-en">Item Des</span></th>
         <th><span class="th-ar">الكمية</span><span class="th-en">QTY</span></th>
         <th><span class="th-ar">الإجمالي الفرعي</span><span class="th-en">Sub Total</span></th>
-        ${!isExempt && `<th><span class="th-ar">الضريبة</span><span class="th-en">VAT Amount</span></th>`}
+        ${!isExempt ? `<th><span class="th-ar">الضريبة</span><span class="th-en">VAT Amount</span></th>` : ""}
         <th><span class="th-ar">الإجمالي النهائي</span><span class="th-en">Net Total</span></th>
       </tr>
     </thead>
     <tbody>${itemRows}</tbody>
   </table>
 
-  <!-- TOTALS TABLE: AR right | value center | EN left -->
+  <!-- TOTALS TABLE -->
   <table class="totals-table">
     <tr>
       <td class="t-ar">عدد المنتجات</td>
@@ -434,18 +410,15 @@ html, body {
     </tr>
   </table>
 
-  <!-- FOOTER: Phone -->
+  <!-- FOOTER -->
   <div class="frow">
     <span class="f-ar">رقم الجوال</span>
     <span class="f-val">${data.branch?.phone || "—"}</span>
     <span class="f-en">Phone NO</span>
   </div>
 
-  <!-- FOOTER: Address -->
   <div class="addr-row">${custAddress || "—"}</div>
 
-  <!-- FOOTER: Notes -->
-  
   <div class="notes-content" style="border:2px solid #000; border-top:none; text-align:center; font-size:8pt; padding:8px 4px; font-weight:700;">
     ${data.notes || "—"}
   </div>
@@ -455,14 +428,21 @@ html, body {
     !isExempt
       ? `
     <div class="qr-wrap">
-      ${qrImageSrc && `<img src="${qrImageSrc}" alt="QR" />`}
-  </div>`
+      ${qrImageSrc ? `<img src="${qrImageSrc}" alt="QR" />` : ""}
+    </div>`
       : ""
   }
 
 </div>
 </body>
 </html>`;
+}
+
+export async function printInvoice(data: InvoiceData, method: PrintMethod = "qz"): Promise<void> {
+  const taxSetting = useSettingsStore.getState().settings.taxSetting?.taxSetting;
+  const isExempt = taxSetting === "Exempt";
+
+  const html = await getThermalInvoiceHTML(data, isExempt);
 
   if (method === "browser") {
     const win = window.open("", "_blank", "width=440,height=980");
@@ -494,5 +474,3 @@ html, body {
     };
   }
 }
-
-
